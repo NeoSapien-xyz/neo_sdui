@@ -3,28 +3,28 @@ import 'package:flutter/widgets.dart';
 import '../model/block_node.dart';
 import '../theme/neo_sdui_scope.dart';
 
-/// callout: optional title + bullet list. `severity` is a wire token; the theme
-/// currently exposes one callout treatment, so all severities share it.
-// ponytail: add per-severity theme slots if design splits info/warn/critical.
+/// callout: optional title + bullet list. Surface derived from `tone`
+/// (default/accent/critical); text is the on-surface role.
 Widget buildCallout(BuildContext context, BlockNode node) {
   final theme = NeoSduiScope.of(context).theme;
   final title = node.stringOr('title');
+  final text = theme.body.copyWith(color: theme.onSurface);
   final bullets =
       (node.fields['bullets'] as List?)?.whereType<String>().toList() ??
           const <String>[];
   return DecoratedBox(
     decoration: BoxDecoration(
-      color: theme.calloutBackground,
-      borderRadius: BorderRadius.circular(12),
+      color: theme.toneSurface(node.stringOr('tone')),
+      borderRadius: theme.radiusMd,
     ),
     child: Padding(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(theme.spaceMd),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (title != null) ...[
-            Text(title, style: theme.calloutText),
-            const SizedBox(height: 8),
+            Text(title, style: text),
+            SizedBox(height: theme.spaceSm),
           ],
           for (final b in bullets)
             Padding(
@@ -32,8 +32,8 @@ Widget buildCallout(BuildContext context, BlockNode node) {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('•  ', style: theme.calloutText),
-                  Expanded(child: Text(b, style: theme.calloutText)),
+                  Text('•  ', style: text),
+                  Expanded(child: Text(b, style: text)),
                 ],
               ),
             ),

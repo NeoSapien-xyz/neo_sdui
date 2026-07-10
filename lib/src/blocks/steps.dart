@@ -22,17 +22,18 @@ Widget buildSteps(BuildContext context, BlockNode node) {
 }
 
 Widget _item(NeoSduiTheme theme, int n, Map<String, Object?> item) {
+  final index = theme.body.copyWith(color: theme.accent, fontWeight: FontWeight.w600);
   Widget caption;
   try {
-    caption = Text(item['caption']! as String, style: theme.stepCaption);
+    caption = Text(item['caption']! as String, style: theme.body);
   } catch (_) {
     // Bad item -> keep the number, show a placeholder, keep numbering intact.
-    caption = Text('—', key: const Key('step-error'), style: theme.stepCaption);
+    caption = Text('—', key: const Key('step-error'), style: theme.body);
   }
   return Row(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      Text('$n', style: theme.stepIndex),
+      Text('$n', style: index),
       const SizedBox(width: 12),
       Expanded(child: caption),
     ],

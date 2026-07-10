@@ -33,9 +33,9 @@ Widget buildGroup(BuildContext context, BlockNode node) {
   final scope = NeoSduiScope.of(context);
   final theme = scope.theme;
   return DecoratedBox(
-    decoration: BoxDecoration(color: theme.cardColor, borderRadius: theme.cardRadius),
+    decoration: BoxDecoration(color: theme.surface, borderRadius: theme.radiusLg),
     child: Padding(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(theme.spaceMd),
       child: _stack(scope.buildBlocks(node.nodeList('children')), theme.blockSpacing),
     ),
   );

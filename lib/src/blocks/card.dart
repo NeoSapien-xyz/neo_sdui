@@ -12,19 +12,23 @@ Widget buildCard(BuildContext context, BlockNode node) {
   final thumb = node.stringOr('thumb');
   final subtitle = node.stringOr('subtitle');
   final action = node.stringOr('action');
+  final titleStyle = theme.body.copyWith(
+    color: theme.onSurface,
+    fontWeight: FontWeight.w500,
+  );
 
   final row = Row(
     children: [
       if (thumb != null) ...[
         ClipRRect(
-          borderRadius: theme.cardRadius,
+          borderRadius: theme.radiusMd,
           child: SizedBox(
             width: 48,
             height: 48,
             child: Image.network(
               thumb,
               fit: BoxFit.cover,
-              errorBuilder: (_, _, _) => ColoredBox(color: theme.cardColor),
+              errorBuilder: (_, _, _) => ColoredBox(color: theme.surface),
             ),
           ),
         ),
@@ -34,17 +38,17 @@ Widget buildCard(BuildContext context, BlockNode node) {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(node.stringOr('title', '')!, style: theme.cardTitle),
-            if (subtitle != null) Text(subtitle, style: theme.cardSubtitle),
+            Text(node.stringOr('title', '')!, style: titleStyle),
+            if (subtitle != null) Text(subtitle, style: theme.caption),
           ],
         ),
       ),
-      if (action != null) Text('›', style: theme.cardTitle),
+      if (action != null) Text('›', style: titleStyle),
     ],
   );
 
   final card = DecoratedBox(
-    decoration: BoxDecoration(color: theme.cardColor, borderRadius: theme.cardRadius),
+    decoration: BoxDecoration(color: theme.surface, borderRadius: theme.radiusLg),
     child: Padding(padding: const EdgeInsets.all(12), child: row),
   );
 

@@ -1,33 +1,31 @@
 import 'package:flutter/widgets.dart';
 
-/// All styling, supplied by the app via the renderer constructor. Wire carries
-/// no pixels; swap this object (e.g. neo_ui) to re-skin every guide.
+/// The look authority (a HostConfig analog). A small role palette + type scale +
+/// derivation helpers. Blocks read roles and let this compute their look — the
+/// wire never carries pixels. The app builds this from its own AppStyles/
+/// AppColors today; a future neo_ui rebuilds the same palette with the same wire.
 @immutable
 class NeoSduiTheme {
   const NeoSduiTheme({
+    required this.accent,
+    required this.onAccent,
+    required this.surface,
+    required this.onSurface,
+    required this.danger,
+    required this.warning,
     required this.background,
+    required this.textPrimary,
+    required this.textMuted,
     required this.title,
     required this.subtitle,
     required this.body,
-    required this.cardColor,
-    required this.cardTitle,
-    required this.cardSubtitle,
-    required this.cardRadius,
-    required this.ctaLabel,
-    required this.ctaBackground,
-    required this.ctaRadius,
-    required this.calloutText,
-    required this.calloutBackground,
-    required this.stepIndex,
-    required this.stepCaption,
-    required this.stepAccent,
-    required this.faqQuestion,
-    required this.faqAnswer,
-    required this.tabLabel,
-    required this.tabSelected,
-    required this.mediaRadius,
-    required this.shimmerBase,
-    required this.shimmerHighlight,
+    required this.caption,
+    this.radiusSm = const BorderRadius.all(Radius.circular(8)),
+    this.radiusMd = const BorderRadius.all(Radius.circular(12)),
+    this.radiusLg = const BorderRadius.all(Radius.circular(16)),
+    this.spaceSm = 8,
+    this.spaceMd = 16,
+    this.spaceLg = 24,
     this.contentPadding = const EdgeInsets.symmetric(horizontal: 20),
     this.blockSpacing = 24,
     this.motionDuration = const Duration(milliseconds: 200),
@@ -35,104 +33,112 @@ class NeoSduiTheme {
     this.reduceMotion = false,
   });
 
+  // Role colors.
+  final Color accent;
+  final Color onAccent;
+  final Color surface;
+  final Color onSurface;
+  final Color danger;
+  final Color warning;
   final Color background;
+  final Color textPrimary;
+  final Color textMuted;
+
+  // Type scale (colors baked to a sensible default; blocks override for a role).
   final TextStyle title;
   final TextStyle subtitle;
   final TextStyle body;
+  final TextStyle caption;
 
-  final Color cardColor;
-  final TextStyle cardTitle;
-  final TextStyle cardSubtitle;
-  final BorderRadius cardRadius;
-
-  final TextStyle ctaLabel;
-  final Color ctaBackground;
-  final BorderRadius ctaRadius;
-
-  final TextStyle calloutText;
-  final Color calloutBackground;
-
-  final TextStyle stepIndex;
-  final TextStyle stepCaption;
-  final Color stepAccent;
-
-  final TextStyle faqQuestion;
-  final TextStyle faqAnswer;
-
-  final TextStyle tabLabel;
-  final Color tabSelected;
-
-  final BorderRadius mediaRadius;
-  final Color shimmerBase;
-  final Color shimmerHighlight;
-
+  // Scales.
+  final BorderRadius radiusSm;
+  final BorderRadius radiusMd;
+  final BorderRadius radiusLg;
+  final double spaceSm;
+  final double spaceMd;
+  final double spaceLg;
   final EdgeInsets contentPadding;
   final double blockSpacing;
 
-  /// Motion is client-owned: bounded animations only, killable per app.
+  // Motion is client-owned: bounded animations only, killable per app (KTD9).
   final Duration motionDuration;
   final Curve motionCurve;
   final bool reduceMotion;
 
-  /// Neutral dark default for tests/example. Real apps pass their own.
+  // Derivation (KTD11): wire sends emphasis/tone, these turn it into pixels.
+
+  /// Fill behind a cta by emphasis: high=accent, normal=surface, low=none.
+  Color fill(String? emphasis) => switch (emphasis) {
+        'high' => accent,
+        'low' => const Color(0x00000000),
+        _ => surface,
+      };
+
+  /// Foreground on that fill: high=onAccent, normal=onSurface, low=accent.
+  Color onFill(String? emphasis) => switch (emphasis) {
+        'high' => onAccent,
+        'low' => accent,
+        _ => onSurface,
+      };
+
+  /// Callout surface by tone: neutral=surface, accent/critical=tinted.
+  Color toneSurface(String? tone) => switch (tone) {
+        'accent' => Color.alphaBlend(accent.withValues(alpha: 0.16), surface),
+        'critical' => Color.alphaBlend(danger.withValues(alpha: 0.16), surface),
+        _ => surface,
+      };
+
+  /// Body text muted when emphasis is low, else primary.
+  TextStyle bodyEmphasis(String? emphasis) =>
+      emphasis == 'low' ? body.copyWith(color: textMuted) : body;
+
+  Color get shimmerBase => surface;
+  Color get shimmerHighlight =>
+      Color.alphaBlend(onSurface.withValues(alpha: 0.08), surface);
+
+  /// Neutral dark default for tests/example. Real apps pass their own palette.
   factory NeoSduiTheme.fallback() {
     const white = Color(0xFFFFFFFF);
-    const primary = Color(0xFF00F1A0);
     const grey = Color(0xFFB2B2B2);
-    const surface = Color(0xFF202423);
-    const criticalBg = Color(0xFF3A1418);
+    const ink = Color(0xFF0C0F0E);
     const base = TextStyle(color: white, fontSize: 14);
     return NeoSduiTheme(
-      background: const Color(0xFF0C0F0E),
+      accent: const Color(0xFF00F1A0),
+      onAccent: ink,
+      surface: const Color(0xFF202423),
+      onSurface: white,
+      danger: const Color(0xFFFF5A5F),
+      warning: const Color(0xFFFFD166),
+      background: ink,
+      textPrimary: white,
+      textMuted: grey,
       title: base.copyWith(fontSize: 22, fontWeight: FontWeight.w600),
       subtitle: base.copyWith(fontSize: 14, color: grey),
       body: base.copyWith(fontSize: 15),
-      cardColor: surface,
-      cardTitle: base.copyWith(fontSize: 16, fontWeight: FontWeight.w500),
-      cardSubtitle: base.copyWith(fontSize: 13, color: grey),
-      cardRadius: BorderRadius.circular(16),
-      ctaLabel: base.copyWith(fontWeight: FontWeight.w500),
-      ctaBackground: surface,
-      ctaRadius: BorderRadius.circular(12),
-      calloutText: base.copyWith(fontSize: 14),
-      calloutBackground: criticalBg,
-      stepIndex: base.copyWith(fontWeight: FontWeight.w600, color: primary),
-      stepCaption: base.copyWith(fontSize: 15),
-      stepAccent: primary,
-      faqQuestion: base.copyWith(fontSize: 15, fontWeight: FontWeight.w500),
-      faqAnswer: base.copyWith(fontSize: 14, color: grey),
-      tabLabel: base.copyWith(fontSize: 14),
-      tabSelected: primary,
-      mediaRadius: BorderRadius.circular(12),
-      shimmerBase: surface,
-      shimmerHighlight: const Color(0xFF2C302F),
+      caption: base.copyWith(fontSize: 13, color: grey),
     );
   }
 
   NeoSduiTheme copyWith({
+    Color? accent,
+    Color? onAccent,
+    Color? surface,
+    Color? onSurface,
+    Color? danger,
+    Color? warning,
     Color? background,
+    Color? textPrimary,
+    Color? textMuted,
     TextStyle? title,
     TextStyle? subtitle,
     TextStyle? body,
-    Color? cardColor,
-    TextStyle? cardTitle,
-    TextStyle? cardSubtitle,
-    BorderRadius? cardRadius,
-    TextStyle? ctaLabel,
-    Color? ctaBackground,
-    BorderRadius? ctaRadius,
-    TextStyle? calloutText,
-    Color? calloutBackground,
-    TextStyle? stepIndex,
-    TextStyle? stepCaption,
-    Color? stepAccent,
-    TextStyle? faqQuestion,
-    TextStyle? faqAnswer,
-    TextStyle? tabLabel,
-    Color? tabSelected,
-    BorderRadius? mediaRadius,
-    Color? shimmerBase,
-    Color? shimmerHighlight,
+    TextStyle? caption,
+    BorderRadius? radiusSm,
+    BorderRadius? radiusMd,
+    BorderRadius? radiusLg,
+    double? spaceSm,
+    double? spaceMd,
+    double? spaceLg,
     EdgeInsets? contentPadding,
     double? blockSpacing,
     Duration? motionDuration,
@@ -140,29 +146,25 @@ class NeoSduiTheme {
     bool? reduceMotion,
   }) {
     return NeoSduiTheme(
+      accent: accent ?? this.accent,
+      onAccent: onAccent ?? this.onAccent,
+      surface: surface ?? this.surface,
+      onSurface: onSurface ?? this.onSurface,
+      danger: danger ?? this.danger,
+      warning: warning ?? this.warning,
       background: background ?? this.background,
+      textPrimary: textPrimary ?? this.textPrimary,
+      textMuted: textMuted ?? this.textMuted,
       title: title ?? this.title,
       subtitle: subtitle ?? this.subtitle,
       body: body ?? this.body,
-      cardColor: cardColor ?? this.cardColor,
-      cardTitle: cardTitle ?? this.cardTitle,
-      cardSubtitle: cardSubtitle ?? this.cardSubtitle,
-      cardRadius: cardRadius ?? this.cardRadius,
-      ctaLabel: ctaLabel ?? this.ctaLabel,
-      ctaBackground: ctaBackground ?? this.ctaBackground,
-      ctaRadius: ctaRadius ?? this.ctaRadius,
-      calloutText: calloutText ?? this.calloutText,
-      calloutBackground: calloutBackground ?? this.calloutBackground,
-      stepIndex: stepIndex ?? this.stepIndex,
-      stepCaption: stepCaption ?? this.stepCaption,
-      stepAccent: stepAccent ?? this.stepAccent,
-      faqQuestion: faqQuestion ?? this.faqQuestion,
-      faqAnswer: faqAnswer ?? this.faqAnswer,
-      tabLabel: tabLabel ?? this.tabLabel,
-      tabSelected: tabSelected ?? this.tabSelected,
-      mediaRadius: mediaRadius ?? this.mediaRadius,
-      shimmerBase: shimmerBase ?? this.shimmerBase,
-      shimmerHighlight: shimmerHighlight ?? this.shimmerHighlight,
+      caption: caption ?? this.caption,
+      radiusSm: radiusSm ?? this.radiusSm,
+      radiusMd: radiusMd ?? this.radiusMd,
+      radiusLg: radiusLg ?? this.radiusLg,
+      spaceSm: spaceSm ?? this.spaceSm,
+      spaceMd: spaceMd ?? this.spaceMd,
+      spaceLg: spaceLg ?? this.spaceLg,
       contentPadding: contentPadding ?? this.contentPadding,
       blockSpacing: blockSpacing ?? this.blockSpacing,
       motionDuration: motionDuration ?? this.motionDuration,

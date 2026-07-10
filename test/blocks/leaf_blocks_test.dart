@@ -43,12 +43,11 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('text uses body slot; variant subtitle uses subtitle slot',
-      (tester) async {
+  testWidgets('text uses body; emphasis low renders muted', (tester) async {
     await _pump(tester, {'type': 'text', 'body': 'B'});
     expect(tester.widget<Text>(find.text('B')).style, _theme.body);
-    await _pump(tester, {'type': 'text', 'body': 'M', 'variant': 'subtitle'});
-    expect(tester.widget<Text>(find.text('M')).style, _theme.subtitle);
+    await _pump(tester, {'type': 'text', 'body': 'M', 'emphasis': 'low'});
+    expect(tester.widget<Text>(find.text('M')).style!.color, _theme.textMuted);
   });
 
   testWidgets('cta tap emits its parsed action', (tester) async {
@@ -61,6 +60,52 @@ void main() {
     await tester.tap(find.text('Go'));
     expect(got, isA<ExternalUrl>());
     expect((got as ExternalUrl).url.host, 'neo.xyz');
+  });
+
+  Color? decorColor(WidgetTester tester, Color want) {
+    for (final b in tester.widgetList<DecoratedBox>(find.byType(DecoratedBox))) {
+      final c = (b.decoration as BoxDecoration).color;
+      if (c == want) return c;
+    }
+    return null;
+  }
+
+  testWidgets('cta derives fill/text from emphasis', (tester) async {
+    await _pump(tester, {'type': 'cta', 'label': 'Hi', 'action': 'route:x', 'emphasis': 'high'});
+    expect(decorColor(tester, _theme.accent), _theme.accent); // filled accent
+    expect(tester.widget<Text>(find.text('Hi')).style!.color, _theme.onAccent);
+  });
+
+  testWidgets('callout surface derives from tone', (tester) async {
+    await _pump(tester, {'type': 'callout', 'tone': 'critical', 'bullets': ['x']});
+    expect(decorColor(tester, _theme.toneSurface('critical')), isNotNull);
+  });
+
+  testWidgets('swapping the palette re-skins with no wire change', (tester) async {
+    const brand = Color(0xFF123456);
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: MediaQuery(
+          data: const MediaQueryData(),
+          child: Center(
+            child: SizedBox(
+              width: 400,
+              height: 800,
+              child: NeoSduiView(
+                document: NeoDocument.fromJson({
+                  'version': 1,
+                  'blocks': [{'type': 'cta', 'label': 'Go', 'action': 'route:x', 'emphasis': 'high'}],
+                }),
+                theme: _theme.copyWith(accent: brand),
+                onAction: (_, _) {},
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    expect(decorColor(tester, brand), brand); // same JSON, new accent
   });
 
   testWidgets('callout renders its title and every bullet', (tester) async {

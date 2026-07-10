@@ -65,7 +65,7 @@ void main() {
     expect(find.text('inside'), findsOneWidget);
     final surfaces = tester.widgetList<DecoratedBox>(find.byType(DecoratedBox));
     expect(
-      surfaces.any((b) => (b.decoration as BoxDecoration).color == _theme.cardColor),
+      surfaces.any((b) => (b.decoration as BoxDecoration).color == _theme.surface),
       isTrue,
     );
   });

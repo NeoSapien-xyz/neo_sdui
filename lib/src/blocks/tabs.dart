@@ -53,8 +53,8 @@ class _TabsState extends State<_Tabs> {
                   child: Text(
                     widget.tabs[i].label,
                     style: i == selected
-                        ? theme.tabLabel.copyWith(color: theme.tabSelected)
-                        : theme.tabLabel,
+                        ? theme.body.copyWith(color: theme.accent)
+                        : theme.body,
                   ),
                 ),
               ),

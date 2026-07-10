@@ -13,7 +13,7 @@ Widget buildMedia(BuildContext context, BlockNode node) {
   return AspectRatio(
     aspectRatio: _ratioOf(node),
     child: ClipRRect(
-      borderRadius: theme.mediaRadius,
+      borderRadius: theme.radiusMd,
       child: Image.network(
         node.stringOr('url', '')!,
         fit: BoxFit.cover,

@@ -41,7 +41,10 @@ class _FaqState extends State<_Faq> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(item['question'] as String? ?? '', style: theme.faqQuestion),
+            Text(
+              item['question'] as String? ?? '',
+              style: theme.body.copyWith(fontWeight: FontWeight.w500),
+            ),
             AnimatedSize(
               duration: theme.reduceMotion ? Duration.zero : theme.motionDuration,
               curve: theme.motionCurve,
@@ -50,7 +53,7 @@ class _FaqState extends State<_Faq> {
                   ? Padding(
                       padding: const EdgeInsets.only(top: 4),
                       child: Text(item['answer'] as String? ?? '',
-                          style: theme.faqAnswer),
+                          style: theme.subtitle),
                     )
                   : const SizedBox(width: double.infinity),
             ),
