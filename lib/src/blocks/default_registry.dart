@@ -4,6 +4,7 @@ import 'card.dart';
 import 'cta.dart';
 import 'faq.dart';
 import 'header.dart';
+import 'layout.dart';
 import 'media.dart';
 import 'steps.dart';
 import 'tabs.dart';
@@ -20,4 +21,8 @@ BlockRegistry defaultRegistry() => BlockRegistry.empty()
   ..register('card', buildCard)
   ..register('steps', buildSteps)
   ..register('faq', buildFaq)
-  ..register('tabs', buildTabs);
+  ..register('tabs', buildTabs)
+  ..register('row', buildRow)
+  ..register('column', buildColumn)
+  ..register('group', buildGroup)
+  ..register('spacer', buildSpacer);

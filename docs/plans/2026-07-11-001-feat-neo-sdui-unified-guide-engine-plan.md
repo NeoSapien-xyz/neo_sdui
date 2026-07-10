@@ -197,10 +197,16 @@ one-object swap instead of a corpus rewrite.
 
 ### Scope Boundaries
 
+**Now in scope** (decided 2026-07-11, validation brainstorm — KTD10):
+
+- Governed layout primitives (`row`/`column`/`group`/`spacer`) so authors compose
+  arrangements from Remote Config without a client release. Pixels stay
+  client-owned — these arrange existing blocks, they do not carry hex/size/padding.
+  This is the Adaptive Cards / Airbnb `Container`/`ColumnSet` model, and the
+  deliberate line between us and rfw (see "Outside this product's identity").
+
 **Deferred for later** (each has a named trigger in the ideation doc):
 
-- Generic layout containers (`row`/`column`/`group`) for author-composed layout
-  — add only when a future guide needs arrangement the block roster can't bake.
 - `defs`/`ref` subtree dedupe and author-time content hashing — YAGNI until the
   corpus passes ~20 documents or a shared tail repeats across ≥3 guides.
 - The `neo_sdui_video` add-on and the repo federation it triggers, wiring
@@ -280,6 +286,16 @@ one-object swap instead of a corpus rewrite.
   `StatefulWidget`; the wire sets only the initial state. Gradient theme slots
   are added only when a block needs one (deferred to U9's how_to "New" chip).
   Serves R10, R11; extends KTD3.
+- KTD10. **Governed layout primitives, not a widget tree.** `row`/`column`/
+  `group`/`spacer` are registry blocks that arrange child blocks (read via
+  `nodeList('children')`, built through `NeoSduiScope.buildBlocks`). They carry
+  **structure only** — no hex, `fontSize`, or `padding` on the wire; spacing and
+  surfaces come from the theme (`blockSpacing`, `cardColor`, `cardRadius`). This
+  buys author-composable layout from Remote Config while keeping pixel authority
+  client-side — the Adaptive Cards `Container`/`ColumnSet` model, and the line
+  that separates us from rfw (validated against the Neo app's own `how_to`, which
+  already injects styles client-side per CSS class rather than sending pixels).
+  Serves R5, R9; the decision record is the 2026-07-11 validation brainstorm.
 
 ### High-Level Technical Design
 
@@ -505,6 +521,25 @@ authoritative.
   collapses an item; `tabs` switches content on tab change; `card` renders with
   and without the optional subtitle.
 - Verification: `fvm flutter test test/blocks/structured_blocks_test.dart` green.
+
+### U8b. Governed layout primitives: row, column, group, spacer
+
+- Goal: Author-composable layout from the wire without surrendering pixel
+  authority — arrange existing blocks, carry no pixels.
+- Requirements: R5, R9; KTD10.
+- Dependencies: U6, U8 (needs `NeoSduiScope.buildBlocks`).
+- Files: `lib/src/blocks/layout.dart`, `test/blocks/layout_blocks_test.dart`.
+- Approach: Four registry blocks reading `nodeList('children')` and rendering via
+  `NeoSduiScope.buildBlocks`. `row` = equal-flex children with `blockSpacing`
+  gaps (side-by-side cards). `column` = vertical children with `blockSpacing`
+  gaps. `group` = a themed surface (`cardColor` + `cardRadius` + padding) wrapping
+  a vertical stack. `spacer` = `SizedBox` of `blockSpacing * size` (default 1).
+  No hex/size/padding on the wire. Register all four in `defaultRegistry()`.
+- Test Scenarios: `row` lays two children horizontally; `column` stacks children;
+  `group` renders its children inside a themed surface; `spacer` sizes from the
+  theme; a nested block (card inside a row) renders through the pipeline; an
+  unknown child inside a container still falls back/skips (pipeline reused).
+- Verification: `fvm flutter test test/blocks/layout_blocks_test.dart` green.
 
 ### U9. Author the how_to document and render screen
 
