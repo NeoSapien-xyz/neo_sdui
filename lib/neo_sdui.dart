@@ -1,5 +1,13 @@
-/// A Calculator.
-class Calculator {
-  /// Returns [value] plus 1.
-  int addOne(int value) => value + 1;
-}
+/// neo_sdui — a pure-Dart engine that renders one Remote Config JSON document
+/// per guide into baked, themed Flutter widgets.
+///
+/// The wire carries semantic block types and token names; the client owns all
+/// styling (passed via the renderer constructor). One document model and one
+/// block registry serve every guide.
+library;
+
+// Model
+export 'src/model/block_node.dart';
+export 'src/model/document.dart';
+export 'src/model/validation.dart';
+export 'src/model/view.dart';
