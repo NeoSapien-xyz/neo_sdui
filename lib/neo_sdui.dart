@@ -9,6 +9,7 @@ export 'src/model/validation.dart';
 export 'src/model/view.dart';
 
 // Registry
+export 'src/blocks/default_registry.dart';
 export 'src/registry/block_registry.dart';
 
 // Actions

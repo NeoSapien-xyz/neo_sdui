@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 
 import '../action/neo_action.dart';
+import '../blocks/default_registry.dart';
 import '../model/block_node.dart';
 import '../model/document.dart';
 import '../model/view.dart';
@@ -23,8 +24,8 @@ class NeoSduiView extends StatelessWidget {
   const NeoSduiView({
     required this.document,
     required this.theme,
-    required this.registry,
     required this.onAction,
+    this.registry,
     this.defaultDocument,
     this.onPresentSheet,
     this.onPresentScreen,
@@ -34,8 +35,12 @@ class NeoSduiView extends StatelessWidget {
 
   final NeoDocument document;
   final NeoSduiTheme theme;
-  final BlockRegistry registry;
   final NeoActionHandler onAction;
+
+  /// Core roster when null. Built once and shared (read-only).
+  final BlockRegistry? registry;
+  static final BlockRegistry _defaults = defaultRegistry();
+  BlockRegistry get _registry => registry ?? _defaults;
 
   /// Compiled-in floor rendered when [document] produces zero blocks.
   final NeoDocument? defaultDocument;
@@ -80,14 +85,14 @@ class NeoSduiView extends StatelessWidget {
   /// Null means skip this block entirely.
   Widget? _buildOne(BlockNode node) {
     final usable = node.isValidType &&
-        registry.contains(node.type) &&
+        _registry.contains(node.type) &&
         _requiresMet(node.requires);
     if (!usable) {
       return node.fallback == null ? null : _buildOne(node.fallback!);
     }
     return Builder(builder: (ctx) {
       try {
-        return registry.builderFor(node.type)!(ctx, node);
+        return _registry.builderFor(node.type)!(ctx, node);
       } catch (_) {
         final fb = node.fallback == null ? null : _buildOne(node.fallback!);
         return fb ?? const SizedBox.shrink();
