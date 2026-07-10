@@ -179,6 +179,20 @@ one-object swap instead of a corpus rewrite.
   same repo, pinned by one tag (mirrors `neo_ble`). Core is `--template=package`;
   native add-ons are `--template=plugin`.
 
+**Visual / look (derived, not authored)**
+
+- R22. The wire never carries pixels and never carries per-guide style presets.
+  A block's look is **derived** by the package from the handed theme plus at most
+  a tiny semantic hint on the wire: `emphasis: high|normal|low` and
+  `tone: default|accent|critical` (both optional, both with a sensible default).
+  Adding a guide is JSON only — never new client code (decided 2026-07-11).
+- R23. `NeoSduiTheme` is a small **role palette** (accent/onAccent, surface/
+  onSurface, danger, warning, background, textPrimary/textMuted; a title/subtitle/
+  body/caption type scale; spacing and radius scales) — not per-block slots. The
+  app builds it from its bare `AppColors`/`AppStyles` today; a future `neo_ui`
+  rebuilds the same palette with the same wire. Blocks read roles and compute
+  their own look (the Flutter `ColorScheme` model).
+
 ### Acceptance Examples
 
 - AE1. **Covers R16.** An unknown block `type` with a `fallback` present →
@@ -296,6 +310,17 @@ one-object swap instead of a corpus rewrite.
   that separates us from rfw (validated against the Neo app's own `how_to`, which
   already injects styles client-side per CSS class rather than sending pixels).
   Serves R5, R9; the decision record is the 2026-07-11 validation brainstorm.
+- KTD11. **Look is derived from a role palette, not authored per block/guide.**
+  Supersedes KTD3's flat per-block slots. `NeoSduiTheme` is a small role palette
+  (accent/onAccent, surface/onSurface, danger, warning, background, textPrimary/
+  textMuted; a title/subtitle/body/caption type scale; spacing + radius scales).
+  Each block computes its look from `(role + palette)` with fixed rules — e.g.
+  `cta emphasis:high` → filled `accent`/`onAccent`, `normal` → `surface`, `low` →
+  text-only; `callout tone:critical` → `danger` tint; `text emphasis:low` →
+  `textMuted`. The wire carries only `emphasis`/`tone` (R22); most guide-to-guide
+  difference comes free from field presence (thumb/subtitle/action), not styling.
+  This is Flutter's `ColorScheme` model + Adaptive Cards `emphasis`/HostConfig,
+  and it keeps the neo_ui swap to one object. Serves R22, R23; extends KTD3, KTD9.
 
 ### High-Level Technical Design
 
@@ -540,6 +565,32 @@ authoritative.
   theme; a nested block (card inside a row) renders through the pipeline; an
   unknown child inside a container still falls back/skips (pipeline reused).
 - Verification: `fvm flutter test test/blocks/layout_blocks_test.dart` green.
+
+### U8c. Role palette + derived look (restructure NeoSduiTheme)
+
+- Goal: Move from flat per-block theme slots to a small role palette, and derive
+  each block's look from `(role + palette + wire emphasis/tone)` — no per-guide
+  presets, no pixels on the wire.
+- Requirements: R22, R23; KTD11.
+- Dependencies: U7, U8, U8b (touches every block that reads the theme).
+- Files: `lib/src/theme/neo_sdui_theme.dart` (restructure to the role palette +
+  derivation helpers), every `lib/src/blocks/*.dart` (read roles, not flat slots),
+  `test/theme/*`, `test/blocks/*` (update expectations).
+- Approach: `NeoSduiTheme` exposes roles — accent/onAccent, surface/onSurface,
+  danger, warning, background, textPrimary/textMuted; a title/subtitle/body/caption
+  type scale; spacing (sm/md/lg) and radius (sm/md/lg) scales — plus `fallback()`
+  mapping the neutral defaults. Blocks read `emphasis`/`tone` off the node (default
+  when absent) and compute their look: `cta` fill/text by emphasis, `callout`
+  tint by tone, `text`/`header` muted by emphasis, `card`/`group` surfaces from the
+  palette. Keep motion tokens (KTD9). Derivation rules live in the theme or a
+  small helper so blocks stay thin.
+- Test Scenarios: `cta emphasis:high` renders filled with `accent`/`onAccent`;
+  `emphasis:low` renders text-only; `callout tone:critical` uses `danger`;
+  `text emphasis:low` uses `textMuted`; a block with no emphasis/tone uses the
+  default; swapping the palette (a second `NeoSduiTheme`) re-skins every block with
+  no wire change; existing leaf/structured/layout tests stay green after the slot
+  rename.
+- Verification: `fvm flutter analyze` clean; `fvm flutter test` green.
 
 ### U9. Author the how_to document and render screen
 
