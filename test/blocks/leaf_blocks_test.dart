@@ -106,11 +106,11 @@ void main() {
     tester.takeException();
   });
 
-  testWidgets('media wires shimmer + error builders and shows error placeholder',
+  testWidgets('media wires fade + error builders and shows error placeholder',
       (tester) async {
     await _pump(tester, {'type': 'media', 'url': 'https://x/y.png'});
     final img = tester.widget<Image>(find.byType(Image));
-    expect(img.loadingBuilder, isNotNull);
+    expect(img.frameBuilder, isNotNull);
     expect(img.errorBuilder, isNotNull);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('media-error')), findsOneWidget);

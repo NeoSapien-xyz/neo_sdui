@@ -17,9 +17,22 @@ Widget buildMedia(BuildContext context, BlockNode node) {
       child: Image.network(
         node.stringOr('url', '')!,
         fit: BoxFit.cover,
-        loadingBuilder: (context, child, progress) => progress == null
-            ? child
-            : _placeholder(theme.shimmerBase, theme.shimmerHighlight),
+        // Placeholder until the first frame, then one bounded fade-in (KTD9).
+        frameBuilder: (context, child, frame, wasSync) {
+          if (wasSync || theme.reduceMotion) return child;
+          return Stack(
+            fit: StackFit.expand,
+            children: [
+              if (frame == null) _placeholder(theme.shimmerBase, theme.shimmerHighlight),
+              AnimatedOpacity(
+                opacity: frame == null ? 0 : 1,
+                duration: theme.motionDuration,
+                curve: theme.motionCurve,
+                child: child,
+              ),
+            ],
+          );
+        },
         errorBuilder: (context, _, _) => _error(theme.shimmerBase),
       ),
     ),

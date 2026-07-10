@@ -267,6 +267,19 @@ one-object swap instead of a corpus rewrite.
   images only.** The how_to port renders video's poster image via core `media`
   until the add-on lands. Keeps the core pure-Dart. Serves R7 and the scope
   boundary.
+- KTD9. **Motion, gradients, and interaction state are client-owned, never on
+  the wire.** The wire carries semantic content only — no durations, curves, or
+  gradient stops. (a) *Animations:* only **bounded** ones (image fade-in, `faq`
+  `AnimatedSize`, `tabs` indicator) — never an infinite loop, which hangs
+  `pumpAndSettle` and drains battery. `media` shows a static placeholder, then
+  fades the loaded image in once. Mirrors DivKit (placeholder → single fade).
+  (b) *Config:* `NeoSduiTheme` carries `motionDuration`, `motionCurve`, and a
+  `reduceMotion` flag; `reduceMotion` makes every bounded animation instant.
+  Defaults are subtle; the app overrides via the constructor. (c) *State:*
+  stateful blocks (`faq`, `tabs`) own their ephemeral UI state in a
+  `StatefulWidget`; the wire sets only the initial state. Gradient theme slots
+  are added only when a block needs one (deferred to U9's how_to "New" chip).
+  Serves R10, R11; extends KTD3.
 
 ### High-Level Technical Design
 

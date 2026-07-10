@@ -30,6 +30,9 @@ class NeoSduiTheme {
     required this.shimmerHighlight,
     this.contentPadding = const EdgeInsets.symmetric(horizontal: 20),
     this.blockSpacing = 24,
+    this.motionDuration = const Duration(milliseconds: 200),
+    this.motionCurve = Curves.easeOut,
+    this.reduceMotion = false,
   });
 
   final Color background;
@@ -65,6 +68,11 @@ class NeoSduiTheme {
 
   final EdgeInsets contentPadding;
   final double blockSpacing;
+
+  /// Motion is client-owned: bounded animations only, killable per app.
+  final Duration motionDuration;
+  final Curve motionCurve;
+  final bool reduceMotion;
 
   /// Neutral dark default for tests/example. Real apps pass their own.
   factory NeoSduiTheme.fallback() {
@@ -127,6 +135,9 @@ class NeoSduiTheme {
     Color? shimmerHighlight,
     EdgeInsets? contentPadding,
     double? blockSpacing,
+    Duration? motionDuration,
+    Curve? motionCurve,
+    bool? reduceMotion,
   }) {
     return NeoSduiTheme(
       background: background ?? this.background,
@@ -154,6 +165,9 @@ class NeoSduiTheme {
       shimmerHighlight: shimmerHighlight ?? this.shimmerHighlight,
       contentPadding: contentPadding ?? this.contentPadding,
       blockSpacing: blockSpacing ?? this.blockSpacing,
+      motionDuration: motionDuration ?? this.motionDuration,
+      motionCurve: motionCurve ?? this.motionCurve,
+      reduceMotion: reduceMotion ?? this.reduceMotion,
     );
   }
 }
