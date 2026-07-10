@@ -4,6 +4,7 @@ import 'package:neo_sdui/neo_sdui.dart';
 
 void main() {
   void noop(BuildContext context, NeoAction action) {}
+  List<Widget> noBlocks(List<BlockNode> nodes) => const [];
 
   testWidgets('a descendant reads the theme via NeoSduiScope.of', (tester) async {
     final theme = NeoSduiTheme.fallback().copyWith(background: const Color(0xFF123456));
@@ -14,6 +15,7 @@ void main() {
         child: NeoSduiScope(
           theme: theme,
           dispatch: noop,
+          buildBlocks: noBlocks,
           child: Builder(builder: (context) {
             read = NeoSduiScope.of(context).theme;
             return const SizedBox();
@@ -26,11 +28,16 @@ void main() {
 
   testWidgets('updateShouldNotify fires only on a new theme instance', (tester) async {
     final a = NeoSduiTheme.fallback();
-    final scope1 = NeoSduiScope(theme: a, dispatch: noop, child: const SizedBox());
+    final scope1 = NeoSduiScope(
+        theme: a, dispatch: noop, buildBlocks: noBlocks, child: const SizedBox());
     // Same instance -> no notify.
     expect(scope1.updateShouldNotify(scope1), isFalse);
     // New instance -> notify.
-    final scope2 = NeoSduiScope(theme: a.copyWith(), dispatch: noop, child: const SizedBox());
+    final scope2 = NeoSduiScope(
+        theme: a.copyWith(),
+        dispatch: noop,
+        buildBlocks: noBlocks,
+        child: const SizedBox());
     expect(scope2.updateShouldNotify(scope1), isTrue);
   });
 }

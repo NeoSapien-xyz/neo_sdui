@@ -60,6 +60,7 @@ class NeoSduiView extends StatelessWidget {
     return NeoSduiScope(
       theme: theme,
       dispatch: _dispatch,
+      buildBlocks: _buildBlocks,
       child: ColoredBox(
         color: theme.background,
         child: ListView.separated(
