@@ -2,36 +2,27 @@ import 'package:flutter/widgets.dart';
 
 import '../model/block_node.dart';
 
-/// Builds a widget for one block. Reads styling from the ambient `NeoSduiScope`
-/// (theme is not threaded through here) and reports taps via the ambient action
-/// dispatcher, so a builder signature stays tiny and stable.
+/// Builds a widget for one block. Reads theme + dispatches taps via the ambient
+/// `NeoSduiScope`, so the signature stays tiny.
 typedef BlockBuilder = Widget Function(BuildContext context, BlockNode node);
 
-/// Maps a wire `type` string to the widget that renders it.
-///
-/// This is the extension seam (R9): the core seeds the roster, and an add-on
-/// package calls [register] to contribute its own block type without the core
-/// ever importing the add-on. It is the same name -> builder shape rfw uses for
-/// its `LocalWidgetLibrary`.
+/// Maps a wire `type` to its widget builder. Add-ons extend it via
+/// copy()+register() without the core importing them (R9).
 class BlockRegistry {
   BlockRegistry._(this._builders);
 
-  /// An empty registry. Use [copy] + [register] to extend a seeded one.
   factory BlockRegistry.empty() => BlockRegistry._(<String, BlockBuilder>{});
 
   final Map<String, BlockBuilder> _builders;
 
-  /// The builder for [type], or null when nothing is registered — the render
-  /// pipeline routes a null to the block's `fallback`, else skips it.
+  /// Builder for [type], or null (pipeline then does fallback/skip).
   BlockBuilder? builderFor(String type) => _builders[type];
 
   bool contains(String type) => _builders.containsKey(type);
 
-  /// Register (or override) a builder. Overriding lets an add-on replace a core
-  /// block; last registration wins.
+  /// Register or override a builder; last wins (lets add-ons replace a core block).
   void register(String type, BlockBuilder builder) => _builders[type] = builder;
 
-  /// A detached copy — register on it without mutating the original (so an app
-  /// can extend the default roster per renderer instance).
+  /// Detached copy — extend without mutating the original.
   BlockRegistry copy() => BlockRegistry._(Map.of(_builders));
 }

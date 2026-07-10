@@ -1,13 +1,7 @@
 import 'package:meta/meta.dart';
 
-/// A single renderable node from a guide document.
-///
-/// Deliberately generic: the wire `type` string is interpreted by a registered
-/// builder (see `BlockRegistry`), never by a per-type Dart class. A `sealed`
-/// hierarchy would force every block to live in this package and slam the door
-/// on add-on packages contributing their own types — so we model a block the way
-/// DivKit and Adaptive Cards do: a typed bag keyed by `type`, plus the two
-/// envelope fields every node may carry (`requires`, `fallback`).
+/// One block: a wire `type` plus its fields. Generic (not a sealed per-type
+/// class) so add-on packages can register new types.
 @immutable
 class BlockNode {
   const BlockNode({
@@ -17,27 +11,22 @@ class BlockNode {
     this.fallback,
   });
 
-  /// Sentinel type for a structurally-invalid node (missing/non-string `type`).
-  /// No builder is ever registered for it, so the render pipeline routes it to
-  /// `fallback`/skip like any other unknown type.
+  /// Type for a structurally-broken node. No builder -> fallback/skip.
   static const String invalidType = '_invalid';
 
-  /// The wire `type` discriminant, e.g. `header`, `card`, `cta`.
   final String type;
 
-  /// Block payload with the envelope keys (`type`/`requires`/`fallback`) removed.
+  /// Payload minus the envelope keys (`type`/`requires`/`fallback`).
   final Map<String, Object?> fields;
 
-  /// Feature -> minimum version this block needs. Mirrors Adaptive Cards
-  /// `requires`: when the host can't satisfy it, `fallback` is rendered.
+  /// Feature -> min version this block needs (else render [fallback]).
   final Map<String, String>? requires;
 
-  /// Subtree to render when this block is unknown or its `requires` is unmet.
+  /// Rendered when this block is unknown or `requires` is unmet.
   final BlockNode? fallback;
 
-  /// Structural parse. Never throws — an invalid node becomes [invalidType] and
-  /// is caught downstream by the fallback/skip pipeline. Semantic problems are
-  /// reported separately by `validateDocument`.
+  /// Never throws; a broken node becomes [invalidType]. Semantic checks live
+  /// in `validateDocument`.
   factory BlockNode.fromJson(Map<String, Object?> json) {
     final rawType = json['type'];
     final type = (rawType is String && rawType.isNotEmpty) ? rawType : invalidType;
@@ -60,10 +49,9 @@ class BlockNode {
     );
   }
 
-  /// Whether this node parsed to a real (non-sentinel) type.
   bool get isValidType => type != invalidType;
 
-  // ---- Typed field accessors (R4: absent field -> caller's default) ----
+  // Typed field reads; absent -> caller default (R4).
 
   String? stringOr(String key, [String? or]) =>
       fields[key] is String ? fields[key] as String : or;
@@ -74,7 +62,7 @@ class BlockNode {
   bool boolOr(String key, {bool or = false}) =>
       fields[key] is bool ? fields[key] as bool : or;
 
-  /// A child-block list field (e.g. a tab's `blocks`, a faq's `items`).
+  /// Child-block list (e.g. a tab's `blocks`).
   List<BlockNode> nodeList(String key) {
     final raw = fields[key];
     if (raw is! List) return const [];
@@ -84,8 +72,7 @@ class BlockNode {
     ];
   }
 
-  /// A list of maps field (e.g. `steps.items`, `tabs`), returned untyped for the
-  /// builder to interpret.
+  /// List of raw maps (e.g. `steps.items`), left for the builder to read.
   List<Map<String, Object?>> mapList(String key) {
     final raw = fields[key];
     if (raw is! List) return const [];

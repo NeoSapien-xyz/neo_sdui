@@ -1,9 +1,5 @@
-/// neo_sdui — a pure-Dart engine that renders one Remote Config JSON document
-/// per guide into baked, themed Flutter widgets.
-///
-/// The wire carries semantic block types and token names; the client owns all
-/// styling (passed via the renderer constructor). One document model and one
-/// block registry serve every guide.
+/// neo_sdui — renders one Remote Config JSON document per guide into baked,
+/// themed Flutter widgets. Wire names block types; the app owns styling.
 library;
 
 // Model

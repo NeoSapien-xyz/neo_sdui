@@ -1,11 +1,9 @@
-/// A collected schema problem. Validation never throws — it returns every issue
-/// at once (R15) so a bad Remote Config paste can be logged in full, the way a
-/// protobuf or JSON-schema validator reports all errors instead of dying on the
-/// first one.
+/// A collected schema problem. Validation never throws — returns every issue
+/// at once (R15) so a bad config paste logs in full.
 class SchemaIssue {
   const SchemaIssue(this.path, this.message);
 
-  /// Dotted/indexed location, e.g. `blocks[2].type`.
+  /// Location, e.g. `blocks[2].type`.
   final String path;
   final String message;
 
@@ -13,14 +11,10 @@ class SchemaIssue {
   String toString() => '$path: $message';
 }
 
-/// Document/view-structural keys a block payload may not reuse as a field name.
-/// (`type`/`requires`/`fallback` are envelope keys, extracted before fields, so
-/// they can't collide.)
+/// Doc/view keys a block payload may not reuse as a field name.
 const _reservedFieldNames = {'version', 'blocks', 'views', 'present'};
 
-/// Validate a decoded document map, collecting all issues. An empty list means
-/// the document is structurally sound; issues never stop parsing (the resilient
-/// pipeline still renders whatever is valid).
+/// Validate a decoded document, collecting all issues. Empty = sound.
 List<SchemaIssue> validateDocument(Map<String, Object?> json) {
   final issues = <SchemaIssue>[];
 
@@ -82,7 +76,6 @@ List<SchemaIssue> _validateBlock(Object? block, String path) {
       issues.add(SchemaIssue('$path.$key', 'reserved keyword used as a field'));
     }
   }
-  // Recurse into a fallback subtree so its problems are reported too.
   final fallback = block['fallback'];
   if (fallback is Map) {
     issues.addAll(_validateBlock(fallback, '$path.fallback'));

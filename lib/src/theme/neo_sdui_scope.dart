@@ -3,16 +3,11 @@ import 'package:flutter/widgets.dart';
 import '../action/neo_action.dart';
 import 'neo_sdui_theme.dart';
 
-/// How a block reports a tap. The renderer supplies this; the app resolves the
-/// action (open a view, run a route, launch a URL).
+/// How a block reports a tap; the app resolves the action.
 typedef ActionDispatch = void Function(BuildContext context, NeoAction action);
 
-/// Carries the app-supplied [theme] and the action [dispatch] down the tree so
-/// every block reads them ambiently — no threading through constructors.
-///
-/// Theme is compared by identity in [updateShouldNotify]: the app hands in a
-/// stable instance and swaps it wholesale (the `neo_ui` re-skin is a new
-/// instance), so identity is both correct and cheap here.
+/// Carries [theme] + [dispatch] down the tree so blocks read them ambiently.
+/// Theme compared by identity — the app swaps the whole object to re-skin.
 class NeoSduiScope extends InheritedWidget {
   const NeoSduiScope({
     required this.theme,

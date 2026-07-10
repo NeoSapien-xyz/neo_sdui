@@ -1,12 +1,7 @@
 import 'package:flutter/widgets.dart';
 
-/// Everything the renderer needs to style blocks, supplied by the app through
-/// the renderer's constructor. The wire never carries a pixel or a hex — it
-/// names a block type and the theme resolves the look. Swapping this one object
-/// (e.g. when `neo_ui` lands) re-skins every guide with zero document changes.
-///
-/// This is the client-side counterpart to Microsoft Adaptive Cards' HostConfig:
-/// the card says `"color":"attention"`, the host decides what that looks like.
+/// All styling, supplied by the app via the renderer constructor. Wire carries
+/// no pixels; swap this object (e.g. neo_ui) to re-skin every guide.
 @immutable
 class NeoSduiTheme {
   const NeoSduiTheme({
@@ -71,9 +66,7 @@ class NeoSduiTheme {
   final EdgeInsets contentPadding;
   final double blockSpacing;
 
-  /// A neutral dark theme so tests, the example app, and a
-  /// forgot-to-register guard always have something renderable. Real apps pass
-  /// their own filled from `AppColors`/`AppStyles`.
+  /// Neutral dark default for tests/example. Real apps pass their own.
   factory NeoSduiTheme.fallback() {
     const white = Color(0xFFFFFFFF);
     const primary = Color(0xFF00F1A0);

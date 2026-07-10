@@ -2,11 +2,7 @@ import 'package:meta/meta.dart';
 
 import 'block_node.dart';
 
-/// How a sub-view is presented when navigated to.
-///
-/// One mechanism serves both consumers: `sheet` is how_to's modal bottom sheet,
-/// `screen` is the MCP guide's full-screen push. The engine renders the blocks;
-/// the app honors the [NeoViewPresent] hint (it owns the Navigator).
+/// How a sub-view opens: `sheet` = modal (how_to), `screen` = push (MCP).
 enum NeoViewPresent {
   sheet,
   screen;
@@ -15,7 +11,7 @@ enum NeoViewPresent {
       raw == 'screen' ? NeoViewPresent.screen : NeoViewPresent.sheet;
 }
 
-/// A named sub-view: an ordered block list plus a presentation hint.
+/// A named sub-view: blocks + how it opens. The app owns the Navigator.
 @immutable
 class NeoView {
   const NeoView({required this.present, required this.blocks});

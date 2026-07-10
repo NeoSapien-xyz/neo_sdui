@@ -3,11 +3,8 @@ import 'package:meta/meta.dart';
 import 'block_node.dart';
 import 'view.dart';
 
-/// A whole guide, decoded from one Remote Config JSON key.
-///
-/// Shape: `{ version, blocks[], views{ id: {present, blocks[]} } }`. The app
-/// `jsonDecode`s the RC string and hands the resulting map here; this package
-/// never touches the network or `dart:convert` itself.
+/// A whole guide from one Remote Config key: `{version, blocks, views}`.
+/// The app decodes the JSON and passes the map in; this package never does IO.
 @immutable
 class NeoDocument {
   const NeoDocument({
