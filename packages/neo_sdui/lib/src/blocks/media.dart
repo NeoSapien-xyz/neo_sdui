@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 
 import '../model/block_node.dart';
 import '../theme/neo_sdui_scope.dart';
+import '_shape.dart';
 
 /// how_to's default thumbnail ratio when the wire omits one (AE4).
 const double _defaultRatio = 358 / 221;
@@ -11,9 +12,11 @@ const double _defaultRatio = 358 / 221;
 Widget buildMedia(BuildContext context, BlockNode node) {
   final theme = NeoSduiScope.of(context).theme;
   return AspectRatio(
-    aspectRatio: _ratioOf(node),
-    child: ClipRRect(
-      borderRadius: theme.radiusMd,
+    aspectRatio: node.ratioOr(_defaultRatio),
+    child: clipShape(
+      node.stringOr('shape'),
+      theme.radiusMd,
+      fallback: 'rounded',
       child: Image.network(
         node.stringOr('url', '')!,
         fit: BoxFit.cover,
@@ -37,15 +40,6 @@ Widget buildMedia(BuildContext context, BlockNode node) {
       ),
     ),
   );
-}
-
-/// Explicit `ratio` wins; else raw `width`/`height`; else the default (R7, AE4).
-double _ratioOf(BlockNode node) {
-  final ratio = node.fields['ratio'];
-  if (ratio is num && ratio > 0) return ratio.toDouble();
-  final w = node.intOr('width'), h = node.intOr('height');
-  if (w != null && h != null && h > 0) return w / h;
-  return _defaultRatio;
 }
 
 // ponytail: static sheen skeleton; animate if real load times get long.
