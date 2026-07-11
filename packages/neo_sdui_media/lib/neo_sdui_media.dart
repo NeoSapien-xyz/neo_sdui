@@ -5,5 +5,4 @@
 /// Install: `NeoSdui.compose([neoSduiMediaAddon])`.
 library;
 
-// Public surface lands in U6:
-// export 'src/media_addon.dart';
+export 'src/media_addon.dart';
