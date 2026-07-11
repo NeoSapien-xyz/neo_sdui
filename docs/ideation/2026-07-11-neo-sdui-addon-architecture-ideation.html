@@ -1,0 +1,468 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ideation: neo_sdui add-on package architecture</title>
+<style>
+  :root {
+    --bg: #fbfbfa; --fg: #1a1c1b; --muted: #5c6360; --card: #ffffff;
+    --line: #e3e5e3; --accent: #0a7f5c; --accent-soft: #e5f4ee;
+    --warn: #9a6a00; --warn-soft: #fbf1dd; --info-soft: #e8eef6;
+    --chip: #eef0ee; --code-bg: #f2f4f2; --shadow: 0 1px 2px rgba(0,0,0,.04), 0 6px 20px rgba(0,0,0,.05);
+    --svg-box: #f4f6f5; --svg-stroke: #b9c0bc; --svg-accent: #0a7f5c;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14161a; --fg: #e6e8e6; --muted: #9aa19d; --card: #1c1f24;
+      --line: #2b2f35; --accent: #37d39a; --accent-soft: #10352a;
+      --warn: #e2b24d; --warn-soft: #33290f; --info-soft: #1a2530;
+      --chip: #262a30; --code-bg: #22262c; --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+      --svg-box: #22262c; --svg-stroke: #4a5158; --svg-accent: #37d39a;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 940px; margin-inline: auto; padding: 44px 24px 80px; }
+  header.doc { border-bottom: 1px solid var(--line); padding-bottom: 22px; margin-bottom: 8px; }
+  .eyebrow { text-transform: uppercase; letter-spacing: .09em; font-size: 12px; font-weight: 700; color: var(--accent); }
+  h1 { font-size: 30px; line-height: 1.2; margin: 8px 0 14px; letter-spacing: -.01em; }
+  h2 { font-size: 21px; margin: 44px 0 14px; letter-spacing: -.01em; }
+  p { max-width: 72ch; }
+  .meta { display: flex; flex-wrap: wrap; gap: 8px 10px; margin-top: 6px; }
+  .meta .kv { font-size: 13px; color: var(--muted); background: var(--chip); border: 1px solid var(--line); border-radius: 999px; padding: 3px 11px; }
+  .meta .kv b { color: var(--fg); font-weight: 600; }
+  .stats { display: flex; flex-wrap: wrap; gap: 12px; margin: 20px 0 0; }
+  .stat { flex: 1 1 120px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; box-shadow: var(--shadow); }
+  .stat .n { font-size: 24px; font-weight: 700; letter-spacing: -.02em; }
+  .stat .l { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+  code { background: var(--code-bg); border-radius: 5px; padding: .1em .38em; font: 13.5px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  .axes { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+  .axis-card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; box-shadow: var(--shadow); }
+  .axis-card .t { font-weight: 700; font-size: 14px; }
+  .axis-card .d { font-size: 13px; color: var(--muted); margin-top: 3px; }
+  .jump { list-style: none; padding: 0; margin: 0 0 26px; display: grid; gap: 6px; }
+  .jump li { font-size: 14.5px; }
+  .jump a { text-decoration: none; }
+  .jump .rk { display: inline-block; width: 22px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .jump .ax { color: var(--muted); font-size: 12.5px; }
+  article.idea { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 22px 24px; margin: 18px 0; box-shadow: var(--shadow); }
+  article.idea > h3 { margin: 0; font-size: 19px; letter-spacing: -.01em; display: flex; gap: 10px; align-items: baseline; }
+  article.idea > h3 .rk { color: var(--accent); font-variant-numeric: tabular-nums; }
+  .chiprow { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 4px; }
+  .chip { font-size: 12px; font-weight: 600; border-radius: 999px; padding: 3px 11px; border: 1px solid var(--line); background: var(--chip); color: var(--fg); }
+  .chip.axis { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
+  .chip.conf { background: var(--info-soft); border-color: transparent; }
+  .chip.cx { background: var(--chip); }
+  dl.fields { margin: 14px 0 0; }
+  dl.fields dt { font-size: 11.5px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); font-weight: 700; margin-top: 12px; }
+  dl.fields dd { margin: 3px 0 0; max-width: 74ch; }
+  .basis-tag { font: 12.5px ui-monospace, Menlo, monospace; font-weight: 700; color: var(--accent); }
+  figure.svg { margin: 16px 0 4px; background: var(--svg-box); border: 1px solid var(--line); border-radius: 12px; padding: 14px; overflow-x: auto; }
+  figure.svg figcaption { font-size: 12.5px; color: var(--muted); margin-top: 8px; }
+  svg text { font-family: -apple-system, "Segoe UI", Roboto, sans-serif; }
+  table { border-collapse: collapse; width: 100%; margin-top: 12px; font-size: 14.5px; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+  td.n { color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  footer.composition-signal { margin-top: 54px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--muted); }
+  .lead { font-size: 17px; max-width: 74ch; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="doc">
+  <div class="eyebrow">Ideation · Compound Engineering</div>
+  <h1>neo_sdui add-on package architecture</h1>
+  <div class="meta">
+    <span class="kv"><b>date</b> 2026-07-11</span>
+    <span class="kv"><b>topic</b> neo-sdui-addon-architecture</span>
+    <span class="kv"><b>mode</b> repo-grounded</span>
+    <span class="kv"><b>focus</b> splitting neo_sdui into add-on packages (video, image, …) for the MCP-guide scale</span>
+  </div>
+  <div class="stats">
+    <div class="stat"><div class="n">7</div><div class="l">ranked ideas</div></div>
+    <div class="stat"><div class="n">24</div><div class="l">raw candidates</div></div>
+    <div class="stat"><div class="n">4</div><div class="l">cut</div></div>
+    <div class="stat"><div class="n">5</div><div class="l">axes covered</div></div>
+    <div class="stat"><div class="n">3</div><div class="l">ideation frames</div></div>
+  </div>
+</header>
+
+<section>
+<h2>Grounding Context</h2>
+<p class="lead">Today <code>neo_sdui</code> is one flat Flutter package, dependencies pinned to
+<code>flutter</code> + <code>meta</code> only. A large upcoming MCP setup guide (Figma canvas
+≈ 12348×11989 px, far past the 12 current block types) is the demand signal: many new block/screen
+types and heavier native deps (video, cached images, charts, maps) are coming, and they cannot land
+in a core that must stay dependency-minimal.</p>
+<p><strong>Codebase Context.</strong> The engine already carries the seams an ecosystem needs, and they
+are the leverage points every idea below builds on:</p>
+<ul>
+  <li><strong>Open registry</strong> — <code>BlockRegistry</code> maps wire <code>type</code>→builder;
+    <code>register()</code> is documented "last wins (lets add-ons replace a core block)"; <code>copy()</code>
+    extends without mutating (<code>block_registry.dart:23-27</code>).</li>
+  <li><strong>Capability gating on the wire</strong> — blocks carry <code>requires</code> (feature→min version)
+    + a <code>fallback</code> subtree; <code>_requiresMet</code> degrades instead of crashing
+    (<code>neo_sdui_view.dart:87-113</code>). This is Adaptive Cards' model, already ours.</li>
+  <li><strong>HostConfig injection</strong> — <code>NeoSduiTheme</code> holds all pixels off the wire, passed via
+    <code>NeoSduiScope</code> (<code>neo_sdui_theme.dart:3-6</code>).</li>
+  <li><strong>Designed-but-unbuilt</strong> — <code>neo_sdui_video</code> (registers a <code>video</code> builder,
+    brings <code>video_player</code>); the image loader is currently core.</li>
+</ul>
+<p><strong>The gaps a multi-package future exposes</strong> (the pain the ideas target): the host hand-populates
+a <code>Map&lt;String,int&gt;</code> capabilities map disconnected from what add-ons register; <code>register</code>
+is a silent last-wins clobber with no collision protection; the host wires N add-ons by hand with no aggregation;
+<code>NeoSduiTheme</code> is a closed value object an add-on can't extend without editing core; federation and
+cross-package version compatibility are prescribed but unbuilt; there is no cross-package test harness (a video
+widget has no decoder in the test binding).</p>
+<p><strong>Industry grounding.</strong> Flutter federated plugins (app-facing / platform-interface / implementation
+split; <code>extends</code>+verify-token so the interface evolves non-breaking), Melos / pub workspaces, VS Code's
+static <code>contributes</code> manifest, Adaptive Cards <code>requires</code>/<code>fallback</code>/<code>version</code>,
+Firebase's BoM, Sentry's opt-in integrations, Stripe's core-loader + component split, and Linux kmod
+<em>vermagic</em> all solve the same shape: a thin core that holds only the contract + registry, with capability
+delegated to opt-in packages and version compatibility negotiated explicitly.</p>
+</section>
+
+<section>
+<h2>Topic Axes</h2>
+<div class="axes">
+  <div class="axis-card"><div class="t">boundaries</div><div class="d">Where to cut packages; dependency direction; core stays flutter+meta.</div></div>
+  <div class="axis-card"><div class="t">registration</div><div class="d">How add-ons plug in; collision handling; wiring N of them.</div></div>
+  <div class="axis-card"><div class="t">negotiation</div><div class="d">Capability ↔ version compatibility across wire and packages.</div></div>
+  <div class="axis-card"><div class="t">contracts</div><div class="d">Extending theme + action grammar without editing core.</div></div>
+  <div class="axis-card"><div class="t">distribution</div><div class="d">Monorepo, versioning, cross-package testing.</div></div>
+</div>
+</section>
+
+<section>
+<h2>Ranked Ideas</h2>
+<ol class="jump">
+  <li><span class="rk">1.</span><a href="#idea1">The <code>NeoSduiAddon</code> manifest + <code>compose()</code> spine</a> <span class="ax">· registration</span></li>
+  <li><span class="rk">2.</span><a href="#idea2">Extract <code>neo_sdui_contract</code> — the only semver-gated surface</a> <span class="ax">· boundaries</span></li>
+  <li><span class="rk">3.</span><a href="#idea3">The image add-on is a last-wins <code>media</code> swap, not a new type</a> <span class="ax">· boundaries</span></li>
+  <li><span class="rk">4.</span><a href="#idea4"><code>NeoSduiTheme</code> extension bag (Flutter's <code>ThemeExtension</code>)</a> <span class="ax">· contracts</span></li>
+  <li><span class="rk">5.</span><a href="#idea5">Degrade-conformance harness — test the contract, not the decoder</a> <span class="ax">· distribution</span></li>
+  <li><span class="rk">6.</span><a href="#idea6">Version handshake — package version <em>is</em> capability version</a> <span class="ax">· negotiation</span></li>
+  <li><span class="rk">7.</span><a href="#idea7">Authoring-side fallback-completeness lint</a> <span class="ax">· negotiation</span></li>
+</ol>
+
+<article class="idea" id="idea1">
+  <h3><span class="rk">1.</span> The <code>NeoSduiAddon</code> manifest + <code>compose()</code> spine</h3>
+  <div class="chiprow">
+    <span class="chip axis">registration</span>
+    <span class="chip conf">Confidence 88%</span>
+    <span class="chip cx">Complexity: Medium</span>
+    <span class="chip">converged ×3 frames</span>
+  </div>
+  <figure class="svg">
+    <svg viewBox="0 0 720 210" width="100%" role="img" aria-label="Three add-on manifests fold through compose() into a registry, derived capabilities, and a diagnostics report.">
+      <g font-size="13" fill="var(--fg)">
+        <rect x="12" y="18" width="150" height="34" rx="8" fill="var(--card)" stroke="var(--svg-stroke)"/>
+        <text x="87" y="39" text-anchor="middle">videoAddon</text>
+        <rect x="12" y="70" width="150" height="34" rx="8" fill="var(--card)" stroke="var(--svg-stroke)"/>
+        <text x="87" y="91" text-anchor="middle">imageAddon</text>
+        <rect x="12" y="122" width="150" height="34" rx="8" fill="var(--card)" stroke="var(--svg-stroke)"/>
+        <text x="87" y="143" text-anchor="middle">chartAddon</text>
+        <text x="87" y="176" text-anchor="middle" font-size="11" fill="var(--muted)">each = one const {types, caps, theme}</text>
+
+        <path d="M168 35 H250 M168 87 H250 M168 139 H250" stroke="var(--svg-stroke)" fill="none"/>
+        <rect x="252" y="60" width="150" height="70" rx="10" fill="var(--accent-soft)" stroke="var(--svg-accent)"/>
+        <text x="327" y="92" text-anchor="middle" font-weight="700" fill="var(--accent)">compose([…])</text>
+        <text x="327" y="110" text-anchor="middle" font-size="11" fill="var(--accent)">one fold, no codegen</text>
+
+        <path d="M404 78 H470 M404 95 H470 M404 112 H470" stroke="var(--svg-accent)" fill="none" marker-end="url(#a1)"/>
+        <defs><marker id="a1" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6 z" fill="var(--svg-accent)"/></marker></defs>
+        <rect x="472" y="40" width="236" height="30" rx="8" fill="var(--card)" stroke="var(--svg-stroke)"/>
+        <text x="484" y="60">registry (copy + register)</text>
+        <rect x="472" y="80" width="236" height="30" rx="8" fill="var(--card)" stroke="var(--svg-stroke)"/>
+        <text x="484" y="100">capabilities — <tspan font-style="italic">derived</tspan>, not hand-authored</text>
+        <rect x="472" y="120" width="236" height="30" rx="8" fill="var(--card)" stroke="var(--svg-stroke)"/>
+        <text x="484" y="140">diagnostics report (never throws)</text>
+      </g>
+    </svg>
+    <figcaption>One value object per add-on folds through <code>compose()</code> into the three things the host needs — so registration <em>is</em> the capability declaration, and collisions surface in a report.</figcaption>
+  </figure>
+  <dl class="fields">
+    <dt>Description</dt>
+    <dd>Each add-on exports a single plain-Dart value object — <code>NeoSduiAddon(types: {...}, capabilities: {...}, themeExtension: ...)</code>
+      — bundling everything it contributes. The host calls <code>NeoSdui.compose([videoAddon, imageAddon, …])</code> once; the helper
+      folds every add-on into a ready <code>{registry, capabilities}</code> for <code>NeoSduiView</code>, <em>derives</em> the capability map
+      from the same declarations that register the builders, and returns a never-throws diagnostics report (type collisions, orphaned
+      capabilities, load order). This is the spine ideas 2–7 plug into.</dd>
+    <dt>Axis</dt><dd>registration</dd>
+    <dt>Basis</dt>
+    <dd><span class="basis-tag">direct:</span> "Host wires N add-ons manually… No aggregation helper" and "No capability↔registration
+      binding… an add-on can register a block yet the host forget to declare its capability" (<code>neo_sdui_view.dart:32,51-52</code>;
+      grounding gaps). <span class="basis-tag">external:</span> VS Code's static <code>contributes</code> manifest (host reads the
+      declaration before running code) and Sentry's <code>integrations: […]</code> opt-in array.</dd>
+    <dt>Rationale</dt>
+    <dd>Collapses the two most-cited multi-package footguns — manual N-wiring and the capability↔registration drift — into one call, with
+      a value object + fold that respects flutter+meta / no-codegen. As package count climbs toward the MCP guide's scale, per-add-on
+      wiring is the thing that breaks silently first; making registration the single source of the capability map removes the whole
+      class of "video renders fallback because the host forgot the cap" bugs.</dd>
+    <dt>Downsides</dt>
+    <dd>Adds a small public API surface (the <code>NeoSduiAddon</code> shape) that then carries its own compatibility promise. The
+      diagnostics-report affordance is only useful if hosts actually read it in debug. Reporting the derived manifest onward to the
+      MCP server (so it authors only-supported blocks) is a natural extension but pulls in app-owned transport — keep it out of the
+      package.</dd>
+    <dt>Confidence</dt><dd>88%</dd>
+    <dt>Complexity</dt><dd>Medium</dd>
+  </dl>
+</article>
+
+<article class="idea" id="idea2">
+  <h3><span class="rk">2.</span> Extract <code>neo_sdui_contract</code> — the only semver-gated surface</h3>
+  <div class="chiprow">
+    <span class="chip axis">boundaries</span>
+    <span class="chip conf">Confidence 80%</span>
+    <span class="chip cx">Complexity: Medium-High</span>
+    <span class="chip">converged ×3 frames</span>
+  </div>
+  <figure class="svg">
+    <svg viewBox="0 0 640 180" width="100%" role="img" aria-label="Renderer and every add-on both depend on a thin contract package; add-ons never depend on the renderer.">
+      <g font-size="13" fill="var(--fg)">
+        <rect x="220" y="70" width="200" height="44" rx="10" fill="var(--accent-soft)" stroke="var(--svg-accent)"/>
+        <text x="320" y="90" text-anchor="middle" font-weight="700" fill="var(--accent)">neo_sdui_contract</text>
+        <text x="320" y="106" text-anchor="middle" font-size="11" fill="var(--accent)">frozen · flutter+meta · evolvable interface</text>
+
+        <rect x="30" y="20" width="150" height="38" rx="9" fill="var(--card)" stroke="var(--svg-stroke)"/>
+        <text x="105" y="43" text-anchor="middle">neo_sdui (renderer)</text>
+        <rect x="30" y="122" width="150" height="38" rx="9" fill="var(--card)" stroke="var(--svg-stroke)"/>
+        <text x="105" y="145" text-anchor="middle">neo_sdui_video</text>
+        <rect x="460" y="20" width="150" height="38" rx="9" fill="var(--card)" stroke="var(--svg-stroke)"/>
+        <text x="535" y="43" text-anchor="middle">neo_sdui_image</text>
+        <rect x="460" y="122" width="150" height="38" rx="9" fill="var(--card)" stroke="var(--svg-stroke)"/>
+        <text x="535" y="145" text-anchor="middle">neo_sdui_charts</text>
+
+        <defs><marker id="a2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6 z" fill="var(--svg-stroke)"/></marker></defs>
+        <g stroke="var(--svg-stroke)" fill="none" marker-end="url(#a2)">
+          <path d="M180 42 C220 50 235 62 258 78"/>
+          <path d="M180 140 C220 132 235 118 258 106"/>
+          <path d="M460 42 C420 50 405 62 382 78"/>
+          <path d="M460 140 C420 132 405 118 382 106"/>
+        </g>
+        <text x="320" y="150" text-anchor="middle" font-size="11" fill="var(--muted)">every arrow points at the contract — never renderer→add-on</text>
+      </g>
+    </svg>
+    <figcaption>The renderer and every add-on couple only to a thin frozen contract; the renderer's internals can be rewritten without an ecosystem-wide republish.</figcaption>
+  </figure>
+  <dl class="fields">
+    <dt>Description</dt>
+    <dd>Pull the stable contract surface add-ons actually touch — the <code>BlockBuilder</code> typedef, <code>BlockNode</code>,
+      <code>NeoSduiTheme</code> shape, <code>NeoSduiScope.of</code>, <code>NeoAction</code>, the reserved-key constant — into a tiny
+      <code>neo_sdui_contract</code> package. The renderer <em>and</em> every add-on depend on the contract, never on each other. Borrow
+      Flutter's <code>plugin_platform_interface</code> trick: new contract methods ship with default implementations behind a private
+      verify-token, so the interface can grow without a major bump across all add-ons.</dd>
+    <dt>Axis</dt><dd>boundaries</dd>
+    <dt>Basis</dt>
+    <dd><span class="basis-tag">external:</span> Flutter federated plugins — "the platform interface is the versioned contract; breaking it
+      is a major bump across all impls" — plus <code>extends</code>+verify-token for non-breaking method addition (docs.flutter.dev;
+      pub.dev/packages/plugin_platform_interface). <span class="basis-tag">direct:</span> the grounding's federation risk — "a core bump
+      would silently break out-of-sync add-ons."</dd>
+    <dt>Rationale</dt>
+    <dd>Turns "which core version does this add-on need?" into one small, rarely-changing number and sets the blast radius of every future
+      core change. The bet: what actually must be stable is narrow, so isolating it lets the renderer evolve aggressively while 50 add-ons
+      keep compiling.</dd>
+    <dt>Downsides</dt>
+    <dd>A three-package split is real coordination overhead and premature before the first native add-on exists — the grounding itself says
+      federate "only when <code>neo_sdui_video</code> actually lands." Drawing the contract line too small forces later breaking moves; too
+      large re-imports the churn problem. The verify-token pattern adds boilerplate implementers must follow.</dd>
+    <dt>Confidence</dt><dd>80%</dd>
+    <dt>Complexity</dt><dd>Medium-High</dd>
+  </dl>
+</article>
+
+<article class="idea" id="idea3">
+  <h3><span class="rk">3.</span> The image add-on is a last-wins <code>media</code> swap, not a new type</h3>
+  <div class="chiprow">
+    <span class="chip axis">boundaries</span>
+    <span class="chip conf">Confidence 90%</span>
+    <span class="chip cx">Complexity: Low</span>
+    <span class="chip">converged ×2 frames</span>
+  </div>
+  <dl class="fields">
+    <dt>Description</dt>
+    <dd>The reflex for "I want an image add-on" is a new block type + a new capability + wire negotiation. Invert it: <code>media</code>
+      already exists in core rendering <code>Image.network</code>, and the registry's <code>register</code> is already "last wins (lets an
+      add-on replace a core block)." So <code>neo_sdui_image</code> just <code>copy()</code>s the registry and re-registers the <em>same</em>
+      <code>media</code> type with a cached / blurhash / zoom builder. No new wire type, no <code>requires</code>, no capability
+      negotiation — and if the add-on is absent, rendering silently degrades to <code>Image.network</code>. Formalize this as the ecosystem's
+      cheapest add-on shape: <strong>core ships a zero-dep floor for every semantic; a heavy add-on upgrades it by re-registering the same
+      type.</strong> New <em>types</em> are reserved for genuinely new semantics (charts, maps).</dd>
+    <dt>Axis</dt><dd>boundaries</dd>
+    <dt>Basis</dt>
+    <dd><span class="basis-tag">direct:</span> <code>block_registry.dart:23</code> — register is "last wins (lets add-ons replace a core
+      block)"; <code>media.dart:9-10</code> — core is images-only; prior ideation — <code>cached_network_image</code> "pulls native deps so
+      it would be an add-on." Directly answers the live image-add-on decision (and the previous turn's "how do I get
+      <code>cached_network_image</code> here").</dd>
+    <dt>Rationale</dt>
+    <dd>Establishes the cheapest rung in the ecosystem — "replace a core block's implementation" needs <em>zero</em> new machinery, and
+      resilient-degrade is automatic (uninstall the enhancer, the floor renders). Every future perf / native-dep swap follows this template
+      instead of minting a type and a capability.</dd>
+    <dt>Downsides</dt>
+    <dd>Last-wins is order-sensitive and silent today — two add-ons both re-registering <code>media</code> clobber without warning (idea 1's
+      diagnostics report is the mitigation). A pure replacement can't add new wire fields the enhanced look needs unless those fields were
+      already semantic on <code>media</code>.</dd>
+    <dt>Confidence</dt><dd>90%</dd>
+    <dt>Complexity</dt><dd>Low</dd>
+  </dl>
+</article>
+
+<article class="idea" id="idea4">
+  <h3><span class="rk">4.</span> <code>NeoSduiTheme</code> extension bag (Flutter's <code>ThemeExtension</code>)</h3>
+  <div class="chiprow">
+    <span class="chip axis">contracts</span>
+    <span class="chip conf">Confidence 85%</span>
+    <span class="chip cx">Complexity: Low</span>
+    <span class="chip">converged ×3 frames</span>
+  </div>
+  <dl class="fields">
+    <dt>Description</dt>
+    <dd>Give <code>NeoSduiTheme</code> one new field — a type-keyed <code>Map&lt;Object, ThemeExtension&gt;</code>, exactly as Flutter's own
+      <code>ThemeData.extensions</code> works — plus a <code>theme.extension&lt;T&gt;()</code> lookup. An add-on ships its own look struct
+      (<code>VideoControlsTheme</code>, <code>ChartPalette</code>) and reads it namespaced by type; core never grows a new slot. The extension
+      can still derive its pixels from the role palette rather than hardcode them, so the client-owns-the-look invariant holds.</dd>
+    <dt>Axis</dt><dd>contracts</dd>
+    <dt>Basis</dt>
+    <dd><span class="basis-tag">external:</span> Flutter's <code>ThemeExtension&lt;T&gt;</code> / <code>ThemeData.extensions</code> — the
+      framework's sanctioned answer to third-party theme slots (api.flutter.dev). <span class="basis-tag">direct:</span> grounding —
+      "<code>NeoSduiTheme</code> is a closed value object… cannot extend it without editing core," and the plan's own flag "NeoSduiTheme slot
+      churn."</dd>
+    <dt>Rationale</dt>
+    <dd>Removes core as the bottleneck for every add-on's look, reusing a pattern already native to Flutter (no new dependency, no codegen).
+      Each heavy add-on (video, charts, maps) owns its palette end to end; the core theme file stops being something everyone has to edit.</dd>
+    <dt>Downsides</dt>
+    <dd>Type-keyed lookups are stringly-adjacent — a missing extension must degrade to a sensible default, not throw. Two add-ons could define
+      overlapping extension types; the convention (one extension type per add-on, namespaced) has to be documented.</dd>
+    <dt>Confidence</dt><dd>85%</dd>
+    <dt>Complexity</dt><dd>Low</dd>
+  </dl>
+</article>
+
+<article class="idea" id="idea5">
+  <h3><span class="rk">5.</span> Degrade-conformance harness — test the contract, not the decoder</h3>
+  <div class="chiprow">
+    <span class="chip axis">distribution</span>
+    <span class="chip conf">Confidence 82%</span>
+    <span class="chip cx">Complexity: Medium</span>
+    <span class="chip">converged ×3 frames</span>
+  </div>
+  <dl class="fields">
+    <dt>Description</dt>
+    <dd>Cross-package golden testing was refused because a video widget has no decoder in the widget-test binding. Invert what's under test:
+      don't test the add-on's real pixels — test its <em>degradation contract</em>. A shared harness renders a document against a registry
+      with and without the add-on and asserts: add-on absent → the declared <code>fallback</code> subtree renders (identically to core's
+      degrade path); capability unmet → <code>fallback</code>; unknown type → recurse-fallback-else-skip; and the composed manifest is
+      internally consistent (every declared type has a capability and vice-versa). The heavy widget gets a smoke test against a fake player.</dd>
+    <dt>Axis</dt><dd>distribution</dd>
+    <dt>Basis</dt>
+    <dd><span class="basis-tag">direct:</span> grounding — "video golden-testing refused because <code>video_player</code> has no decoder in
+      the widget-test binding… goldens only guard new-vs-new"; the degrade path (<code>_buildOne</code>: unmet → recurse fallback) is pure
+      Dart and testable (<code>neo_sdui_view.dart:87-113</code>). <span class="basis-tag">reasoned:</span> an add-on's real value is its
+      degrade behavior, and that logic is decoder-free — so the untestable heavy widget is the wrong target; the contract is the right one.</dd>
+    <dt>Rationale</dt>
+    <dd>Turns "add-ons can't be tested" into "add-ons must prove they degrade correctly" — the property that actually protects users when an
+      add-on is missing or version-short. Ships as a shared test util every add-on reuses, so package N inherits package 1's CI story, using
+      the same never-throws "collect every issue" shape already in <code>validation.dart</code>.</dd>
+    <dt>Downsides</dt>
+    <dd>It deliberately does not test the real rendered add-on — a video that decodes wrong but falls back right still passes, so the smoke
+      test against a fake player is not optional. Building a stub-registry harness is more than a one-file change.</dd>
+    <dt>Confidence</dt><dd>82%</dd>
+    <dt>Complexity</dt><dd>Medium</dd>
+  </dl>
+</article>
+
+<article class="idea" id="idea6">
+  <h3><span class="rk">6.</span> Version handshake — package version <em>is</em> capability version</h3>
+  <div class="chiprow">
+    <span class="chip axis">negotiation</span>
+    <span class="chip conf">Confidence 75%</span>
+    <span class="chip cx">Complexity: Medium</span>
+    <span class="chip">converged ×2 frames</span>
+  </div>
+  <dl class="fields">
+    <dt>Description</dt>
+    <dd>Two version notions already drift: the wire says <code>requires: {video: "1.2"}</code> (major.minor) but the gate matches int-major
+      only (<code>int.tryParse(split('.').first)</code>). Collapse them: <code>neo_sdui_video</code> advertises its own package/contract
+      version as the capability version, <code>compose()</code> diagnoses when an add-on's contract version mismatches the running core
+      (kmod <em>vermagic</em> style — a named diagnostic, never a blank box), and the render-time gate is widened from int to major.minor so
+      <code>requires: {video: "1.2"}</code> means what it says.</dd>
+    <dt>Axis</dt><dd>negotiation</dd>
+    <dt>Basis</dt>
+    <dd><span class="basis-tag">direct:</span> <code>neo_sdui_view.dart:104-113</code> — <code>_requiresMet</code> parses major only, while
+      the wire <code>requires</code> is major.minor (Adaptive Cards). <span class="basis-tag">external:</span> Linux kmod <em>vermagic</em>
+      (refuses modules built against an incompatible kernel) and VS Code <code>engines.vscode</code> compat ranges.</dd>
+    <dt>Rationale</dt>
+    <dd>Removes a second version ledger nobody will maintain and closes the current major-only-vs-major.minor mismatch, making
+      <code>pub</code> version the single negotiation currency. The vermagic diagnostic converts a mystifying production render failure into a
+      loud compose-time message.</dd>
+    <dt>Downsides</dt>
+    <dd>Coupling capability version to package version is rigid — a purely internal refactor that bumps the package shouldn't necessarily bump
+      the semantics the client speaks. Widening the gate to major.minor touches the resilience-critical <code>_requiresMet</code> path and
+      needs its own degrade tests.</dd>
+    <dt>Confidence</dt><dd>75%</dd>
+    <dt>Complexity</dt><dd>Medium</dd>
+  </dl>
+</article>
+
+<article class="idea" id="idea7">
+  <h3><span class="rk">7.</span> Authoring-side fallback-completeness lint</h3>
+  <div class="chiprow">
+    <span class="chip axis">negotiation</span>
+    <span class="chip conf">Confidence 80%</span>
+    <span class="chip cx">Complexity: Low</span>
+  </div>
+  <dl class="fields">
+    <dt>Description</dt>
+    <dd>Take the zero-knowledge flip literally: the server authoring the wire has no idea which add-ons a given client build carries. The only
+      safe consequence is that <em>every non-core block type on the wire must carry both <code>requires</code> and a <code>fallback</code>.</em>
+      Add that as a rule to the existing pure-Dart, never-throws <code>validation.dart</code>: any block whose <code>type</code> isn't in the
+      core roster and lacks a <code>fallback</code>/<code>requires</code> is a reported issue. This converts "resilient degrade" from an
+      aspiration into a checkable authoring contract — no runtime, no codegen.</dd>
+    <dt>Axis</dt><dd>negotiation</dd>
+    <dt>Basis</dt>
+    <dd><span class="basis-tag">direct:</span> extends the validator that "never throws — returns every issue at once"
+      (<code>validation.dart:1-2,18</code>). <span class="basis-tag">external:</span> Adaptive Cards' <code>requires</code>/<code>fallback</code>/<code>version</code>
+      authoring model, where a missing fallback degrades badly on old hosts.</dd>
+    <dt>Rationale</dt>
+    <dd>The cheapest possible enforcement point — a rule in a validator that already exists — and it makes the OTA / MCP-guide world (blocks
+      authored server-side for clients that may not have the add-on) safe by construction. The MCP guide authors many block types; this catches
+      the missing fallback before it ships instead of after a user sees a blank space.</dd>
+    <dt>Downsides</dt>
+    <dd>The validator needs to know the "core roster" to distinguish core from add-on types — a coupling to the registry it doesn't have today.
+      A strict rule may over-report during local development where the author knows the add-on is present; it should be an advisory issue, not a
+      hard failure.</dd>
+    <dt>Confidence</dt><dd>80%</dd>
+    <dt>Complexity</dt><dd>Low</dd>
+  </dl>
+</article>
+</section>
+
+<section>
+<h2>Rejection Summary</h2>
+<table>
+  <thead><tr><th class="n">#</th><th>Idea</th><th>Reason</th></tr></thead>
+  <tbody>
+    <tr><td class="n">R1</td><td>Compose returns a diagnostics report (collisions, orphans, load order) as its own idea</td><td>Duplicates a stronger idea — folded into #1 as part of <code>compose()</code>'s contract, where the report naturally lives.</td></tr>
+    <tr><td class="n">R2</td><td>Derive capabilities from self-advertising registration as a standalone idea</td><td>Duplicates a stronger idea — the derivation is the mechanism inside #1 (registration is the capability source); not separable from <code>compose()</code>.</td></tr>
+    <tr><td class="n">R3</td><td>Expose the composed manifest so the app reports it to the MCP server</td><td>Genuinely valuable but partly server-side and needs app-owned transport — captured as an extension of #1's downsides; revisit in brainstorm, not a package change on its own.</td></tr>
+    <tr><td class="n">R4</td><td><code>NeoAction.custom(scheme, payload)</code> escape hatch for add-on verbs</td><td>Real and clean, but lower urgency — no add-on needs a custom interaction verb yet (YAGNI). Fold into #2's contract package when one does.</td></tr>
+    <tr><td class="n">R5</td><td><code>neo_sdui_bom</code> meta-package + Melos monorepo for distribution</td><td>Premature — while every package shares one version, the monorepo tag already <em>is</em> the BoM; a separate BoM earns its keep only when add-ons version independently. Its versioning payload is carried by #2.</td></tr>
+  </tbody>
+</table>
+</section>
+
+<footer class="composition-signal">
+  Composed 2026-07-11 by ce-ideate · repo-grounded · from this session's grounding (internal architecture scout + context7 Flutter/Melos docs + industry web research); 24 raw candidates across 3 ideation frames, 7 survivors, 4 cut. Bases verified orchestrator-side against files read this session (<code>block_registry.dart</code>, <code>neo_sdui_view.dart</code>, <code>neo_sdui_theme.dart</code>, <code>media.dart</code>, <code>validation.dart</code>) rather than a fresh-context verifier agent.
+</footer>
+
+</div>
+</body>
+</html>
