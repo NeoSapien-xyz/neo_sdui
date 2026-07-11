@@ -32,3 +32,5 @@ migrate_working_dir/
 
 # FVM Version Cache
 .fvm/
+# Flutter golden-test failure diffs (regenerated on mismatch)
+test/golden/failures/
