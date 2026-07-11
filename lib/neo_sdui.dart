@@ -1,5 +1,23 @@
-/// A Calculator.
-class Calculator {
-  /// Returns [value] plus 1.
-  int addOne(int value) => value + 1;
-}
+/// neo_sdui — renders one Remote Config JSON document per guide into baked,
+/// themed Flutter widgets. Wire names block types; the app owns styling.
+library;
+
+// Model
+export 'src/model/block_node.dart';
+export 'src/model/document.dart';
+export 'src/model/validation.dart';
+export 'src/model/view.dart';
+
+// Registry
+export 'src/blocks/default_registry.dart';
+export 'src/registry/block_registry.dart';
+
+// Actions
+export 'src/action/neo_action.dart';
+
+// Theme
+export 'src/theme/neo_sdui_scope.dart';
+export 'src/theme/neo_sdui_theme.dart';
+
+// Renderer
+export 'src/render/neo_sdui_view.dart';
