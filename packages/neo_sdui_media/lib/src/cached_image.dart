@@ -9,22 +9,44 @@ import 'media_states.dart';
 /// Renders an image from the shared disk cache, matching core `media`'s look —
 /// aspect-locked, cover-fit, rounded, with a shimmer while loading, a bounded
 /// fade-in on first frame, and a placeholder box on failure — but sourcing a
-/// cached `File` instead of the network (R5, R6, R8, R9).
-class CachedImage extends StatelessWidget {
+/// cached `File` instead of the network (R5, R6, R8, R9). The resolve future is
+/// held in state so a rebuild doesn't refetch or flash the shimmer.
+class CachedImage extends StatefulWidget {
   const CachedImage({super.key, required this.url, required this.ratio});
 
   final String url;
   final double ratio;
 
   @override
+  State<CachedImage> createState() => _CachedImageState();
+}
+
+class _CachedImageState extends State<CachedImage> {
+  late Future<File> _file;
+
+  @override
+  void initState() {
+    super.initState();
+    _file = mediaCacheManager.getSingleFile(widget.url);
+  }
+
+  @override
+  void didUpdateWidget(CachedImage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.url != widget.url) {
+      _file = mediaCacheManager.getSingleFile(widget.url);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = NeoSduiScope.of(context).theme;
     return AspectRatio(
-      aspectRatio: ratio,
+      aspectRatio: widget.ratio,
       child: ClipRRect(
         borderRadius: theme.radiusMd,
         child: FutureBuilder<File>(
-          future: mediaCacheManager.getSingleFile(url),
+          future: _file,
           builder: (context, snapshot) {
             if (snapshot.hasError) return mediaPlaceholder(theme);
             final file = snapshot.data;

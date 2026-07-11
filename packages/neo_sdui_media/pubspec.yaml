@@ -23,3 +23,5 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^6.0.0
   mocktail: ^1.0.5
+  file: ^7.0.1
+  video_player_platform_interface: ^6.9.0
