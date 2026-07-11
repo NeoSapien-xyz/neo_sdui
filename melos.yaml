@@ -1,0 +1,13 @@
+name: neo_sdui
+
+# Direct children of packages/ only (not nested example/ sources).
+packages:
+  - packages/*
+
+scripts:
+  analyze:
+    description: Analyze every package.
+    run: melos exec -- fvm flutter analyze
+  test:
+    description: Run every package's test suite.
+    run: melos exec --dir-exists=test -- fvm flutter test

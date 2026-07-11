@@ -6,8 +6,8 @@ import '../theme/neo_sdui_scope.dart';
 /// how_to's default thumbnail ratio when the wire omits one (AE4).
 const double _defaultRatio = 358 / 221;
 
-/// media: an image at an intrinsic aspect ratio. Images only — video ships in
-/// the `neo_sdui_video` add-on; a video block without it renders its fallback.
+/// media: an image at an intrinsic aspect ratio. Images only in core — the
+/// `neo_sdui_media` add-on overrides this block to also infer and play video.
 Widget buildMedia(BuildContext context, BlockNode node) {
   final theme = NeoSduiScope.of(context).theme;
   return AspectRatio(
