@@ -12,6 +12,11 @@ export 'src/model/view.dart';
 export 'src/blocks/default_registry.dart';
 export 'src/registry/block_registry.dart';
 
+// Compose
+export 'src/compose/neo_compose.dart';
+export 'src/compose/neo_compose_report.dart';
+export 'src/compose/neo_sdui_addon.dart';
+
 // Actions
 export 'src/action/neo_action.dart';
 
