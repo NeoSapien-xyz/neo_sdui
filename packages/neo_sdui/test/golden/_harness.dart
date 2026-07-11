@@ -10,7 +10,16 @@ import '../../example/how_to/how_to_theme.dart';
 /// network images resolve to their error placeholder in the test binding, so no
 /// HTTP stub is required; the theme's `Work Sans` family is unresolved so text
 /// renders in the default test font. Both are stable across runs.
-Future<void> pumpGuide(WidgetTester tester, NeoDocument doc) async {
+///
+/// [theme] defaults to how_to's; the MCP goldens pass their own. [height] sizes
+/// the viewport — the renderer scrolls, so a tall screen (the MCP guide) needs a
+/// height that fits its full content, else the golden captures only the top.
+Future<void> pumpGuide(
+  WidgetTester tester,
+  NeoDocument doc, {
+  NeoSduiTheme? theme,
+  double height = 844,
+}) async {
   await tester.pumpWidget(
     Directionality(
       textDirection: TextDirection.ltr,
@@ -19,10 +28,10 @@ Future<void> pumpGuide(WidgetTester tester, NeoDocument doc) async {
         child: Center(
           child: SizedBox(
             width: 390,
-            height: 844,
+            height: height,
             child: NeoSduiView(
               document: doc,
-              theme: howToTheme,
+              theme: theme ?? howToTheme,
               onAction: (_, _) {},
             ),
           ),
@@ -32,4 +41,16 @@ Future<void> pumpGuide(WidgetTester tester, NeoDocument doc) async {
   );
   await tester.pumpAndSettle();
   tester.takeException(); // swallow the deterministic network-image errors
+}
+
+/// The sub-document the engine builds for a presented `screen`/`sheet` view: a
+/// document over the view's blocks carrying the same `views` map so its actions
+/// still resolve (mirrors how_to_sheet_test).
+NeoDocument subDoc(NeoDocument doc, String viewId) {
+  final view = doc.viewById(viewId)!;
+  return NeoDocument(
+    version: doc.version,
+    blocks: view.blocks,
+    views: doc.views,
+  );
 }
