@@ -28,6 +28,11 @@ class NeoSduiTheme {
     this.spaceLg = 24,
     this.contentPadding = const EdgeInsets.symmetric(horizontal: 20),
     this.blockSpacing = 24,
+    this.cardColor,
+    this.cardShape,
+    this.cardShadow = const [],
+    this.cardPadding = const EdgeInsets.all(18),
+    this.backdropBlur = 0,
     this.motionDuration = const Duration(milliseconds: 200),
     this.motionCurve = Curves.easeOut,
     this.reduceMotion = false,
@@ -60,6 +65,20 @@ class NeoSduiTheme {
   final EdgeInsets contentPadding;
   final double blockSpacing;
 
+  // Card surface treatment — the pixels of an elevated surface, client-owned and
+  // never on the wire (the Adaptive Cards HostConfig `containerStyles` analog).
+  // Defaults resolve to neo's how_to card: a squircle over the `surface` role.
+  // A guide's card look is a matter of the theme handed in, not per-guide code.
+  final Color? cardColor;
+  final ShapeBorder? cardShape;
+  final List<BoxShadow> cardShadow;
+  final EdgeInsets cardPadding;
+  final double backdropBlur;
+
+  Color get resolvedCardColor => cardColor ?? surface;
+  ShapeBorder get resolvedCardShape =>
+      cardShape ?? RoundedSuperellipseBorder(borderRadius: radiusLg);
+
   // Motion is client-owned: bounded animations only, killable per app (KTD9).
   final Duration motionDuration;
   final Curve motionCurve;
@@ -91,6 +110,13 @@ class NeoSduiTheme {
   /// Body text muted when emphasis is low, else primary.
   TextStyle bodyEmphasis(String? emphasis) =>
       emphasis == 'low' ? body.copyWith(color: textMuted) : body;
+
+  /// Title color by tone: accent/critical tint the baked title; else unchanged.
+  TextStyle titleTone(String? tone) => switch (tone) {
+        'accent' => title.copyWith(color: accent),
+        'critical' => title.copyWith(color: danger),
+        _ => title,
+      };
 
   Color get shimmerBase => surface;
   Color get shimmerHighlight =>
@@ -141,6 +167,11 @@ class NeoSduiTheme {
     double? spaceLg,
     EdgeInsets? contentPadding,
     double? blockSpacing,
+    Color? cardColor,
+    ShapeBorder? cardShape,
+    List<BoxShadow>? cardShadow,
+    EdgeInsets? cardPadding,
+    double? backdropBlur,
     Duration? motionDuration,
     Curve? motionCurve,
     bool? reduceMotion,
@@ -167,6 +198,11 @@ class NeoSduiTheme {
       spaceLg: spaceLg ?? this.spaceLg,
       contentPadding: contentPadding ?? this.contentPadding,
       blockSpacing: blockSpacing ?? this.blockSpacing,
+      cardColor: cardColor ?? this.cardColor,
+      cardShape: cardShape ?? this.cardShape,
+      cardShadow: cardShadow ?? this.cardShadow,
+      cardPadding: cardPadding ?? this.cardPadding,
+      backdropBlur: backdropBlur ?? this.backdropBlur,
       motionDuration: motionDuration ?? this.motionDuration,
       motionCurve: motionCurve ?? this.motionCurve,
       reduceMotion: reduceMotion ?? this.reduceMotion,

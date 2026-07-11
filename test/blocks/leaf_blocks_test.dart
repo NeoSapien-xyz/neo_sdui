@@ -43,6 +43,12 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('header tone:accent tints the title with the accent role',
+      (tester) async {
+    await _pump(tester, {'type': 'header', 'title': 'Hi', 'tone': 'accent'});
+    expect(tester.widget<Text>(find.text('Hi')).style!.color, _theme.accent);
+  });
+
   testWidgets('text uses body; emphasis low renders muted', (tester) async {
     await _pump(tester, {'type': 'text', 'body': 'B'});
     expect(tester.widget<Text>(find.text('B')).style, _theme.body);

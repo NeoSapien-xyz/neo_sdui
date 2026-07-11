@@ -56,6 +56,56 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('tile card draws an image-top surface with the themed shape + shadow',
+      (tester) async {
+    const glow = [BoxShadow(color: Color(0x0AFFFFFF), blurRadius: 10)];
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: MediaQuery(
+          data: const MediaQueryData(),
+          child: Center(
+            child: SizedBox(
+              width: 400,
+              height: 800,
+              child: NeoSduiView(
+                document: NeoDocument.fromJson({
+                  'version': 1,
+                  'blocks': [
+                    {
+                      'type': 'card',
+                      'variant': 'tile',
+                      'ratio': 1.3333,
+                      'thumb': 'https://x/y.png',
+                      'title': 'How can I control Neo 1?',
+                      'action': 'sheet:control',
+                    },
+                  ],
+                }),
+                theme: _theme.copyWith(cardShadow: glow),
+                onAction: (_, _) {},
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    tester.takeException(); // deterministic network-image error
+
+    // Image-top tile: a full-width thumbnail box above the details.
+    expect(find.byType(AspectRatio), findsWidgets);
+    // The surface carries the client's squircle + glow, off the wire.
+    final shapes = tester
+        .widgetList<DecoratedBox>(find.byType(DecoratedBox))
+        .map((d) => d.decoration)
+        .whereType<ShapeDecoration>();
+    expect(
+      shapes.any((d) =>
+          d.shape is RoundedSuperellipseBorder && d.shadows == glow),
+      isTrue,
+    );
+  });
+
   testWidgets('steps numbers items and isolates a malformed one', (tester) async {
     await _pump(tester, {
       'type': 'steps',
