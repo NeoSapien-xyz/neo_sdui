@@ -62,6 +62,17 @@ class BlockNode {
   bool boolOr(String key, {bool or = false}) =>
       fields[key] is bool ? fields[key] as bool : or;
 
+  /// Aspect ratio from an explicit `ratio` (any positive num), else raw
+  /// `width`/`height`, else [fallback]. Guards non-positive values — a `<= 0`
+  /// ratio trips `AspectRatio`'s assert in debug and is undefined in release.
+  double ratioOr(double fallback) {
+    final r = fields['ratio'];
+    if (r is num && r > 0) return r.toDouble();
+    final w = intOr('width'), h = intOr('height');
+    if (w != null && w > 0 && h != null && h > 0) return w / h;
+    return fallback;
+  }
+
   /// Child-block list (e.g. a tab's `blocks`).
   List<BlockNode> nodeList(String key) {
     final raw = fields[key];

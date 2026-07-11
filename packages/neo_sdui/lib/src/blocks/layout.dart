@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 
 import '../model/block_node.dart';
 import '../theme/neo_sdui_scope.dart';
+import '_shape.dart';
 
 /// Layout primitives: arrange child blocks, carry no pixels (KTD10). Spacing and
 /// surfaces come from the theme, not the wire.
@@ -33,7 +34,12 @@ Widget buildGroup(BuildContext context, BlockNode node) {
   final scope = NeoSduiScope.of(context);
   final theme = scope.theme;
   return DecoratedBox(
-    decoration: BoxDecoration(color: theme.surface, borderRadius: theme.radiusLg),
+    decoration: shapeDecoration(
+      node.stringOr('shape'),
+      theme.radiusLg,
+      fallback: 'rounded',
+      color: theme.surface,
+    ),
     child: Padding(
       padding: EdgeInsets.all(theme.spaceMd),
       child: _stack(scope.buildBlocks(node.nodeList('children')), theme.blockSpacing),

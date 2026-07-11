@@ -3,8 +3,10 @@ import 'package:flutter/widgets.dart';
 import '../action/neo_action.dart';
 import '../model/block_node.dart';
 import '../theme/neo_sdui_scope.dart';
+import '_shape.dart';
 
-/// cta: tappable pill. Fill/text derived from `emphasis` (high/normal/low).
+/// cta: tappable pill. Fill/text derived from `emphasis` (high/normal/low);
+/// corner from the optional `shape` role (default rounded).
 Widget buildCta(BuildContext context, BlockNode node) {
   final scope = NeoSduiScope.of(context);
   final theme = scope.theme;
@@ -17,9 +19,11 @@ Widget buildCta(BuildContext context, BlockNode node) {
   return GestureDetector(
     onTap: () => scope.dispatch(context, NeoAction.parse(action)),
     child: DecoratedBox(
-      decoration: BoxDecoration(
+      decoration: shapeDecoration(
+        node.stringOr('shape'),
+        theme.radiusMd,
+        fallback: 'rounded',
         color: theme.fill(emphasis),
-        borderRadius: theme.radiusMd,
       ),
       child: Padding(
         padding: EdgeInsets.symmetric(vertical: 14, horizontal: theme.spaceLg),

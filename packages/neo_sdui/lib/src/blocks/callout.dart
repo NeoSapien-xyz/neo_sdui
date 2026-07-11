@@ -2,9 +2,11 @@ import 'package:flutter/widgets.dart';
 
 import '../model/block_node.dart';
 import '../theme/neo_sdui_scope.dart';
+import '_shape.dart';
 
 /// callout: optional title + bullet list. Surface derived from `tone`
-/// (default/accent/critical); text is the on-surface role.
+/// (default/accent/critical); corner from the optional `shape` role (default
+/// rounded); text is the on-surface role.
 Widget buildCallout(BuildContext context, BlockNode node) {
   final theme = NeoSduiScope.of(context).theme;
   final title = node.stringOr('title');
@@ -13,9 +15,11 @@ Widget buildCallout(BuildContext context, BlockNode node) {
       (node.fields['bullets'] as List?)?.whereType<String>().toList() ??
           const <String>[];
   return DecoratedBox(
-    decoration: BoxDecoration(
+    decoration: shapeDecoration(
+      node.stringOr('shape'),
+      theme.radiusMd,
+      fallback: 'rounded',
       color: theme.toneSurface(node.stringOr('tone')),
-      borderRadius: theme.radiusMd,
     ),
     child: Padding(
       padding: EdgeInsets.all(theme.spaceMd),
