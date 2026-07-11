@@ -3,10 +3,11 @@
 /// into semantic blocks. It is stored exactly as Remote Config delivers it: one
 /// JSON string the app `jsonDecode`s and hands to `NeoDocument.fromJson`.
 ///
-/// Video is deferred (KTD8): each sheet renders the clip's POSTER image via
-/// `media` (the sibling `.png` of the `.mp4`) until the `neo_sdui_video` add-on
-/// lands. When it does, a sheet's media becomes a `video` block carrying
-/// `requires: {video: …}` + this `media` as its `fallback`.
+/// Video ships in the `neo_sdui_media` add-on, which overrides the `media` block
+/// to infer image-vs-video from the url and play video inline. Without it, each
+/// `media` here renders as its image (the clip's poster `.png`); composing the
+/// add-on and pointing `url` at the `.mp4` plays it. The override needs no
+/// `requires`/`fallback`.
 const howToDocumentJson = r'''
 {
   "version": 1,

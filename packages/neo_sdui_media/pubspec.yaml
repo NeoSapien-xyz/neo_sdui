@@ -1,0 +1,27 @@
+name: neo_sdui_media
+description: "neo_sdui add-on: one media block that infers image vs video from the URL, plays video (looping/muted/autoplay), and disk-caches both via flutter_cache_manager."
+version: 0.0.1
+publish_to: none
+
+environment:
+  sdk: ^3.11.1
+  flutter: ">=1.17.0"
+
+# Member of the root pub workspace (melos-managed monorepo).
+resolution: workspace
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_cache_manager: ^3.4.1
+  neo_sdui:
+    path: ../neo_sdui
+  video_player: ^2.11.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  mocktail: ^1.0.5
+  file: ^7.0.1
+  video_player_platform_interface: ^6.9.0
