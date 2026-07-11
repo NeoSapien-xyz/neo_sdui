@@ -105,11 +105,15 @@ Widget buildCard(BuildContext context, BlockNode node) {
     content = Padding(padding: theme.cardPadding, child: details);
   }
 
-  // Wire shape overrides the card's shape family; omitted keeps the theme's
-  // (squircle by default, or a theme `cardShape` override).
-  final cardShape = shape != null
-      ? shapeBorder(shape, theme.radiusLg, fallback: 'squircle')
-      : theme.resolvedCardShape;
+  // A recognized wire shape overrides the card's shape family; omitted OR an
+  // unrecognized token keeps the theme's default (squircle, or a `cardShape`
+  // override) — so a typo degrades to the default, never silently to a rounded
+  // rect (the card is the one block whose default is squircle).
+  final cardShape = switch (shape) {
+    'squircle' => RoundedSuperellipseBorder(borderRadius: theme.radiusLg),
+    'rounded' => RoundedRectangleBorder(borderRadius: theme.radiusLg),
+    _ => theme.resolvedCardShape,
+  };
   final surface = _surface(theme, cardShape, content);
   if (action == null) return surface;
   return GestureDetector(

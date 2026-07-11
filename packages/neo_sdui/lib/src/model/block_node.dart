@@ -62,15 +62,19 @@ class BlockNode {
   bool boolOr(String key, {bool or = false}) =>
       fields[key] is bool ? fields[key] as bool : or;
 
-  /// Aspect ratio from an explicit `ratio` (any positive num), else raw
-  /// `width`/`height`, else [fallback]. Guards non-positive values — a `<= 0`
-  /// ratio trips `AspectRatio`'s assert in debug and is undefined in release.
-  double ratioOr(double fallback) {
+  /// Aspect ratio from an explicit `ratio` (any positive, finite num), else raw
+  /// `width`/`height`, else [or]. Guards non-positive AND non-finite values:
+  /// `AspectRatio` asserts both `> 0` and `isFinite`, and its isFinite assert
+  /// fires at render-object mount — outside the per-block try/catch — so an
+  /// unguarded Infinity (`"ratio": 1e400` decodes to `double.infinity`) would
+  /// surface as an ErrorWidget instead of degrading. (`NaN > 0` is already
+  /// false, so NaN is rejected.)
+  double ratioOr(double or) {
     final r = fields['ratio'];
-    if (r is num && r > 0) return r.toDouble();
+    if (r is num && r > 0 && r.isFinite) return r.toDouble();
     final w = intOr('width'), h = intOr('height');
     if (w != null && w > 0 && h != null && h > 0) return w / h;
-    return fallback;
+    return or;
   }
 
   /// Child-block list (e.g. a tab's `blocks`).
