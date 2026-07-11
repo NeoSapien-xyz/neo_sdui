@@ -5,4 +5,5 @@
 /// Install: `NeoSdui.compose([neoSduiMediaAddon])`.
 library;
 
-export 'src/media_addon.dart';
+// Builders stay registry-only (core convention) — expose just the add-on.
+export 'src/media_addon.dart' hide buildMediaBlock;

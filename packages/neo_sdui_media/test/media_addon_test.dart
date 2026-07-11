@@ -248,6 +248,20 @@ void main() {
       await tester.pumpWidget(const SizedBox());
     });
 
+    testWidgets('video reloads on a live url change (didUpdateWidget)',
+        (tester) async {
+      await _pump(tester, _block(addonMedia, _media('first.mp4')));
+      await _settleVideo(tester);
+      verify(() => cache.getSingleFile('first.mp4')).called(1);
+
+      // Same widget slot, new url -> element reused -> didUpdateWidget reloads.
+      await _pump(tester, _block(addonMedia, _media('second.mp4')));
+      await _settleVideo(tester);
+      verify(() => cache.getSingleFile('second.mp4')).called(1);
+
+      await tester.pumpWidget(const SizedBox());
+    });
+
     testWidgets('empty url collapses to nothing', (tester) async {
       await _pump(tester, _block(addonMedia, _media('')));
       await tester.pump();
@@ -284,9 +298,10 @@ void main() {
       await _pump(tester, _block(coreMedia, _media('clip.mp4')));
       await tester.pump();
 
-      // core treats it as an image url; the load fails to a placeholder box.
+      // core treats it as an image url (Image.network) — no video, no crash.
       expect(find.byType(CachedVideo), findsNothing);
-      tester.takeException();
+      expect(find.byType(Image), findsOneWidget);
+      tester.takeException(); // swallow the deterministic network-image error
     });
   });
 }
