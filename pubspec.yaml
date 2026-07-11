@@ -11,6 +11,7 @@ environment:
 # Pub workspace members. Add-on packages join here as they land.
 workspace:
   - packages/neo_sdui
+  - packages/neo_sdui_media
 
 dev_dependencies:
   melos: ^8.2.0
