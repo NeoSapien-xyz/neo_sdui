@@ -12,6 +12,7 @@ const mcpDocumentJson = r'''
 {
   "version": 1,
   "blocks": [
+    { "type": "media", "url": "https://cdn.neosapien.xyz/mcp/hero.png", "ratio": 1.6 },
     {
       "type": "header",
       "title": "Your AI. Finally in the loop.",
@@ -25,9 +26,9 @@ const mcpDocumentJson = r'''
     {
       "type": "steps",
       "items": [
-        { "caption": "Pick your AI" },
-        { "caption": "Follow the quick guide" },
-        { "caption": "Ask it anything" }
+        { "caption": "Pick your AI", "detail": "ChatGPT, Claude or any other" },
+        { "caption": "Follow the quick guide", "detail": "Takes less than a minute" },
+        { "caption": "Ask it anything", "detail": "Neo 1 context is live" }
       ]
     },
     {
@@ -60,6 +61,7 @@ const mcpDocumentJson = r'''
       "type": "callout",
       "title": "Only works with AI tools that supports MCP such as Claude or ChatGPT Pro."
     },
+    { "type": "code", "label": "Your MCP server", "content": "https://api.neosapien.xyz/mcp" },
     {
       "type": "header",
       "title": "Here's what it does for you",
@@ -107,7 +109,7 @@ const mcpDocumentJson = r'''
                     { "caption": "Click the Connected apps tab" },
                     { "caption": "Click the Add button" },
                     { "caption": "Select Model Context Protocol (MCP)" },
-                    { "caption": "Add the server URL: https://api.neosapien.xyz/mcp" },
+                    { "caption": "Add the server URL", "code": "https://api.neosapien.xyz/mcp" },
                     { "caption": "Click Advanced settings if you need to add OAuth credentials" },
                     { "caption": "Check the box: I understand and want to continue. Click Create" },
                     { "caption": "Sign in with your NeoSapien account (may differ from ChatGPT account)" },
@@ -164,7 +166,7 @@ const mcpDocumentJson = r'''
                     { "caption": "Click Customize in the left sidebar" },
                     { "caption": "Select Connectors from the menu" },
                     { "caption": "Click + then Add custom connector" },
-                    { "caption": "Add the server URL: https://api.neosapien.xyz/mcp" },
+                    { "caption": "Add the server URL", "code": "https://api.neosapien.xyz/mcp" },
                     { "caption": "Select NeoSapien from connectors list and tap “Connect” to sign in to NeoSapien account (OAuth)" },
                     { "caption": "Sign in to NeoSapien when prompted (OAuth)" },
                     { "caption": "Try your first prompt: “What do you know about me from Neosapien?”" },
@@ -184,7 +186,7 @@ const mcpDocumentJson = r'''
                     { "caption": "Click Customize in the left sidebar" },
                     { "caption": "Select Connectors from the menu" },
                     { "caption": "Click + then Add custom connector" },
-                    { "caption": "Add the server URL: https://api.neosapien.xyz/mcp" },
+                    { "caption": "Add the server URL", "code": "https://api.neosapien.xyz/mcp" },
                     { "caption": "Select NeoSapien from connectors list and tap “Connect” to sign in to NeoSapien account (OAuth)" },
                     { "caption": "Sign in to NeoSapien when prompted (OAuth)" },
                     { "caption": "Try your first prompt: “What do you know about me from Neosapien?”" },
@@ -200,10 +202,10 @@ const mcpDocumentJson = r'''
                 {
                   "type": "steps",
                   "items": [
-                    { "caption": "Install Claude Code: npm install -g @anthropic-ai/claude-code" },
-                    { "caption": "In your terminal, run /mcp" },
+                    { "caption": "Install Claude Code", "code": "npm install -g @anthropic-ai/claude-code" },
+                    { "caption": "In your terminal, run", "code": "/mcp" },
                     { "caption": "NeoSapien appears as disconnected — select it to connect" },
-                    { "caption": "Sign in to NeoSapien when prompted (OAuth). Run claude mcp list to verify the status." },
+                    { "caption": "Sign in when prompted (OAuth), then verify the status with", "code": "claude mcp list" },
                     { "caption": "Try your first prompt: “What do you know about me from Neosapien?”" },
                     { "caption": "Congrats! NeoSapien is now connected to Claude Code." }
                   ]
@@ -245,7 +247,7 @@ const mcpDocumentJson = r'''
           "type": "steps",
           "items": [
             { "caption": "Open your tool's MCP settings" },
-            { "caption": "Add the server URL: https://api.neosapien.xyz/mcp" },
+            { "caption": "Add the server URL", "code": "https://api.neosapien.xyz/mcp" },
             { "caption": "Sign in with the NeoSapien account (this can be different from your ChatGPT account)" },
             { "caption": "Congrats! NeoSapien MCP is now connected" }
           ]

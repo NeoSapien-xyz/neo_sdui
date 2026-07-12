@@ -20,6 +20,11 @@ class NeoSduiTheme {
     required this.subtitle,
     required this.body,
     required this.caption,
+    this.mono = const TextStyle(
+      fontFamilyFallback: ['Menlo', 'Courier New', 'monospace'],
+      fontSize: 13,
+      height: 1.4,
+    ),
     this.radiusSm = const BorderRadius.all(Radius.circular(8)),
     this.radiusMd = const BorderRadius.all(Radius.circular(12)),
     this.radiusLg = const BorderRadius.all(Radius.circular(16)),
@@ -54,6 +59,11 @@ class NeoSduiTheme {
   final TextStyle subtitle;
   final TextStyle body;
   final TextStyle caption;
+
+  /// Monospace style for the `code` block's content — commands, URLs, config.
+  /// Color is baked to a default; the block overrides it for the textPrimary
+  /// role, same as the other type-scale slots.
+  final TextStyle mono;
 
   // Scales.
   final BorderRadius radiusSm;
@@ -159,6 +169,7 @@ class NeoSduiTheme {
     TextStyle? subtitle,
     TextStyle? body,
     TextStyle? caption,
+    TextStyle? mono,
     BorderRadius? radiusSm,
     BorderRadius? radiusMd,
     BorderRadius? radiusLg,
@@ -190,6 +201,7 @@ class NeoSduiTheme {
       subtitle: subtitle ?? this.subtitle,
       body: body ?? this.body,
       caption: caption ?? this.caption,
+      mono: mono ?? this.mono,
       radiusSm: radiusSm ?? this.radiusSm,
       radiusMd: radiusMd ?? this.radiusMd,
       radiusLg: radiusLg ?? this.radiusLg,

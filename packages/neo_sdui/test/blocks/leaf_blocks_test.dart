@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:neo_sdui/neo_sdui.dart';
@@ -166,5 +167,45 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('media-error')), findsOneWidget);
     tester.takeException();
+  });
+
+  testWidgets('code renders content in the mono role and captions its label',
+      (tester) async {
+    await _pump(tester,
+        {'type': 'code', 'label': 'Your MCP server', 'content': 'npm i -g x'});
+    final content = tester.widget<Text>(find.text('npm i -g x')).style!;
+    expect(content.color, _theme.textPrimary);
+    expect(content.fontFamilyFallback, _theme.mono.fontFamilyFallback);
+    expect(tester.widget<Text>(find.text('Your MCP server')).style, _theme.caption);
+  });
+
+  testWidgets('code without a label omits it', (tester) async {
+    await _pump(tester, {'type': 'code', 'content': 'x'});
+    expect(find.text('x'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('code copies its content to the clipboard and confirms',
+      (tester) async {
+    String? copied;
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      (call) async {
+        if (call.method == 'Clipboard.setData') {
+          copied = (call.arguments as Map)['text'] as String;
+        }
+        return null;
+      },
+    );
+    await _pump(tester, {'type': 'code', 'content': 'claude mcp list'});
+    await tester.tap(find.byKey(const Key('code-copy')));
+    await tester.pump(); // run the copy future
+    await tester.pump(); // apply the "Copied" setState
+    expect(copied, 'claude mcp list');
+    expect(find.text('Copied'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 2)); // fire + clear the reset timer
+    expect(find.text('Copy'), findsOneWidget);
+    tester.binding.defaultBinaryMessenger
+        .setMockMethodCallHandler(SystemChannels.platform, null);
   });
 }

@@ -122,6 +122,24 @@ void main() {
     expect(find.text('3'), findsOneWidget);
   });
 
+  testWidgets('a step renders its optional detail line and copyable command',
+      (tester) async {
+    await _pump(tester, {
+      'type': 'steps',
+      'items': [
+        {
+          'caption': 'Install Claude Code',
+          'detail': 'one-time',
+          'code': 'npm install -g @anthropic-ai/claude-code',
+        },
+      ],
+    });
+    expect(find.text('Install Claude Code'), findsOneWidget);
+    expect(find.text('one-time'), findsOneWidget);
+    expect(find.text('npm install -g @anthropic-ai/claude-code'), findsOneWidget);
+    expect(find.byKey(const Key('code-copy')), findsOneWidget); // the Copy chip
+  });
+
   testWidgets('faq expands and collapses an item', (tester) async {
     await _pump(tester, {
       'type': 'faq',

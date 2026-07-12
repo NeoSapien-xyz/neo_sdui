@@ -1,6 +1,7 @@
 import '../registry/block_registry.dart';
 import 'callout.dart';
 import 'card.dart';
+import 'code.dart';
 import 'cta.dart';
 import 'faq.dart';
 import 'header.dart';
@@ -18,6 +19,7 @@ BlockRegistry defaultRegistry() => BlockRegistry.empty()
   ..register('cta', buildCta)
   ..register('callout', buildCallout)
   ..register('media', buildMedia)
+  ..register('code', buildCode)
   ..register('card', buildCard)
   ..register('steps', buildSteps)
   ..register('faq', buildFaq)
