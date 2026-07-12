@@ -12,6 +12,7 @@ environment:
 workspace:
   - packages/neo_sdui
   - packages/neo_sdui_media
+  - packages/neo_sdui_syntax
 
 dev_dependencies:
   melos: ^8.2.0
