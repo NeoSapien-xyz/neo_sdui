@@ -1,0 +1,495 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ideation: neo_sdui add-on package catalog (from the MCP guide)</title>
+<style>
+  :root {
+    --bg: #fbfbfa; --fg: #1a1c1b; --muted: #5c6360; --card: #ffffff;
+    --line: #e3e5e3; --accent: #0a7f5c; --accent-soft: #e5f4ee;
+    --warn: #9a6a00; --warn-soft: #fbf1dd; --info-soft: #e8eef6;
+    --chip: #eef0ee; --code-bg: #f2f4f2; --shadow: 0 1px 2px rgba(0,0,0,.04), 0 6px 20px rgba(0,0,0,.05);
+    --svg-box: #f4f6f5; --svg-stroke: #b9c0bc; --svg-accent: #0a7f5c;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14161a; --fg: #e6e8e6; --muted: #9aa19d; --card: #1c1f24;
+      --line: #2b2f35; --accent: #37d39a; --accent-soft: #10352a;
+      --warn: #e2b24d; --warn-soft: #33290f; --info-soft: #1a2530;
+      --chip: #262a30; --code-bg: #22262c; --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+      --svg-box: #22262c; --svg-stroke: #4a5158; --svg-accent: #37d39a;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 940px; margin-inline: auto; padding: 44px 24px 80px; }
+  header.doc { border-bottom: 1px solid var(--line); padding-bottom: 22px; margin-bottom: 8px; }
+  .eyebrow { text-transform: uppercase; letter-spacing: .09em; font-size: 12px; font-weight: 700; color: var(--accent); }
+  h1 { font-size: 30px; line-height: 1.2; margin: 8px 0 14px; letter-spacing: -.01em; }
+  h2 { font-size: 21px; margin: 44px 0 14px; letter-spacing: -.01em; }
+  p { max-width: 72ch; }
+  .meta { display: flex; flex-wrap: wrap; gap: 8px 10px; margin-top: 6px; }
+  .meta .kv { font-size: 13px; color: var(--muted); background: var(--chip); border: 1px solid var(--line); border-radius: 999px; padding: 3px 11px; }
+  .meta .kv b { color: var(--fg); font-weight: 600; }
+  .stats { display: flex; flex-wrap: wrap; gap: 12px; margin: 20px 0 0; }
+  .stat { flex: 1 1 120px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; box-shadow: var(--shadow); }
+  .stat .n { font-size: 24px; font-weight: 700; letter-spacing: -.02em; }
+  .stat .l { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+  code { background: var(--code-bg); border-radius: 5px; padding: .1em .38em; font: 13.5px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  .axes { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+  .axis-card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; box-shadow: var(--shadow); }
+  .axis-card .t { font-weight: 700; font-size: 14px; }
+  .axis-card .d { font-size: 13px; color: var(--muted); margin-top: 3px; }
+  .jump { list-style: none; padding: 0; margin: 0 0 26px; display: grid; gap: 6px; }
+  .jump li { font-size: 14.5px; }
+  .jump a { text-decoration: none; }
+  .jump .rk { display: inline-block; width: 22px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .jump .ax { color: var(--muted); font-size: 12.5px; }
+  article.idea { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 22px 24px; margin: 18px 0; box-shadow: var(--shadow); }
+  article.idea > h3 { margin: 0; font-size: 19px; letter-spacing: -.01em; display: flex; gap: 10px; align-items: baseline; }
+  article.idea > h3 .rk { color: var(--accent); font-variant-numeric: tabular-nums; }
+  .chiprow { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 4px; }
+  .chip { font-size: 12px; font-weight: 600; border-radius: 999px; padding: 3px 11px; border: 1px solid var(--line); background: var(--chip); color: var(--fg); }
+  .chip.axis { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
+  .chip.conf { background: var(--info-soft); border-color: transparent; }
+  .chip.cx { background: var(--chip); }
+  .chip.dep { background: var(--warn-soft); color: var(--warn); border-color: transparent; font-family: ui-monospace, Menlo, monospace; }
+  dl.fields { margin: 14px 0 0; }
+  dl.fields dt { font-size: 11.5px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); font-weight: 700; margin-top: 12px; }
+  dl.fields dd { margin: 3px 0 0; max-width: 74ch; }
+  .basis-tag { font: 12.5px ui-monospace, Menlo, monospace; font-weight: 700; color: var(--accent); }
+  figure.svg { margin: 16px 0 4px; background: var(--svg-box); border: 1px solid var(--line); border-radius: 12px; padding: 14px; overflow-x: auto; }
+  figure.svg figcaption { font-size: 12.5px; color: var(--muted); margin-top: 8px; }
+  svg text { font-family: -apple-system, "Segoe UI", Roboto, sans-serif; }
+  table { border-collapse: collapse; width: 100%; margin-top: 12px; font-size: 14.5px; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+  td.n { color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  footer.composition-signal { margin-top: 54px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--muted); }
+  .lead { font-size: 17px; max-width: 74ch; }
+  .sib { font-size: 13.5px; color: var(--muted); background: var(--info-soft); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; margin-top: 14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="doc">
+  <div class="eyebrow">Ideation · Compound Engineering</div>
+  <h1>neo_sdui add-on <em>package</em> catalog — what the MCP guide asks for</h1>
+  <div class="meta">
+    <span class="kv"><b>date</b> 2026-07-12</span>
+    <span class="kv"><b>topic</b> neo-sdui-addon-package-catalog</span>
+    <span class="kv"><b>mode</b> repo-grounded</span>
+    <span class="kv"><b>focus</b> which concrete add-on packages the MCP setup guide reveals a need for</span>
+  </div>
+  <div class="stats">
+    <div class="stat"><div class="n">7</div><div class="l">ranked packages</div></div>
+    <div class="stat"><div class="n">26</div><div class="l">raw candidates</div></div>
+    <div class="stat"><div class="n">4</div><div class="l">cut</div></div>
+    <div class="stat"><div class="n">5</div><div class="l">axes covered</div></div>
+    <div class="stat"><div class="n">3</div><div class="l">libs context7-verified</div></div>
+  </div>
+  <div class="sib">Sibling doc: <code>2026-07-11-neo-sdui-addon-architecture-ideation.html</code> ideated the add-on <em>machinery</em>
+    (<code>NeoSduiAddon</code> + <code>compose()</code>, a contract package, a <code>ThemeExtension</code> bag). That machinery has
+    since landed (<code>compose/neo_compose.dart</code>, <code>compose/neo_sdui_addon.dart</code>, and the <code>neo_sdui_media</code>
+    package all exist). This doc assumes the spine and asks the next question: <strong>given the guide's actual wire, which packages
+    should ride on it?</strong></div>
+</header>
+
+<section>
+<h2>Grounding Context</h2>
+<p class="lead">The MCP setup guide is a real, shipped wire document (<code>example/mcp/mcp_document.dart</code>) rendered by
+today's 13 core block types (<code>header, text, cta, callout, media, card, steps, faq, tabs, row, column, group, spacer</code>).
+Reading the wire closely — not the design in the abstract — surfaces four things the core roster cannot express, and every
+package below targets one of them.</p>
+
+<p><strong>What the wire actually contains (the demand signal):</strong></p>
+<ul>
+  <li><strong>Terminal commands smuggled into prose.</strong> Setup <code>steps</code> carry literal strings the user must reproduce
+    <em>exactly</em>: <code>npm install -g @anthropic-ai/claude-code</code>, the server URL <code>https://api.neosapien.xyz/mcp</code>
+    (repeated ~6×), <code>run /mcp</code>, <code>claude mcp list</code>, and a <code>claude_desktop_config.json</code> reference in
+    Troubleshooting. Today they render as plain step captions — no monospace, no copy button, no way to avoid a typo. The Figma canvas
+    confirms the intent: <code>Command</code> nodes with <code>Copy</code> affordances appear ~18–30×.</li>
+  <li><strong>A phone/laptop contradiction.</strong> Three separate <code>callout</code>s say <em>"Requires laptop for setup"</em> /
+    <em>"Setup happens on your computer"</em> — yet the guide is read inside the Neo mobile app, on the phone. The user reads the steps
+    on one device and must perform them on another, with no bridge.</li>
+  <li><strong>External destinations the wire can't open.</strong> The final <code>cta</code> "Contact Support" points at
+    <code>https://neosapien.xyz/support</code>; steps name <code>chatgpt.com</code>, <code>claude.ai/download</code>, and OAuth sign-in
+    flows. Core treats a <code>screen:…</code> action as in-app navigation, but has no sanctioned handler for an <code>https://</code> one.</li>
+  <li><strong>Answers that want emphasis.</strong> FAQ answers, callout bullets, and the <em>"from NeoSapien"</em> trigger phrase all lean
+    on inline emphasis and links; core <code>text</code> renders a plain body only.</li>
+  <li><strong>A funnel and a checklist hiding in plain sight.</strong> The intro page is a <code>card→screen:chatgpt|claude|other</code>
+    chooser feeding per-client <code>steps</code>; the Figma frames wrap this in "4 Tasks", a "Circular progress indicator", and
+    "Updating" chips. The guide <em>is</em> a linear setup funnel, but renders as stateless, un-instrumented content.</li>
+</ul>
+
+<p><strong>The invariant every package must respect.</strong> Core stays <code>flutter</code> + <code>meta</code> only; the wire carries
+<em>semantics, never look or heavy capability</em> (<code>CONCEPTS.md</code>). So each package below earns its separation by pulling a
+dependency core refuses to carry — a native plugin, a parser, a highlighter, a persistence layer — and each degrades to a core floor when
+absent (the <code>requires</code>/<code>fallback</code> model in <code>neo_sdui_view.dart</code>).</p>
+
+<p><strong>Library reality (context7-checked, 2026-07-12).</strong> Bases were verified rather than assumed:
+<code>flutter_markdown</code> (the old flutter.dev package) is <strong>discontinued</strong> — the live successors are
+<code>markdown_widget</code>, <code>flutter_markdown_plus</code>, and <code>gpt_markdown</code>; note <code>markdown_widget</code>
+transitively pulls <code>flutter_highlight</code> + <code>highlight</code> + <code>url_launcher</code> + <code>visibility_detector</code>.
+<code>qr_flutter</code> (<code>QrImageView</code>, <code>QrVersions.auto</code>, L/M/Q/H error correction, embedded-image overlay) is
+healthy and current. <code>url_launcher</code> (<code>launchUrl</code>/<code>canLaunchUrl</code>, native impls per platform) is healthy.
+Clipboard is <code>Clipboard.setData</code> from <code>flutter/services</code> — <em>zero</em> extra dependency, so copy itself is
+core-eligible; only highlighting forces a package.</p>
+</section>
+
+<section>
+<h2>Topic Axes</h2>
+<div class="axes">
+  <div class="axis-card"><div class="t">command surface</div><div class="d">Exact strings — commands, config, URLs, prompts — that must be copied, not retyped.</div></div>
+  <div class="axis-card"><div class="t">device handoff</div><div class="d">Bridging "read on phone" to "do on laptop" for the setup steps.</div></div>
+  <div class="axis-card"><div class="t">navigation</div><div class="d">Opening external URLs / OAuth off the wire without breaking the app-owns-nav rule.</div></div>
+  <div class="axis-card"><div class="t">rich content</div><div class="d">Emphasis, links, inline code in answers and body text.</div></div>
+  <div class="axis-card"><div class="t">stateful &amp; instrumented</div><div class="d">Progress that persists and a funnel that reports — beyond a stateless render.</div></div>
+</div>
+</section>
+
+<section>
+<h2>Ranked Packages</h2>
+<ol class="jump">
+  <li><span class="rk">1.</span><a href="#idea1"><code>neo_sdui_code</code> — copyable command / config block</a> <span class="ax">· command surface</span></li>
+  <li><span class="rk">2.</span><a href="#idea2"><code>neo_sdui_qr</code> — phone→laptop handoff block</a> <span class="ax">· device handoff</span></li>
+  <li><span class="rk">3.</span><a href="#idea3"><code>neo_sdui_launcher</code> — <code>url_launcher</code> action handler</a> <span class="ax">· navigation</span></li>
+  <li><span class="rk">4.</span><a href="#idea4"><code>neo_sdui_markdown</code> — rich text / answers</a> <span class="ax">· rich content</span></li>
+  <li><span class="rk">5.</span><a href="#idea5"><code>neo_sdui_analytics</code> — funnel instrumentation (no render)</a> <span class="ax">· stateful &amp; instrumented</span></li>
+  <li><span class="rk">6.</span><a href="#idea6"><code>neo_sdui_progress</code> — <code>steps</code> become a persisted checklist</a> <span class="ax">· stateful &amp; instrumented</span></li>
+  <li><span class="rk">7.</span><a href="#idea7"><code>neo_sdui_prompt</code> — tap-to-copy suggested-prompt chips</a> <span class="ax">· command surface</span></li>
+</ol>
+
+<article class="idea" id="idea1">
+  <h3><span class="rk">1.</span> <code>neo_sdui_code</code> — copyable command / config block</h3>
+  <div class="chiprow">
+    <span class="chip axis">command surface</span>
+    <span class="chip conf">Confidence 92%</span>
+    <span class="chip cx">Complexity: Low</span>
+    <span class="chip dep">flutter/services · +flutter_highlight (opt)</span>
+  </div>
+  <figure class="svg">
+    <svg viewBox="0 0 720 200" width="100%" role="img" aria-label="A code block renders monospace with a copy button in core; the syntax add-on upgrades the same type with highlighting.">
+      <g font-size="13" fill="var(--fg)">
+        <rect x="14" y="24" width="300" height="150" rx="12" fill="var(--card)" stroke="var(--svg-stroke)"/>
+        <text x="30" y="48" font-weight="700">core floor — <tspan font-family="ui-monospace,Menlo,monospace">code</tspan></text>
+        <rect x="30" y="60" width="230" height="26" rx="6" fill="var(--code-bg)"/>
+        <text x="40" y="78" font-family="ui-monospace,Menlo,monospace" font-size="11">npm i -g @anthropic-ai/claude-code</text>
+        <rect x="266" y="60" width="34" height="26" rx="6" fill="var(--accent-soft)" stroke="var(--svg-accent)"/>
+        <text x="283" y="78" text-anchor="middle" font-size="11" fill="var(--accent)">⧉</text>
+        <text x="30" y="112" font-size="11.5" fill="var(--muted)">monospace + Clipboard.setData</text>
+        <text x="30" y="130" font-size="11.5" fill="var(--muted)">zero extra dependency</text>
+        <text x="30" y="156" font-size="11.5" fill="var(--muted)">→ eligible to live in <tspan font-family="ui-monospace,Menlo,monospace">core</tspan></text>
+
+        <path d="M320 99 H392" stroke="var(--svg-accent)" fill="none" marker-end="url(#c1)"/>
+        <defs><marker id="c1" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6 z" fill="var(--svg-accent)"/></marker></defs>
+        <text x="356" y="92" text-anchor="middle" font-size="10.5" fill="var(--muted)">last-wins</text>
+        <text x="356" y="115" text-anchor="middle" font-size="10.5" fill="var(--muted)">re-register</text>
+
+        <rect x="398" y="24" width="308" height="150" rx="12" fill="var(--accent-soft)" stroke="var(--svg-accent)"/>
+        <text x="414" y="48" font-weight="700" fill="var(--accent)">add-on upgrade — <tspan font-family="ui-monospace,Menlo,monospace">neo_sdui_syntax</tspan></text>
+        <rect x="414" y="60" width="276" height="60" rx="6" fill="var(--code-bg)"/>
+        <text x="424" y="78" font-family="ui-monospace,Menlo,monospace" font-size="10.5" fill="#c58">"mcpServers"</text><text x="512" y="78" font-family="ui-monospace,Menlo,monospace" font-size="10.5">: {</text>
+        <text x="424" y="94" font-family="ui-monospace,Menlo,monospace" font-size="10.5" fill="#6a9">  "neosapien"</text><text x="518" y="94" font-family="ui-monospace,Menlo,monospace" font-size="10.5">: {…}</text>
+        <text x="424" y="110" font-family="ui-monospace,Menlo,monospace" font-size="10.5">}</text>
+        <text x="414" y="140" font-size="11.5" fill="var(--accent)">flutter_highlight → JSON coloring</text>
+        <text x="414" y="158" font-size="11.5" fill="var(--accent)">absent? degrades to the core floor</text>
+      </g>
+    </svg>
+    <figcaption>The cheapest ecosystem rung: core ships a zero-dep <code>code</code> floor (monospace + copy); the optional
+      <code>neo_sdui_syntax</code> add-on re-registers the same type with highlighting. Same pattern as the sibling doc's "image is a
+      last-wins <code>media</code> swap."</figcaption>
+  </figure>
+  <dl class="fields">
+    <dt>Description</dt>
+    <dd>Add a <code>code</code> block type: <code>{ "type": "code", "content": "npm install -g @anthropic-ai/claude-code", "language": "bash" }</code>,
+      rendered monospace with a tap-to-copy button (<code>Clipboard.setData</code> + a themed "Copied" confirmation). Because copy needs only
+      <code>flutter/services</code>, the block is <strong>core-eligible</strong> — the actual package is the optional
+      <code>neo_sdui_syntax</code> upgrade that re-registers <code>code</code> with <code>flutter_highlight</code> coloring for the
+      <code>claude_desktop_config.json</code> case. Ship the floor first; the highlighter is the add-on.</dd>
+    <dt>Axis</dt><dd>command surface</dd>
+    <dt>Basis</dt>
+    <dd><span class="basis-tag">direct:</span> <code>mcp_document.dart</code> — commands live as bare <code>steps</code> captions
+      (<code>npm install…</code>, the server URL ~6×, <code>/mcp</code>, <code>claude mcp list</code>, <code>claude_desktop_config.json</code>);
+      Figma <code>Command</code>+<code>Copy</code> nodes ~18–30×. <span class="basis-tag">external:</span> <code>Clipboard.setData</code>
+      (<code>flutter/services</code>, zero-dep) verified core; <code>flutter_highlight</code>+<code>highlight</code> confirmed the live
+      highlighting stack (context7). <span class="basis-tag">reasoned:</span> a mistyped install command or server URL is a hard setup failure —
+      copy removes the single most common drop-off in a CLI guide.</dd>
+    <dt>Rationale</dt>
+    <dd>Highest-value, lowest-cost package in the set: it directly unblocks the guide's dominant content (exact strings) and its cheap half
+      needs no dependency at all. Establishes the "core floor + add-on upgrade" rung for <em>text-like</em> content, mirroring what
+      <code>neo_sdui_media</code> already does for images.</dd>
+    <dt>Downsides</dt>
+    <dd>Splitting "copy" (core) from "highlight" (add-on) is a judgment call — if highlighting is deemed table-stakes, the whole thing is an
+      add-on and core gains nothing. Copy on a phone needs a visible confirmation (toast/haptic) so the tap feels acknowledged; that is theme
+      surface, not wire.</dd>
+    <dt>Confidence</dt><dd>92%</dd>
+    <dt>Complexity</dt><dd>Low (floor) · Low–Medium (syntax add-on)</dd>
+  </dl>
+</article>
+
+<article class="idea" id="idea2">
+  <h3><span class="rk">2.</span> <code>neo_sdui_qr</code> — phone→laptop handoff block</h3>
+  <div class="chiprow">
+    <span class="chip axis">device handoff</span>
+    <span class="chip conf">Confidence 84%</span>
+    <span class="chip cx">Complexity: Low</span>
+    <span class="chip dep">qr_flutter</span>
+  </div>
+  <figure class="svg">
+    <svg viewBox="0 0 720 190" width="100%" role="img" aria-label="A phone shows a QR block encoding the setup URL; the laptop scans it to continue setup on the right device.">
+      <g font-size="13" fill="var(--fg)">
+        <rect x="24" y="30" width="120" height="130" rx="16" fill="var(--card)" stroke="var(--svg-stroke)"/>
+        <text x="84" y="24" text-anchor="middle" font-size="11" fill="var(--muted)">phone (reads guide)</text>
+        <rect x="52" y="58" width="64" height="64" rx="8" fill="var(--code-bg)" stroke="var(--svg-stroke)"/>
+        <g fill="var(--fg)">
+          <rect x="60" y="66" width="14" height="14"/><rect x="94" y="66" width="14" height="14"/><rect x="60" y="100" width="14" height="14"/>
+          <rect x="80" y="80" width="7" height="7"/><rect x="94" y="94" width="7" height="7"/><rect x="102" y="104" width="6" height="6"/><rect x="82" y="102" width="6" height="6"/>
+        </g>
+        <text x="84" y="140" text-anchor="middle" font-size="10.5" fill="var(--muted)">encodes the</text>
+        <text x="84" y="152" text-anchor="middle" font-size="10.5" fill="var(--muted)">server URL</text>
+
+        <path d="M150 95 H300" stroke="var(--svg-accent)" fill="none" marker-end="url(#q1)" stroke-dasharray="4 4"/>
+        <defs><marker id="q1" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6 z" fill="var(--svg-accent)"/></marker></defs>
+        <text x="225" y="86" text-anchor="middle" font-size="11" fill="var(--accent)">scan</text>
+
+        <rect x="306" y="44" width="180" height="104" rx="10" fill="var(--card)" stroke="var(--svg-stroke)"/>
+        <text x="396" y="38" text-anchor="middle" font-size="11" fill="var(--muted)">laptop (does setup)</text>
+        <rect x="322" y="60" width="148" height="20" rx="4" fill="var(--code-bg)"/>
+        <text x="330" y="74" font-family="ui-monospace,Menlo,monospace" font-size="10">api.neosapien.xyz/mcp</text>
+        <text x="322" y="104" font-size="11" fill="var(--muted)">"Requires laptop for setup"</text>
+        <text x="322" y="122" font-size="11" fill="var(--muted)">— the callout the guide repeats ×3</text>
+
+        <rect x="520" y="44" width="176" height="104" rx="10" fill="var(--accent-soft)" stroke="var(--svg-accent)"/>
+        <text x="608" y="70" text-anchor="middle" font-size="12" font-weight="700" fill="var(--accent)">absent add-on?</text>
+        <text x="608" y="92" text-anchor="middle" font-size="11" fill="var(--accent)">fallback = the URL</text>
+        <text x="608" y="108" text-anchor="middle" font-size="11" fill="var(--accent)">as copyable text</text>
+        <text x="608" y="130" text-anchor="middle" font-size="10.5" fill="var(--muted)">(reuses idea #1's floor)</text>
+      </g>
+    </svg>
+    <figcaption>The guide's central UX contradiction — read on a phone, act on a laptop — has a one-block answer: encode the server URL (or a
+      desktop deep-link) as a QR the laptop scans. If the add-on is missing, it degrades to the copyable URL.</figcaption>
+  </figure>
+  <dl class="fields">
+    <dt>Description</dt>
+    <dd>A <code>qr</code> block: <code>{ "type": "qr", "data": "https://api.neosapien.xyz/mcp", "caption": "Scan on your laptop" }</code>,
+      rendered with <code>QrImageView</code>. It turns the repeated "requires a laptop" dead-end into an action — the user scans the phone
+      screen with their computer to jump the server URL (or a desktop-setup deep-link) across devices without retyping. Fallback when the add-on
+      is absent: render <code>data</code> as a copyable line (idea #1's floor), so nothing breaks.</dd>
+    <dt>Axis</dt><dd>device handoff</dd>
+    <dt>Basis</dt>
+    <dd><span class="basis-tag">direct:</span> three <code>callout</code>s in <code>mcp_document.dart</code> — "Requires laptop for setup" /
+      "Setup happens on your computer" — against a guide rendered in the phone app. <span class="basis-tag">external:</span> <code>qr_flutter</code>
+      / <code>QrImageView</code> verified current (auto version, L/M/Q/H correction, embedded-logo overlay) — context7. <span class="basis-tag">reasoned:</span>
+      cross-device handoff is the guide's structural problem; QR is the standard, zero-typing bridge.</dd>
+    <dt>Rationale</dt>
+    <dd>Solves a pain no core block can touch — the read-device ≠ act-device gap — with a tiny, well-scoped native-free package (<code>qr_flutter</code>
+      is pure Dart painting). Non-obvious: the reflex is "write clearer steps," but the real fix is to move the URL to the right device. Doubles as
+      an "open the guide on desktop" affordance elsewhere in the app.</dd>
+    <dt>Downsides</dt>
+    <dd>A raw server URL in a QR isn't itself the full setup — value depends on the app minting a genuinely useful desktop deep-link, which is app/
+      server work beyond the package. Encoding untrusted wire data into a QR is a mild trust surface (scannable link) — keep the block to
+      first-party URLs, or validate scheme/host in the builder.</dd>
+    <dt>Confidence</dt><dd>84%</dd>
+    <dt>Complexity</dt><dd>Low</dd>
+  </dl>
+</article>
+
+<article class="idea" id="idea3">
+  <h3><span class="rk">3.</span> <code>neo_sdui_launcher</code> — <code>url_launcher</code> action handler</h3>
+  <div class="chiprow">
+    <span class="chip axis">navigation</span>
+    <span class="chip conf">Confidence 86%</span>
+    <span class="chip cx">Complexity: Low</span>
+    <span class="chip dep">url_launcher</span>
+  </div>
+  <dl class="fields">
+    <dt>Description</dt>
+    <dd>Core resolves a <code>screen:…</code> action as in-app navigation but has no owner for an <code>https://</code> one. This add-on
+      contributes an action handler (not a block) that intercepts URL-scheme actions on <code>cta</code>/<code>card</code> and opens them via
+      <code>launchUrl</code> — external browser for support/marketing links, in-app tab for OAuth. It slots into the same
+      <code>NeoSduiAddon</code> compose the block add-ons use, keeping the app-owns-<em>in-app</em>-nav rule (R14) intact while delegating the
+      <em>external</em> slice to an opt-in package that carries the native plugin.</dd>
+    <dt>Axis</dt><dd>navigation</dd>
+    <dt>Basis</dt>
+    <dd><span class="basis-tag">direct:</span> <code>mcp_document.dart</code> — <code>cta</code> "Contact Support" → <code>https://neosapien.xyz/support</code>,
+      and steps naming <code>chatgpt.com</code>, <code>claude.ai/download</code>, OAuth sign-in. <span class="basis-tag">external:</span>
+      <code>url_launcher</code> (<code>launchUrl</code>/<code>canLaunchUrl</code>, per-platform native impls) verified healthy — context7.
+      <span class="basis-tag">reasoned:</span> every guide eventually links out; making it a composable action handler avoids the app hard-coding
+      URL handling per screen.</dd>
+    <dt>Rationale</dt>
+    <dd>Fills a real hole — the wire references external destinations the renderer can't act on — with the smallest sanctioned mechanism, and it
+      generalizes: any future wire URL (privacy policy, app store, docs) just works. Establishes the precedent that add-ons can contribute
+      <em>action</em> verbs, not only <em>block</em> builders.</dd>
+    <dt>Downsides</dt>
+    <dd>Needs the compose spine to support action-handler contributions, not just builders — a small contract extension the sibling doc flagged as
+      YAGNI until an add-on needed it (this is that add-on). External-link opening is a mild security surface; restrict to <code>https</code> and
+      known hosts, or confirm before launch.</dd>
+    <dt>Confidence</dt><dd>86%</dd>
+    <dt>Complexity</dt><dd>Low</dd>
+  </dl>
+</article>
+
+<article class="idea" id="idea4">
+  <h3><span class="rk">4.</span> <code>neo_sdui_markdown</code> — rich text / answers</h3>
+  <div class="chiprow">
+    <span class="chip axis">rich content</span>
+    <span class="chip conf">Confidence 78%</span>
+    <span class="chip cx">Complexity: Medium</span>
+    <span class="chip dep">markdown_widget / flutter_markdown_plus</span>
+  </div>
+  <dl class="fields">
+    <dt>Description</dt>
+    <dd>A <code>richtext</code> (or last-wins upgrade of <code>text</code>) that renders inline Markdown — bold, links, inline code — so FAQ
+      answers, callout bullets, and the <em>"from NeoSapien"</em> trigger read with emphasis instead of as flat strings. Because
+      <code>markdown_widget</code> bundles a syntax highlighter <em>and</em> link handling, this package could also subsume idea #1's syntax
+      upgrade — one rich-content dependency instead of two.</dd>
+    <dt>Axis</dt><dd>rich content</dd>
+    <dt>Basis</dt>
+    <dd><span class="basis-tag">direct:</span> <code>faq</code> answers and <code>callout.bullets</code> in <code>mcp_document.dart</code> carry
+      emphasis, quoted prompts, and a support link that plain <code>text</code> flattens. <span class="basis-tag">external:</span> context7 —
+      <code>flutter_markdown</code> is <strong>discontinued</strong>; live options are <code>markdown_widget</code> (bundles
+      <code>markdown</code>+<code>flutter_highlight</code>+<code>highlight</code>+<code>url_launcher</code>+<code>visibility_detector</code>),
+      <code>flutter_markdown_plus</code> (drop-in fork), and <code>gpt_markdown</code>.</dd>
+    <dt>Rationale</dt>
+    <dd>Unlocks expressive answer/body content the guide already implies, and the dependency verification is exactly why this matters: picking the
+      dead <code>flutter_markdown</code> would have been the obvious-but-wrong move. Consolidating highlighting here (vs a separate
+      <code>neo_sdui_syntax</code>) can shrink the ecosystem's dependency count.</dd>
+    <dt>Downsides</dt>
+    <dd><code>markdown_widget</code> transitively pulls <code>url_launcher</code> — a content add-on quietly acquiring navigation power, which
+      muddies idea #3's clean boundary; <code>flutter_markdown_plus</code> (lighter) may be the better base if links route through the launcher
+      add-on instead. Markdown is only worth it if authors will actually write it — plain <code>text</code> covers most of today's copy, so this
+      is the most speculative of the top four.</dd>
+    <dt>Confidence</dt><dd>78%</dd>
+    <dt>Complexity</dt><dd>Medium</dd>
+  </dl>
+</article>
+
+<article class="idea" id="idea5">
+  <h3><span class="rk">5.</span> <code>neo_sdui_analytics</code> — funnel instrumentation (no render)</h3>
+  <div class="chiprow">
+    <span class="chip axis">stateful &amp; instrumented</span>
+    <span class="chip conf">Confidence 74%</span>
+    <span class="chip cx">Complexity: Medium</span>
+    <span class="chip dep">host analytics SDK (injected)</span>
+  </div>
+  <dl class="fields">
+    <dt>Description</dt>
+    <dd>A package that contributes <em>zero</em> block builders and instead wraps the registry: it decorates each builder to emit impression/tap
+      events through a host-injected sink. The guide is a measurable funnel — which AI a user picks (<code>screen:chatgpt|claude|other</code>),
+      whether they reached Troubleshooting, whether the "Contact Support" CTA fired — and this makes that funnel observable without any block
+      knowing it's being watched.</dd>
+    <dt>Axis</dt><dd>stateful &amp; instrumented</dd>
+    <dt>Basis</dt>
+    <dd><span class="basis-tag">direct:</span> the intro page is a <code>card→screen:*</code> chooser feeding per-client <code>steps</code>, ending in
+      Troubleshooting/FAQ/Support — a classic drop-off funnel authored entirely on the wire. <span class="basis-tag">reasoned:</span> a
+      registry-wrapping decorator is the one add-on shape that needs no new block type and no wire change — it composes over builders the way the
+      sibling doc's <code>compose()</code> already folds them.</dd>
+    <dt>Rationale</dt>
+    <dd>The only way to know if the guide <em>works</em> (do users finish setup?) is to measure it, and a cross-cutting decorator add-on gets that
+      for free across every block, current and future. Non-obvious because add-ons are assumed to be block-shaped; this one is behavior-shaped.</dd>
+    <dt>Downsides</dt>
+    <dd>Needs a stable event sink injected by the host (analytics SDK is app-owned, kept out of the package) — a small contract for passing the sink
+      through <code>compose()</code>. Wrapping every builder risks over-firing; needs a sampling/opt-in per type. Privacy: memory-adjacent content
+      must never enter event payloads.</dd>
+    <dt>Confidence</dt><dd>74%</dd>
+    <dt>Complexity</dt><dd>Medium</dd>
+  </dl>
+</article>
+
+<article class="idea" id="idea6">
+  <h3><span class="rk">6.</span> <code>neo_sdui_progress</code> — <code>steps</code> become a persisted checklist</h3>
+  <div class="chiprow">
+    <span class="chip axis">stateful &amp; instrumented</span>
+    <span class="chip conf">Confidence 68%</span>
+    <span class="chip cx">Complexity: Medium</span>
+    <span class="chip dep">shared_preferences</span>
+  </div>
+  <dl class="fields">
+    <dt>Description</dt>
+    <dd>A last-wins upgrade of <code>steps</code> that makes each item tappable and remembers completion across app launches — the 12-step ChatGPT
+      setup becomes a checklist the user can pause and resume, with a progress indicator. Absent the add-on, <code>steps</code> renders as today's
+      static list.</dd>
+    <dt>Axis</dt><dd>stateful &amp; instrumented</dd>
+    <dt>Basis</dt>
+    <dd><span class="basis-tag">direct:</span> the per-client setups are 6–12 sequential <code>steps</code> (an inherently linear, resumable task);
+      the Figma frames wrap the guide in "4 Tasks", a "Circular progress indicator", and "Updating" chips. <span class="basis-tag">external:</span>
+      <code>shared_preferences</code> for per-guide completion state. <span class="basis-tag">reasoned:</span> a multi-step setup that spans a
+      phone→laptop context switch is exactly where users lose their place.</dd>
+    <dt>Rationale</dt>
+    <dd>Turns a static guide into a tool that respects the user's real interruption pattern (do a step, switch to laptop, come back). It's the first
+      package that gives the wire <em>memory</em>, which the "Updating"/progress design language clearly anticipates.</dd>
+    <dt>Downsides</dt>
+    <dd>Most speculative of the survivors — it assumes users want to track guide progress, which is unproven; a guide short enough to finish in one
+      sitting doesn't need persistence. State keyed to wire content is brittle if the server re-authors steps (need a stable step id on the wire).
+      Introduces client-side state into a system whose whole premise is a stateless render — a real architectural cost, not just a dependency.</dd>
+    <dt>Confidence</dt><dd>68%</dd>
+    <dt>Complexity</dt><dd>Medium</dd>
+  </dl>
+</article>
+
+<article class="idea" id="idea7">
+  <h3><span class="rk">7.</span> <code>neo_sdui_prompt</code> — tap-to-copy suggested-prompt chips</h3>
+  <div class="chiprow">
+    <span class="chip axis">command surface</span>
+    <span class="chip conf">Confidence 72%</span>
+    <span class="chip cx">Complexity: Low</span>
+    <span class="chip dep">flutter/services (or fold into #1)</span>
+  </div>
+  <dl class="fields">
+    <dt>Description</dt>
+    <dd>A <code>prompt</code> block for the "try this" example prompts — <em>"What do you know about me from Neosapien?"</em>, <em>"Summarise
+      everything I said today."</em> — rendered as a chip/card that copies the prompt on tap so the user pastes it straight into their AI. Same
+      copy mechanism as idea #1, but semantically distinct: a suggestion to run, not a command to execute.</dd>
+    <dt>Axis</dt><dd>command surface</dd>
+    <dt>Basis</dt>
+    <dd><span class="basis-tag">direct:</span> "Try your first prompt: …" recurs across every client screen in <code>mcp_document.dart</code>, and the
+      intro page lists seven quoted example prompts as <code>card</code>s; Figma "Suggested Prompt" nodes appear ~36×. <span class="basis-tag">external:</span>
+      <code>Clipboard.setData</code> (zero-dep). <span class="basis-tag">reasoned:</span> the prompts are the guide's payoff — the thing the user
+      actually does with the connection — so reducing them to copy-paste-able chips is high-leverage, low-cost.</dd>
+    <dt>Rationale</dt>
+    <dd>Converts the guide's most-repeated call-to-action into a one-tap gesture, and the Figma signal (36 nodes) says the design already treats
+      prompts as a first-class element, not prose.</dd>
+    <dt>Downsides</dt>
+    <dd>Largely idea #1's machinery in different clothing — arguably a <code>variant</code> of the copyable block rather than its own package;
+      keep it separate only if prompt chips diverge visually enough to justify a distinct type. Zero-dep, so like #1 it may belong in core, not an
+      add-on at all.</dd>
+    <dt>Confidence</dt><dd>72%</dd>
+    <dt>Complexity</dt><dd>Low</dd>
+  </dl>
+</article>
+</section>
+
+<section>
+<h2>Rejection Summary</h2>
+<table>
+  <thead><tr><th class="n">#</th><th>Candidate</th><th>Reason</th></tr></thead>
+  <tbody>
+    <tr><td class="n">R1</td><td><code>neo_sdui_video</code> — inline <code>.mp4</code> playback on media posters</td><td>Already the stated roadmap of the existing <code>neo_sdui_media</code> add-on (the wire's own comment: posters "can later point at <code>.mp4</code>s to play inline"). Not an <em>other</em> package — it's a planned feature of one that exists.</td></tr>
+    <tr><td class="n">R2</td><td><code>neo_sdui_lottie</code> — animated "Updating"/spinner states</td><td>YAGNI for this guide — the MCP guide is static instructional content; the "Updating" chips in Figma belong to the surrounding live-memory surfaces, not the setup flow. Revisit if an animated block type ever lands on the wire.</td></tr>
+    <tr><td class="n">R3</td><td><code>neo_sdui_share</code> — share / "open guide elsewhere"</td><td>Overlaps idea #2 — the phone→laptop handoff is the concrete, grounded version of "get this guide onto another device"; a generic share sheet is a thinner, less-grounded restatement. Folded into <code>neo_sdui_qr</code>'s deep-link extension.</td></tr>
+    <tr><td class="n">R4</td><td><code>neo_sdui_search</code> — searchable FAQ / troubleshooting</td><td>Premature — the FAQ is 7 items and troubleshooting is 5; both fit on a screen. Search earns its dependency only when a guide's content outgrows a scroll, which this one doesn't.</td></tr>
+  </tbody>
+</table>
+</section>
+
+<footer class="composition-signal">
+  Composed 2026-07-12 by ce-ideate · repo-grounded · single-context run (grounding, generation, critique, and basis verification done inline
+  rather than via a sub-agent fleet, given the tightly-scoped topic and strong wire evidence). Grounding: the guide wire
+  (<code>example/mcp/mcp_document.dart</code>), the core registry (<code>default_registry.dart</code>: 13 types), <code>CONCEPTS.md</code>,
+  the Figma MCP canvas (fileKey <code>cqhN8078lld29kQnBjLcRo</code>, node 4146-13439, via the Figma MCP design-context dump), and the sibling
+  architecture ideation (2026-07-11). Library bases verified live against context7 on 2026-07-12: <code>markdown_widget</code>,
+  <code>qr.flutter</code>, <code>url_launcher</code> — surfacing that <code>flutter_markdown</code> is discontinued. 26 raw candidates across
+  5 axes, 7 survivors, 4 cut.
+</footer>
+
+</div>
+</body>
+</html>
