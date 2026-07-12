@@ -11,10 +11,13 @@ The flat data document the server (Remote Config) delivers and the client render
 One semantic unit on the wire (a header, a media, a card, a cta), identified by a `type` string and a bag of fields. A block never describes its own appearance; it names intent and lets the client's theme decide how it looks. Rendering is resilient — a block that fails to build degrades to a placeholder or is skipped, never crashing the view.
 
 ### Block registry
-The `type` → builder map that turns each block on the wire into a widget. It is the extension point: an add-on composes into the registry to add new block types or override existing ones. Overriding a core block's entry replaces its builder while keeping the same `type` on the wire.
+The `type` → builder map that turns each block on the wire into a widget. It is the extension point: an add-on composes into the registry to add new block types or override existing ones. Registration is last-wins — an add-on's later `register` for an existing `type` replaces the earlier builder while keeping the same `type` on the wire.
+
+### Core floor
+The zero-dependency baseline builder core provides for every semantic it puts on the wire — `code` renders monospace + copy, `media` renders a plain network image. It is what a block resolves to when no add-on has upgraded that `type`, so a build without a given add-on degrades to the floor instead of crashing or showing a blank. An add-on upgrades a semantic by re-registering the same `type` (last-wins) with a dependency-bearing builder; the floor is the guaranteed fallback beneath it. New wire types are reserved for genuinely new semantics — a nicer render of an existing one is a floor upgrade, not a new type.
 
 ### Add-on
-An optional package that composes into the base via `NeoSdui.compose`, contributing or overriding block builders in the registry. Add-ons exist so the core stays dependency-light (`flutter` + `meta` only): anything that needs heavy plugins or fonts (video playback, disk caching) lives in an add-on with its own dependencies. Overriding a core block carries no new capability by itself — it swaps how one block renders.
+An optional package that composes into the base via `NeoSdui.compose`, contributing new block types or upgrading existing ones. Add-ons exist so the core stays dependency-light (`flutter` + `meta` only): anything needing heavy plugins or fonts (video playback, disk caching, syntax highlighting) lives in an add-on with its own dependencies. An add-on upgrades an existing block by re-registering its `type` (last-wins) with a heavier builder — this carries no new capability by itself, and when the add-on is absent the block degrades to its core floor.
 
 ### NeoSduiTheme
 The client-owned role palette every block derives its look from — accent/surface/danger roles, type/radius/spacing scales, and motion tokens (duration, curve, a `reduceMotion` flag) — reached through the surrounding scope. Because the wire carries no look, two guides that must look different do so by being handed different themes, not by shipping different block code or different wire pixels. The host app fills the theme from its own bare styles.
