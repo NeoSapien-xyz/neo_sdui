@@ -199,6 +199,10 @@ on the wire is the rejected path (see `docs/ideation/neo-sdui-pixel-authority-an
   (KTD11 role palette + derived look; R22/R23 no per-guide wire presets).
 - Ideation: `docs/ideation/neo-sdui-pixel-authority-and-wire-economy.md`
   (the "layered middle" — tokens on the wire, pixels client-side).
+- Concrete instance: [`accent-text-gradient-theme-owned.md`](accent-text-gradient-theme-owned.md)
+  — the `tone:"accent"` role resolved to a theme-owned gradient (rich-text /
+  inline runs), pixels staying off the wire.
+
 ## References — the prior art this pattern draws from
 
 `neo_sdui`'s "wire carries semantics, client owns look and motion" line is the
