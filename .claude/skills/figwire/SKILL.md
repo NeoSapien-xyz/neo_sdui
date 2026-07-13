@@ -1,20 +1,23 @@
 ---
 name: figwire
-description: Use when turning a Figma page/frame for a neo_sdui guide (e.g. the MCP guide) into neo_sdui-compliant wire JSON for this repo — a figma.com page URL, node id, or pasted screenshot that must become a `{version, blocks, views}` document for Firebase Remote Config. The inverse of `neofig` (which writes Flutter look); figwire writes wire semantics. Not for the neo app's widget code, and not for pushing to Firebase.
+description: Use when turning any Figma selection — a page, frame, component, or node — into neo_sdui-compliant wire JSON for this repo: a figma.com link/selection, node id, or pasted screenshot that must become a `{version, blocks, views}` document (destined for Firebase Remote Config). The MCP guide is just one example; this is the general Figma→wire path. The inverse of `neofig` (which writes Flutter look); figwire writes wire semantics. Not for the neo app's widget code, and not for pushing to Firebase.
 ---
 
-# figwire — Figma page → neo_sdui wire JSON
+# figwire — Figma selection → neo_sdui wire JSON
 
-Turn one Figma page into one neo_sdui wire document. The wire carries **semantics only**
+Turn a Figma selection — a page, frame, component, or node — into a neo_sdui wire document. The
+MCP guide is one example, not the boundary: any selection destined for a neo_sdui screen is in
+scope. The wire carries **semantics only**
 (structure + text + role tags) — never look. `neofig` owns the look (colors, fonts, the theme);
 figwire owns the wire. They are mirror halves of the same pipeline.
 
 ## Status — this skill is young, and meant to grow
 
 This is a first working cut, proven end-to-end against a hand-written sample but not yet against a
-live Figma page at volume. Treat it as a living tool: **try it, test it, break it, build it back
-better.** Every real guide page you run through it will expose a rough edge — a region the classifier
-mis-buckets, a field shape the contract missed, a coverage report that's noisier than it should be.
+live Figma selection at volume. Treat it as a living tool: **try it, test it, break it, build it back
+better.** Every real Figma selection you run through it will expose a rough edge — a region the
+classifier mis-buckets, a field shape the contract missed, a coverage report that's noisier than it
+should be.
 That's expected and welcome. When something breaks or annoys you: fix the reference it lives in
 (`wire-contract.md`, `accent-tones.md`, `ingestion.md`, `verify-output.md`) or the package tools, add
 a test that pins the fix, and re-run the gates. The contract, the accent map, and the classification
@@ -39,8 +42,8 @@ the whole package depends on.
 
 ## When to use
 
-- A figma.com page URL or node id for a neo guide is in scope for this repo (`neo_sdui`).
-- A designer handed a screenshot of a guide page to transcribe into a wire document.
+- A figma.com link/selection or node id destined for a neo_sdui screen is in scope for this repo.
+- A designer handed a screenshot of a screen, frame, or component to transcribe into a wire document.
 
 **Not for:** the neo app's Dart widgets (that's `neofig`), pushing JSON to Firebase Remote Config
 (out of scope — figwire writes a reviewable file), or inventing look.
