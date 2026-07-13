@@ -9,6 +9,22 @@ Turn one Figma page into one neo_sdui wire document. The wire carries **semantic
 (structure + text + role tags) — never look. `neofig` owns the look (colors, fonts, the theme);
 figwire owns the wire. They are mirror halves of the same pipeline.
 
+## Status — this skill is young, and meant to grow
+
+This is a first working cut, proven end-to-end against a hand-written sample but not yet against a
+live Figma page at volume. Treat it as a living tool: **try it, test it, break it, build it back
+better.** Every real guide page you run through it will expose a rough edge — a region the classifier
+mis-buckets, a field shape the contract missed, a coverage report that's noisier than it should be.
+That's expected and welcome. When something breaks or annoys you: fix the reference it lives in
+(`wire-contract.md`, `accent-tones.md`, `ingestion.md`, `verify-output.md`) or the package tools, add
+a test that pins the fix, and re-run the gates. The contract, the accent map, and the classification
+guidance are all meant to sharpen with use — this file is a starting point, not a finished spec.
+
+Known next steps to grow into: a live-Figma dry-run at volume, the `neo:` annotation convention for
+deterministic classification, tuning the coverage-report format and low-confidence threshold, and
+(later) a Firebase Remote Config push. See the plan
+(`docs/plans/2026-07-13-001-feat-figma-to-neo-wire-generator-plan.md`) for the full deferred list.
+
 ## The Iron Rule
 
 ```
