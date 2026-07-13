@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 
 import '../model/block_node.dart';
 import '../theme/neo_sdui_scope.dart';
+import '_gradient_text.dart';
 
 /// tabs: a label strip + the selected tab's child blocks. Widgets-only (no
 /// Material TabBar) so it stays free of ThemeData. Selection is client-owned.
@@ -50,12 +51,10 @@ class _TabsState extends State<_Tabs> {
                 onTap: () => setState(() => _selected = i),
                 child: Padding(
                   padding: const EdgeInsets.only(right: 20, bottom: 12),
-                  child: Text(
-                    widget.tabs[i].label,
-                    style: i == selected
-                        ? theme.body.copyWith(color: theme.accent)
-                        : theme.body,
-                  ),
+                  child: i == selected
+                      ? neoText(theme, widget.tabs[i].label, theme.body,
+                          accentAll: true)
+                      : Text(widget.tabs[i].label, style: theme.body),
                 ),
               ),
           ],

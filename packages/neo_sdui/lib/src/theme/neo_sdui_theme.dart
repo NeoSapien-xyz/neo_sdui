@@ -41,6 +41,7 @@ class NeoSduiTheme {
     this.motionDuration = const Duration(milliseconds: 200),
     this.motionCurve = Curves.easeOut,
     this.reduceMotion = false,
+    this.accentGradient,
   });
 
   // Role colors.
@@ -93,6 +94,13 @@ class NeoSduiTheme {
   final Duration motionDuration;
   final Curve motionCurve;
   final bool reduceMotion;
+
+  /// Gradient the `accent` text role paints with — step numbers, accent-toned
+  /// headings, and inline `tone:"accent"` runs (e.g. a brand word inside a
+  /// sentence). Client-owned stops, like `cardShadow`; the wire only ever names
+  /// `accent`, never gradient stops (KTD9). Null -> accent text stays the flat
+  /// `accent` color, byte-identical to the pre-gradient render.
+  final Gradient? accentGradient;
 
   // Derivation (KTD11): wire sends emphasis/tone, these turn it into pixels.
 
@@ -186,6 +194,7 @@ class NeoSduiTheme {
     Duration? motionDuration,
     Curve? motionCurve,
     bool? reduceMotion,
+    Gradient? accentGradient,
   }) {
     return NeoSduiTheme(
       accent: accent ?? this.accent,
@@ -218,6 +227,7 @@ class NeoSduiTheme {
       motionDuration: motionDuration ?? this.motionDuration,
       motionCurve: motionCurve ?? this.motionCurve,
       reduceMotion: reduceMotion ?? this.reduceMotion,
+      accentGradient: accentGradient ?? this.accentGradient,
     );
   }
 }

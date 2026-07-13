@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import '../model/block_node.dart';
 import '../theme/neo_sdui_scope.dart';
 import '../theme/neo_sdui_theme.dart';
+import '_gradient_text.dart';
 import 'code.dart';
 
 /// steps: numbered captions. Each item builds in its own try/catch so one bad
@@ -26,7 +27,11 @@ Widget _item(NeoSduiTheme theme, int n, Map<String, Object?> item) {
   final index = theme.body.copyWith(color: theme.accent, fontWeight: FontWeight.w600);
   Widget body;
   try {
-    final caption = Text(item['caption']! as String, style: theme.body);
+    final cap = item['caption'];
+    if (cap is! String && cap is! List) {
+      throw StateError('step caption must be a string or a run list');
+    }
+    final caption = neoText(theme, cap, theme.body);
     // Optional muted sub-line and optional copyable command under the caption;
     // both absent -> caption only (R4).
     final detail = item['detail'];
@@ -51,7 +56,7 @@ Widget _item(NeoSduiTheme theme, int n, Map<String, Object?> item) {
   return Row(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      Text('$n', style: index),
+      neoText(theme, '$n', index, accentAll: true),
       const SizedBox(width: 12),
       Expanded(child: body),
     ],

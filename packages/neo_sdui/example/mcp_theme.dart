@@ -31,6 +31,13 @@ NeoSduiTheme _build() {
     radiusMd: BorderRadius.all(Radius.circular(16)),
     // Card surface: #202423 squircle + soft 4% white glow (Figma card shadow).
     cardShadow: [BoxShadow(color: Color(0x0AFFFFFF), blurRadius: 10)],
+    // Accent text (step numbers, accent headings, inline brand runs) sweeps neon
+    // green. PLACEHOLDER stops — replace with the exact Figma gradient fill.
+    accentGradient: LinearGradient(
+      colors: [Color(0xFF2DF790), Color(0xFF00F1A0)],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    ),
     // 24 / w500 / -1 / 1.16 (MCP screen title).
     title: TextStyle(
       fontFamily: work,
