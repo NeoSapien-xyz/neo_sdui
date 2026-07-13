@@ -16,6 +16,9 @@ The alternate a block names for the client to render in its place when the block
 ### Block registry
 The `type` → builder map that turns each block on the wire into a widget. It is the extension point: an add-on composes into the registry to add new block types or override existing ones. Registration is last-wins — an add-on's later `register` for an existing `type` replaces the earlier builder while keeping the same `type` on the wire.
 
+### Block vocabulary
+The closed roster of block `type` strings the core registry recognizes — a small, fixed set (header, text, cta, callout, card, …). It is closed by design: a `type` outside the roster has no builder and renders nothing, so the roster is a stable authoring contract, not an open extension point. Add-ons extend behavior by re-registering existing types (last-wins), never by minting new ones. Because the vocabulary is small and fixed, authoring or generating wire reduces to classification — mapping each source element onto one of the known types; anything off-roster silently drops rather than erroring, so authoring is gated against the roster.
+
 ### Core floor
 The zero-dependency baseline builder core provides for every semantic it puts on the wire — `code` renders monospace + copy, `media` renders a plain network image. It is what a block resolves to when no add-on has upgraded that `type`, so a build without a given add-on degrades to the floor instead of crashing or showing a blank. An add-on upgrades a semantic by re-registering the same `type` (last-wins) with a dependency-bearing builder; the floor is the guaranteed fallback beneath it. New wire types are reserved for genuinely new semantics — a nicer render of an existing one is a floor upgrade, not a new type.
 
