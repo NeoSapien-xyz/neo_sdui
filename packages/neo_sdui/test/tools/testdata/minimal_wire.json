@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "blocks": [
+    { "type": "media", "url": "https://cdn.neosapien.xyz/mcp/hero.png", "ratio": 1.6 },
+    {
+      "type": "header",
+      "title": "Your AI. Finally in the loop.",
+      "subtitle": "Connect Neo 1 memories to any AI."
+    },
+    {
+      "type": "steps",
+      "items": [
+        { "caption": "Pick your AI", "detail": "ChatGPT, Claude or any other" },
+        { "caption": "Follow the quick guide", "detail": "Takes less than a minute" },
+        { "caption": "Ask it anything", "detail": "Neo 1 context is live" }
+      ]
+    },
+    { "type": "code", "label": "Your MCP server", "content": "https://api.neosapien.xyz/mcp" },
+    {
+      "type": "callout",
+      "tone": "accent",
+      "title": "Not getting results?",
+      "bullets": ["Add “from NeoSapien” to your message."]
+    },
+    { "type": "card", "title": "FAQs", "action": "screen:faq" }
+  ],
+  "views": {
+    "faq": {
+      "present": "screen",
+      "blocks": [
+        { "type": "header", "title": "FAQs" },
+        {
+          "type": "faq",
+          "items": [
+            {
+              "question": "What is NeoSapien MCP?",
+              "answer": "MCP connects your AI assistant to your NeoSapien memories."
+            }
+          ]
+        },
+        { "type": "cta", "label": "Contact Support", "action": "https://neosapien.xyz/support", "emphasis": "high" }
+      ]
+    }
+  }
+}

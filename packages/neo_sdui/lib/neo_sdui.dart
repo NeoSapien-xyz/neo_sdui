@@ -5,6 +5,7 @@ library;
 // Model
 export 'src/model/block_node.dart';
 export 'src/model/document.dart';
+export 'src/model/validate_vocabulary.dart';
 export 'src/model/validation.dart';
 export 'src/model/view.dart';
 
