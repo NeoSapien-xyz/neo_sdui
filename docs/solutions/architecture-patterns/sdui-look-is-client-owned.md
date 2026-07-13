@@ -170,12 +170,61 @@ select but never define — is the exact line `neo_sdui` draws. Enriching the th
 moves *with* that grain. Putting a radius or hex on the wire is the day we leave
 the pattern.
 
+## Motion and transitions are the same client-owned concern
+
+Motion follows the identical rule, and it is where the pattern is most tempting to
+break. `NeoSduiTheme` carries the motion tokens — `motionDuration`, `motionCurve`,
+`reduceMotion` — and every bounded animation (the `faq` accordion, the image
+fade-in, the `tabs` switch) derives from them, so two guides animate at their own
+pace by being handed different themes, never different wire. A view's *destination*
+is on the wire (`action:"screen:x"`, `views.x.present: sheet|screen`); the
+*animation* of that push is the app's `Navigator`/route.
+
+The hard line: the wire may name a **motion intent** — a semantic role, the same
+species as `tone`/`emphasis`/`present` (e.g. a future `transition:"slideUp"`) —
+but it must never carry the animation *itself*: durations, curves, or physics.
+This is not a local preference. `rfw` (Flutter's own Remote Flutter Widgets),
+under **Limitations**, is explicit: *"you don't want to use RFW to create a UI
+that involves page transitions… changing how navigation works in an application…
+are all changes that are best made in Flutter itself."* The browser's View
+Transitions model draws the same line — the source describes *what a state is*,
+the client owns *how it animates between states*. So a transition **role** on the
+wire is legal (the client resolves it to real pixels); a transition **definition**
+on the wire is the rejected path (see `docs/ideation/neo-sdui-pixel-authority-and-wire-economy.md`
+§ "Page transitions — RESOLVED").
+
 ## Related
 
 - Plan: `docs/plans/2026-07-11-001-feat-neo-sdui-unified-guide-engine-plan.md`
   (KTD11 role palette + derived look; R22/R23 no per-guide wire presets).
 - Ideation: `docs/ideation/neo-sdui-pixel-authority-and-wire-economy.md`
   (the "layered middle" — tokens on the wire, pixels client-side).
-- Sources: Airbnb "A Deep Dive into Server-Driven UI"; DoorDash "Improving
-  Development Velocity with Generic, Server-Driven UI Components"; Microsoft
-  Adaptive Cards HostConfig / schema.
+## References — the prior art this pattern draws from
+
+`neo_sdui`'s "wire carries semantics, client owns look and motion" line is the
+industry-standard SDUI shape, not a local invention. The source behind each
+decision:
+
+- **Microsoft Adaptive Cards — HostConfig.** The client-side styling object a card
+  selects into but never defines; `NeoSduiTheme` is its analog (role colors,
+  type/spacing scales, and `containerStyles` ↔ the card surface treatment).
+  <https://learn.microsoft.com/en-us/adaptive-cards/rendering-cards/host-config>
+- **Microsoft Adaptive Cards — element schema (semantic tokens).** Cards name
+  `size`/`color`/`style` tokens while pixels live in HostConfig — the model for
+  `tone`/`emphasis`/`variant` on our wire.
+  <https://learn.microsoft.com/en-us/adaptive-cards/schema-explorer/adaptive-card>
+- **Airbnb — Ghost Platform (server-driven UI).** The server sends sections + a
+  layout that *name* client-owned components; the client owns the component
+  catalog — our `type → BlockBuilder` registry.
+  <https://medium.com/airbnb-engineering/a-deep-dive-into-airbnbs-server-driven-ui-system-842244c5f5>
+- **DoorDash — generic, server-driven UI components.** Generic components + a
+  layout engine so pages ship by backend deploy; their regretted raw-`Struct`
+  pixel leak is the anti-pattern we refuse (no hex/size/padding on the wire).
+  <https://careersatdoordash.com/blog/improving-development-velocity-with-generic-server-driven-ui-components/>
+- **Flutter — Remote Flutter Widgets (`rfw`).** Its Limitations section is the
+  source for keeping page transitions, gestures, and custom painters off the wire
+  and in Flutter itself.
+  <https://pub.dev/packages/rfw>
+- **Browser — View Transitions API.** Same philosophy for motion: the source
+  describes the state, the client owns the transition between states.
+  <https://developer.chrome.com/blog/astro-view-transitions>

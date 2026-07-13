@@ -144,3 +144,17 @@ last-wins re-register that also carries a dependency and ships as its own packag
 - Ideation: `docs/ideation/2026-07-12-neo-sdui-addon-package-catalog.html` (idea #3,
   "the image add-on is a last-wins swap, not a new type").
 - Compose spine: `packages/neo_sdui/lib/src/compose/` (`NeoSduiAddon`, `neo_compose.dart`).
+
+## References — the prior art this pattern draws from
+
+- **Microsoft Adaptive Cards — `fallback` / `requires` / `version`.** An element
+  declares a minimum feature version and an alternate subtree the host renders
+  when it can't satisfy the requirement; when nothing satisfies and no fallback
+  exists, the element is dropped. This is the model for our `requires`/`fallback`
+  degrade and the core-floor guarantee beneath an absent add-on.
+  <https://learn.microsoft.com/en-us/adaptive-cards/schema-explorer/adaptive-card>
+- **Flutter — Remote Flutter Widgets (`rfw`).** rfw builds UIs from *prebuilt*
+  components and directs genuinely new widgets to Flutter itself, not the remote
+  payload — the reasoning behind an add-on being a Dart package that re-registers a
+  `type`, never a remote widget tree.
+  <https://pub.dev/packages/rfw>

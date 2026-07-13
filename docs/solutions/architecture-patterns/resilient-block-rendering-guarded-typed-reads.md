@@ -212,3 +212,14 @@ testWidgets('spacer with a negative size degrades without crashing',
 - [`addon-core-floor-and-last-wins-upgrade.md`](addon-core-floor-and-last-wins-upgrade.md) — sibling resilience pattern at a different layer: it degrades via last-wins / core-floor at *registration* time; this doc degrades via guarded reads at *render* time. The media `ratioOr` divergence fixed here was one such last-wins add-on override.
 - [`sdui-look-is-client-owned.md`](sdui-look-is-client-owned.md) — defines the wire→widget boundary and what the wire may carry; this is its read-safety companion: how every value crossing that boundary must be read.
 - [`../developer-experience/testing-video-player-widgets-headlessly.md`](../developer-experience/testing-video-player-widgets-headlessly.md) — same failure family (a throw inside build red-boxes instead of degrading to the placeholder) and it tests the media add-on whose `ratioOr` this doc guarded.
+
+## References
+
+The "assert fires at render-object mount, outside the build-time try/catch"
+mechanism is Flutter framework behavior, not a neo_sdui invention:
+
+- **Flutter — `AspectRatio`.** Its render object asserts `aspectRatio > 0 && aspectRatio.isFinite` at layout, after the widget is built — why an infinite wire `ratio` escapes a build-time `try/catch`. <https://api.flutter.dev/flutter/widgets/AspectRatio-class.html>
+- **Flutter — `BoxConstraints` (behind `SizedBox`).** Constraint validity (`height >= 0`) is asserted at layout, not construction — the same escape path for a negative `spacer` size. <https://api.flutter.dev/flutter/rendering/BoxConstraints-class.html>
+- **Flutter — Remote Flutter Widgets (`rfw`), Limitations.** Reinforces keeping interactivity and robustness-sensitive rendering in Flutter code (here, the guarded reads) rather than trusting arbitrary remote input. <https://pub.dev/packages/rfw>
+
+The SDUI prior art behind the resilience *goal* (degrade, never crash) lives in the sibling docs [`addon-core-floor-and-last-wins-upgrade.md`](addon-core-floor-and-last-wins-upgrade.md) and [`sdui-look-is-client-owned.md`](sdui-look-is-client-owned.md), which carry their own References sections.
