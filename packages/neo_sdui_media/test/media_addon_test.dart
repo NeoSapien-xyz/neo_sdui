@@ -194,6 +194,22 @@ void main() {
       expect(tester.widget<Image>(find.byType(Image)).fit, BoxFit.cover);
     });
 
+    testWidgets('infinite ratio degrades to the image fallback, no crash',
+        (tester) async {
+      // JSON `"ratio": 1e400` decodes to double.infinity; it must not reach
+      // AspectRatio (whose isFinite assert fires at mount, outside try/catch).
+      await _pump(tester,
+          _block(addonMedia, _media('pic.png', extra: {'ratio': double.infinity})));
+      await tester.pump();
+
+      final aspect = tester.widget<AspectRatio>(
+        find.descendant(
+            of: find.byType(CachedImage), matching: find.byType(AspectRatio)),
+      );
+      expect(aspect.aspectRatio, 358 / 221); // core ratioOr's guarded fallback
+      expect(tester.takeException(), isNull);
+    });
+
     testWidgets('AE3: extensionless + kind:video routes to video', (tester) async {
       await _pump(tester, _block(addonMedia, _media('opaque', kind: 'video')));
       await _settleVideo(tester);

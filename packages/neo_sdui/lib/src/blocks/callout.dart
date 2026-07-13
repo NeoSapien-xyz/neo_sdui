@@ -11,9 +11,13 @@ Widget buildCallout(BuildContext context, BlockNode node) {
   final theme = NeoSduiScope.of(context).theme;
   final title = node.stringOr('title');
   final text = theme.body.copyWith(color: theme.onSurface);
-  final bullets =
-      (node.fields['bullets'] as List?)?.whereType<String>().toList() ??
-          const <String>[];
+  final rawBullets = node.fields['bullets'];
+  final bullets = rawBullets is List
+      ? rawBullets.whereType<String>().toList()
+      : const <String>[];
+  // Nothing usable to show (no title, no string bullets) -> skip rather than
+  // throw on a non-list `bullets` or paint a stray empty tinted square.
+  if (title == null && bullets.isEmpty) return const SizedBox.shrink();
   return DecoratedBox(
     decoration: shapeDecoration(
       node.stringOr('shape'),

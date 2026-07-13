@@ -106,8 +106,10 @@ class NeoSduiView extends StatelessWidget {
     for (final e in requires.entries) {
       final have = capabilities[e.key];
       if (have == null) return false;
-      final need = int.tryParse(e.value.split('.').first) ?? 0;
-      if (have < need) return false;
+      // Fail closed: an unparseable required version (e.g. "v2", "beta") means
+      // "can't satisfy" -> unmet -> fallback, never silently satisfied.
+      final need = int.tryParse(e.value.split('.').first);
+      if (need == null || have < need) return false;
     }
     return true;
   }

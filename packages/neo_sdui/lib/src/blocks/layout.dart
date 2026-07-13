@@ -50,7 +50,11 @@ Widget buildGroup(BuildContext context, BlockNode node) {
 /// spacer: vertical gap of `blockSpacing * size` (size defaults to 1).
 Widget buildSpacer(BuildContext context, BlockNode node) {
   final theme = NeoSduiScope.of(context).theme;
-  return SizedBox(height: theme.blockSpacing * node.intOr('size', 1)!);
+  // Clamp the wire `size`: a negative multiplier builds a negative SizedBox
+  // height whose constraint assert fires at mount, escaping the per-block
+  // try/catch; the upper cap stops an absurd value reserving a monstrous gap.
+  final size = node.intOr('size', 1)!.clamp(0, 100);
+  return SizedBox(height: theme.blockSpacing * size);
 }
 
 Widget _stack(List<Widget> kids, double gap) => Column(

@@ -156,6 +156,21 @@ void main() {
     expect(find.text('Yes, totally.'), findsNothing);
   });
 
+  testWidgets('faq with a non-string question/answer degrades, does not crash',
+      (tester) async {
+    await _pump(tester, {
+      'type': 'faq',
+      'items': [
+        {'question': 2024, 'answer': 'x'}, // numeric question (first-render path)
+        {'question': 'How many?', 'answer': 10}, // numeric answer (open path)
+      ],
+    });
+    expect(tester.takeException(), isNull); // no red ErrorWidget on first render
+    await tester.tap(find.text('How many?')); // opening casts the numeric answer
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('tabs shows the selected tab and switches on tap', (tester) async {
     await _pump(tester, {
       'type': 'tabs',

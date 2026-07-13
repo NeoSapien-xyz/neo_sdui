@@ -10,6 +10,9 @@ The flat data document the server (Remote Config) delivers and the client render
 ### Block
 One semantic unit on the wire (a header, a media, a card, a cta), identified by a `type` string and a bag of fields. A block never describes its own appearance; it names intent and lets the client's theme decide how it looks. Rendering is resilient — a block that fails to build degrades to a placeholder or is skipped, never crashing the view.
 
+### Fallback
+The alternate a block names for the client to render in its place when the block cannot be shown as authored — its `type` is unknown to the registry, its `requires` gate is unmet, or its builder fails. A fallback is itself a block, resolved the same resilient way (it may declare its own fallback); a block that names none is skipped rather than rendered blank. This per-block substitution is what keeps a bad block's blast radius to that one block.
+
 ### Block registry
 The `type` → builder map that turns each block on the wire into a widget. It is the extension point: an add-on composes into the registry to add new block types or override existing ones. Registration is last-wins — an add-on's later `register` for an existing `type` replaces the earlier builder while keeping the same `type` on the wire.
 

@@ -8,6 +8,11 @@ import '../theme/neo_sdui_theme.dart';
 Widget buildFaq(BuildContext context, BlockNode node) =>
     _Faq(items: node.mapList('items'));
 
+/// Safe read for a raw-map field: a non-string value (an authoring slip like an
+/// unquoted number) degrades to '' instead of throwing an `as String` cast at
+/// mount — matching the guarded `stringOr` reads every other block uses.
+String _str(Object? v) => v is String ? v : '';
+
 class _Faq extends StatefulWidget {
   const _Faq({required this.items});
   final List<Map<String, Object?>> items;
@@ -42,7 +47,7 @@ class _FaqState extends State<_Faq> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              item['question'] as String? ?? '',
+              _str(item['question']),
               style: theme.body.copyWith(fontWeight: FontWeight.w500),
             ),
             AnimatedSize(
@@ -52,7 +57,7 @@ class _FaqState extends State<_Faq> {
               child: isOpen
                   ? Padding(
                       padding: const EdgeInsets.only(top: 4),
-                      child: Text(item['answer'] as String? ?? '',
+                      child: Text(_str(item['answer']),
                           style: theme.subtitle),
                     )
                   : const SizedBox(width: double.infinity),

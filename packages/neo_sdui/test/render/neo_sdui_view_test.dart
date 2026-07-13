@@ -105,6 +105,42 @@ void main() {
     expect(find.text('V'), findsNothing);
   });
 
+  testWidgets('requires with an unparseable version fails closed to the fallback',
+      (tester) async {
+    // Capability present and high, but required version "v2" can't parse.
+    // Pre-fix this fell open (need=0) and rendered 'V'; now it degrades.
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: MediaQuery(
+          data: const MediaQueryData(),
+          child: Center(
+            child: SizedBox(
+              width: 400,
+              height: 800,
+              child: NeoSduiView(
+                document: _doc([
+                  {
+                    'type': 'text',
+                    'body': 'V',
+                    'requires': {'video': 'v2'},
+                    'fallback': {'type': 'text', 'body': 'poster'},
+                  },
+                ]),
+                theme: NeoSduiTheme.fallback(),
+                registry: _testRegistry(),
+                capabilities: const {'video': 5},
+                onAction: (_, _) {},
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    expect(find.text('poster'), findsOneWidget);
+    expect(find.text('V'), findsNothing);
+  });
+
   testWidgets('a throwing builder does not crash the screen', (tester) async {
     await _pump(tester, _doc([
       {'type': 'boom'},

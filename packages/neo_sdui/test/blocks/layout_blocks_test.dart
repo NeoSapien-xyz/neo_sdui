@@ -79,6 +79,21 @@ void main() {
     expect(sized.height, _theme.blockSpacing * 3);
   });
 
+  testWidgets('spacer with a negative size degrades without crashing',
+      (tester) async {
+    // Pre-fix, size:-1 built a negative SizedBox height whose constraint assert
+    // fired at mount (outside the per-block try/catch) and red-boxed the column.
+    await _pump(tester, {
+      'type': 'column',
+      'children': [
+        {'type': 'spacer', 'size': -1},
+        {'type': 'text', 'body': 'after'},
+      ],
+    });
+    expect(tester.takeException(), isNull);
+    expect(find.text('after'), findsOneWidget); // the sibling still renders
+  });
+
   testWidgets('nested unknown child inside a container still skips safely',
       (tester) async {
     await _pump(tester, {

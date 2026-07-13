@@ -127,6 +127,23 @@ void main() {
     expect(find.text('three'), findsOneWidget);
   });
 
+  testWidgets('callout with non-string bullets and no title paints nothing',
+      (tester) async {
+    await _pump(tester, {
+      'type': 'callout',
+      'bullets': [{'text': 'oops, an object'}], // slip: objects, not strings
+    });
+    expect(tester.takeException(), isNull);
+    expect(find.byType(DecoratedBox), findsNothing); // no stray tinted square
+  });
+
+  testWidgets('callout with bullets as a bare string keeps its title, no throw',
+      (tester) async {
+    await _pump(tester, {'type': 'callout', 'title': 'Note', 'bullets': 'nope'});
+    expect(tester.takeException(), isNull);
+    expect(find.text('Note'), findsOneWidget); // title survives the bad bullets
+  });
+
   testWidgets('AE4: media without ratio uses the default 358/221',
       (tester) async {
     await _pump(tester, {'type': 'media', 'url': 'https://x/y.png'});

@@ -35,23 +35,13 @@ Widget buildMediaBlock(BuildContext context, BlockNode node) {
   if (inferMediaKind(url, kind: kind) == MediaKind.video) {
     return CachedVideo(
       url: url,
-      ratio: _ratioOf(node, _videoRatio),
+      ratio: node.ratioOr(_videoRatio),
       loop: node.boolOr('loop', or: true),
       mute: node.boolOr('mute', or: true),
       autoplay: node.boolOr('autoplay', or: true),
     );
   }
-  return CachedImage(url: url, ratio: _ratioOf(node, _imageRatio));
-}
-
-/// Explicit `ratio` wins; else raw `width`/`height`; else [fallback] — mirrors
-/// core `media`'s `_ratioOf`, with a per-kind fallback (R7).
-double _ratioOf(BlockNode node, double fallback) {
-  final ratio = node.fields['ratio'];
-  if (ratio is num && ratio > 0) return ratio.toDouble();
-  final w = node.intOr('width'), h = node.intOr('height');
-  if (w != null && h != null && h > 0) return w / h;
-  return fallback;
+  return CachedImage(url: url, ratio: node.ratioOr(_imageRatio));
 }
 
 /// The add-on. Compose it via `NeoSdui.compose([neoSduiMediaAddon])`. It
