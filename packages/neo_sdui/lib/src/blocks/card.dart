@@ -6,6 +6,7 @@ import '../action/neo_action.dart';
 import '../model/block_node.dart';
 import '../theme/neo_sdui_scope.dart';
 import '../theme/neo_sdui_theme.dart';
+import '_gradient_text.dart';
 import '_shape.dart';
 
 /// card: title + optional subtitle + optional thumbnail + optional action, drawn
@@ -22,8 +23,17 @@ Widget buildCard(BuildContext context, BlockNode node) {
   final theme = scope.theme;
   final subtitle = node.stringOr('subtitle');
   final action = node.stringOr('action');
+  // Optional trailing affordance label ("Open Guide →"): when set on a tappable
+  // card it replaces the default `›` caret, painted in the accent role. The wire
+  // carries the words; the accent color/gradient is the theme's.
+  final actionLabel = node.stringOr('actionLabel');
   final thumb = node.stringOr('thumb');
   final tile = node.stringOr('variant') == 'tile';
+  // A *featured* card (`emphasis:"high"`) takes the theme's card gradient; every
+  // other card stays the flat surface. Null gradient -> featured falls back to
+  // flat, so the wire names emphasis and the theme owns whether it's a gradient.
+  final featuredGradient =
+      node.stringOr('emphasis') == 'high' ? theme.cardGradient : null;
   // Wire `shape` role (opt-in); the card defaults to the theme's squircle.
   final shape = node.stringOr('shape');
   final titleStyle =
@@ -43,7 +53,15 @@ Widget buildCard(BuildContext context, BlockNode node) {
       ),
       if (action != null) ...[
         const SizedBox(width: 4),
-        Text('›', style: titleStyle),
+        // Labelled affordance ("Open Guide →") in the accent role, else the
+        // default caret. The caret branch is untouched, so cards without a label
+        // regenerate no goldens.
+        if (actionLabel != null)
+          neoText(theme, actionLabel,
+              theme.caption.copyWith(fontWeight: FontWeight.w500),
+              tone: 'accent')
+        else
+          Text('›', style: titleStyle),
       ],
     ],
   );
@@ -114,7 +132,7 @@ Widget buildCard(BuildContext context, BlockNode node) {
     'rounded' => RoundedRectangleBorder(borderRadius: theme.radiusLg),
     _ => theme.resolvedCardShape,
   };
-  final surface = _surface(theme, cardShape, content);
+  final surface = _surface(theme, cardShape, content, gradient: featuredGradient);
   if (action == null) return surface;
   return GestureDetector(
     onTap: () => scope.dispatch(context, NeoAction.parse(action)),
@@ -123,12 +141,16 @@ Widget buildCard(BuildContext context, BlockNode node) {
 }
 
 /// The card surface: [shape] + shadow + fill, with an optional backdrop blur
-/// behind a translucent fill. Geometry values come from the theme; the wire
-/// carries at most a `shape` role (already resolved into [shape] by the caller).
-Widget _surface(NeoSduiTheme theme, ShapeBorder shape, Widget child) {
+/// behind a translucent fill. A featured card passes [gradient] (the theme's
+/// `cardGradient`) and fills with it instead of the flat card color. Geometry
+/// values come from the theme; the wire carries at most a `shape`/`emphasis`
+/// role (already resolved into [shape]/[gradient] by the caller).
+Widget _surface(NeoSduiTheme theme, ShapeBorder shape, Widget child,
+    {Gradient? gradient}) {
   final Widget box = DecoratedBox(
     decoration: ShapeDecoration(
-      color: theme.resolvedCardColor,
+      color: gradient == null ? theme.resolvedCardColor : null,
+      gradient: gradient,
       shape: shape,
       shadows: theme.cardShadow,
     ),

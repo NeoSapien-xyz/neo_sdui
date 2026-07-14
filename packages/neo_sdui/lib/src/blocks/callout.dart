@@ -2,15 +2,17 @@ import 'package:flutter/widgets.dart';
 
 import '../model/block_node.dart';
 import '../theme/neo_sdui_scope.dart';
+import '_icon.dart';
 import '_shape.dart';
 
-/// callout: optional title + bullet list. Surface derived from `tone`
-/// (default/accent/critical); corner from the optional `shape` role (default
-/// rounded); text is the on-surface role.
+/// callout: optional leading `icon` + title + bullet list. Surface derived from
+/// `tone` (default/accent/critical); corner from the optional `shape` role
+/// (default rounded); text is the on-surface role.
 Widget buildCallout(BuildContext context, BlockNode node) {
   final theme = NeoSduiScope.of(context).theme;
   final title = node.stringOr('title');
   final text = theme.body.copyWith(color: theme.onSurface);
+  final icon = leadingIcon(theme, node.stringOr('icon'), node.stringOr('tone'));
   final rawBullets = node.fields['bullets'];
   final bullets = rawBullets is List
       ? rawBullets.whereType<String>().toList()
@@ -31,7 +33,17 @@ Widget buildCallout(BuildContext context, BlockNode node) {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (title != null) ...[
-            Text(title, style: text),
+            if (icon != null)
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  icon,
+                  SizedBox(width: theme.spaceSm),
+                  Expanded(child: Text(title, style: text)),
+                ],
+              )
+            else
+              Text(title, style: text),
             SizedBox(height: theme.spaceSm),
           ],
           for (final b in bullets)

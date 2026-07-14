@@ -83,6 +83,63 @@ void main() {
     expect(find.text('2'), findsOneWidget);
   });
 
+  testWidgets('two accent hues coexist on one screen; an unmapped tone stays plain',
+      (tester) async {
+    const brandGrad = LinearGradient(colors: [Color(0xFFFF8A00), Color(0xFFFFC400)]);
+    final theme = NeoSduiTheme.fallback().copyWith(
+      accentGradient: _grad,
+      accents: const {'brand': NeoAccent(Color(0xFFFF8A00), brandGrad)},
+    );
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: MediaQuery(
+          data: const MediaQueryData(),
+          child: Center(
+            child: SizedBox(
+              width: 400,
+              height: 800,
+              child: NeoSduiView(
+                document: NeoDocument.fromJson({
+                  'version': 1,
+                  'blocks': [
+                    {'type': 'header', 'title': 'Accent', 'tone': 'accent'},
+                    {'type': 'header', 'title': 'Brand', 'tone': 'brand'},
+                    {'type': 'header', 'title': 'Ghost', 'tone': 'ghost'},
+                  ],
+                }),
+                theme: theme,
+                onAction: (_, _) {},
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    // accent + brand each shade their own gradient; an unmapped tone is plain.
+    expect(find.byType(ShaderMask), findsNWidgets(2));
+    expect(tester.widget<Text>(find.text('Ghost')).style!.color, theme.title.color);
+  });
+
+  testWidgets('a steps tone recolors the number badges to a distinct hue',
+      (tester) async {
+    const brandGrad = LinearGradient(colors: [Color(0xFFFF8A00), Color(0xFFFFC400)]);
+    final theme = NeoSduiTheme.fallback().copyWith(
+      accentGradient: _grad,
+      accents: const {'brand': NeoAccent(Color(0xFFFF8A00), brandGrad)},
+    );
+    await _pump(tester, {
+      'type': 'steps',
+      'tone': 'brand',
+      'items': [
+        {'caption': 'One'},
+        {'caption': 'Two'},
+      ],
+    }, theme);
+    expect(find.byType(ShaderMask), findsNWidgets(2)); // both numbers, brand hue
+    expect(find.text('1'), findsOneWidget);
+  });
+
   testWidgets('a malformed run degrades without crashing', (tester) async {
     await _pump(tester, {
       'type': 'text',

@@ -43,22 +43,48 @@ class _TabsState extends State<_Tabs> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            for (var i = 0; i < widget.tabs.length; i++)
-              GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () => setState(() => _selected = i),
-                child: Padding(
-                  padding: const EdgeInsets.only(right: 20, bottom: 12),
-                  child: i == selected
-                      ? neoText(theme, widget.tabs[i].label, theme.body,
-                          accentAll: true)
-                      : Text(widget.tabs[i].label, style: theme.body),
-                ),
-              ),
-          ],
+        // Segmented control: a rounded track holding equal-width segments; the
+        // selected one gets a raised pill + accent label, the rest muted text.
+        // Track/pill pixels are theme roles (surface, its lighten, radii) — the
+        // wire carries only the labels.
+        DecoratedBox(
+          decoration:
+              BoxDecoration(color: theme.surface, borderRadius: theme.radiusMd),
+          child: Padding(
+            padding: const EdgeInsets.all(4),
+            child: Row(
+              children: [
+                for (var i = 0; i < widget.tabs.length; i++)
+                  Expanded(
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => setState(() => _selected = i),
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: i == selected
+                              ? theme.shimmerHighlight
+                              : const Color(0x00000000),
+                          borderRadius: theme.radiusSm,
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          child: Center(
+                            child: i == selected
+                                ? neoText(theme, widget.tabs[i].label, theme.body,
+                                    tone: 'accent')
+                                : Text(widget.tabs[i].label,
+                                    style:
+                                        theme.body.copyWith(color: theme.textMuted)),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
         ),
+        SizedBox(height: theme.spaceMd),
         ...scope.buildBlocks(widget.tabs[selected].blocks),
       ],
     );

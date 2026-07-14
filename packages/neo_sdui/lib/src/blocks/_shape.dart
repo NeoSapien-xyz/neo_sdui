@@ -31,15 +31,26 @@ ShapeBorder shapeBorder(String? shape, BorderRadius radius, {required String fal
         ? RoundedSuperellipseBorder(borderRadius: radius)
         : RoundedRectangleBorder(borderRadius: radius);
 
-/// A filled surface at the resolved shape. Rounded stays `BoxDecoration`
-/// (byte-identical to before); only squircle becomes a `ShapeDecoration`, so a
-/// wire that never sets `shape` regenerates no goldens.
+/// A filled surface at the resolved shape. An optional [gradient] fills instead
+/// of [color] when set (the featured-group case); a null gradient keeps the flat
+/// [color], byte-identical to before. Rounded stays `BoxDecoration`; only
+/// squircle becomes a `ShapeDecoration`, so a wire that never sets `shape`
+/// regenerates no goldens.
 Decoration shapeDecoration(
   String? shape,
   BorderRadius radius, {
   required String fallback,
   required Color color,
+  Gradient? gradient,
 }) =>
     _isSquircle(shape, fallback: fallback)
-        ? ShapeDecoration(color: color, shape: shapeBorder(shape, radius, fallback: fallback))
-        : BoxDecoration(color: color, borderRadius: radius);
+        ? ShapeDecoration(
+            color: gradient == null ? color : null,
+            gradient: gradient,
+            shape: shapeBorder(shape, radius, fallback: fallback),
+          )
+        : BoxDecoration(
+            color: gradient == null ? color : null,
+            gradient: gradient,
+            borderRadius: radius,
+          );

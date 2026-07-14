@@ -13,6 +13,6 @@ Widget buildText(BuildContext context, BlockNode node) {
     theme,
     node.fields['body'],
     theme.bodyEmphasis(node.stringOr('emphasis')),
-    accentAll: node.stringOr('tone') == 'accent',
+    tone: node.stringOr('tone'),
   );
 }
