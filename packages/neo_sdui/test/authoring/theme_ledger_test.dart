@@ -114,5 +114,33 @@ void main() {
       expect(ledger.observations, isEmpty);
       expect(ledger.roleUsage, isEmpty);
     });
+
+    test('fromJson skips a malformed observation instead of throwing', () {
+      final ledger = RoleLedger.fromJson({
+        'version': 1,
+        'observations': [
+          {
+            'roleKey': 'accent',
+            'value': '0xFF00F1A0',
+            'page': 'home',
+            'provenance': 'variable',
+            'kind': 'color',
+          },
+          // bad enum name -> skipped, not thrown
+          {
+            'roleKey': 'surface',
+            'value': '0xFF202423',
+            'page': 'home',
+            'provenance': 'variable',
+            'kind': 'colour',
+          },
+          // missing field -> skipped
+          {'roleKey': 'x', 'value': 'y', 'page': 'z', 'provenance': 'variable'},
+        ],
+        'roleUsage': <String, Object?>{},
+      });
+      expect(ledger.observations, hasLength(1));
+      expect(ledger.observations.single.roleKey, 'accent');
+    });
   });
 }

@@ -215,9 +215,19 @@ class RoleLedger {
     final rawObs = json['observations'];
     if (rawObs is List) {
       for (final e in rawObs) {
-        if (e is Map) {
-          obs.add(Observation.fromJson(Map<String, Object?>.from(e)));
+        if (e is! Map) continue;
+        final m = Map<String, Object?>.from(e);
+        // Skip a malformed observation rather than throwing — the ledger is read
+        // from disk, so an unknown enum name or missing field must not abort the
+        // whole load (matches the defensive shape-guarding around it).
+        if (m['roleKey'] is! String ||
+            m['value'] is! String ||
+            m['page'] is! String ||
+            !Provenance.values.asNameMap().containsKey(m['provenance']) ||
+            !ValueKind.values.asNameMap().containsKey(m['kind'])) {
+          continue;
         }
+        obs.add(Observation.fromJson(m));
       }
     }
     final usage = <String, Set<String>>{};

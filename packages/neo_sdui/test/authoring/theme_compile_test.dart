@@ -97,4 +97,73 @@ void main() {
         .reconcile();
     expect(r.conflictRoles, contains('accent'));
   });
+
+  test('a named accent emits NeoAccent(Color(...)), not a bare Color', () {
+    final r = (RoleLedger()
+          ..observe(const Observation(
+              roleKey: 'accents.brand',
+              value: '0xFF7A5CFF',
+              page: 'home',
+              provenance: Provenance.variable,
+              kind: ValueKind.color)))
+        .reconcile();
+    final src = emitTheme(r);
+    // copyWith's `accents` is Map<String, NeoAccent> — a bare Color won't compile.
+    expect(src, contains("'brand': NeoAccent(Color(0xFF7A5CFF)),"));
+  });
+
+  test('override page names sanitize to safe, unique, non-reserved idents', () {
+    final r = (RoleLedger()
+          ..observe(_color('accent', '0xFF00F1A0', 'main'))
+          ..observe(_color('accent', '0xFF00F1A0', 'main')) // majority base
+          ..observe(_color('accent', '0xFF111111', 'base')) // clashes with base var
+          ..observe(_color('accent', '0xFF222222', 'class')) // Dart reserved word
+          ..observe(_color('accent', '0xFF333333', 'Home Page'))
+          ..observe(_color('accent', '0xFF444444', 'home-page'))) // ident collision
+        .reconcile();
+    final src = emitTheme(r);
+
+    // never redefine the base variable, never a reserved word
+    expect(src, isNot(contains('final base = base.copyWith')));
+    expect(src, isNot(contains('final class = base.copyWith')));
+    // colliding page names get a numeric suffix
+    expect(src, contains('final homePage = base.copyWith'));
+    expect(src, contains('final homePage2 = base.copyWith'));
+  });
+
+  test('an override spreads base.accents so it does not drop siblings', () {
+    final r = (RoleLedger()
+          ..observe(const Observation(
+              roleKey: 'accents.brand',
+              value: '0xFF7A5CFF',
+              page: 'a',
+              provenance: Provenance.variable,
+              kind: ValueKind.color))
+          ..observe(const Observation(
+              roleKey: 'accents.brand',
+              value: '0xFFFFC107',
+              page: 'b',
+              provenance: Provenance.variable,
+              kind: ValueKind.color)))
+        .reconcile();
+    final src = emitTheme(r);
+    expect(src, contains('...base.accents,'));
+  });
+
+  test('a todo-provenance role is flagged on a standalone TODO(theme) line', () {
+    final r = (RoleLedger()
+          ..observe(const Observation(
+              roleKey: 'accent',
+              value: '0xFF00F1A0',
+              page: 'home',
+              provenance: Provenance.todo,
+              kind: ValueKind.color)))
+        .reconcile();
+    final src = emitTheme(r);
+    final todoLines =
+        src.split('\n').where((l) => l.contains('TODO(theme)')).toList();
+    expect(todoLines, isNotEmpty);
+    expect(todoLines.every((l) => l.trimLeft().startsWith('// TODO(theme):')),
+        isTrue);
+  });
 }

@@ -88,6 +88,7 @@ String emitTheme(Reconciled r) {
   }
 
   final pages = r.overridesByPage.keys.toList()..sort();
+  final usedIdents = <String>{'base'}; // reserve the base variable name
   for (final page in pages) {
     final overrides = <String, ResolvedRole>{
       for (final e in r.overridesByPage[page]!.entries)
@@ -101,8 +102,8 @@ String emitTheme(Reconciled r) {
     };
     b
       ..writeln()
-      ..writeln('final ${_ident(page)} = base.copyWith(');
-    _emitRoles(b, overrides);
+      ..writeln('final ${_uniqueIdent(page, usedIdents)} = base.copyWith(');
+    _emitRoles(b, overrides, isOverride: true);
     b.writeln(');');
   }
   return b.toString();
@@ -141,7 +142,13 @@ String coverageReport(Reconciled r) {
 // --- emit helpers -----------------------------------------------------------
 
 /// Emit `accents`/`icons` map roles are grouped; simple roles emit one arg line.
-void _emitRoles(StringBuffer b, Map<String, ResolvedRole> roles) {
+/// `copyWith` replaces the whole `accents`/`icons` map, so an override spreads the
+/// base's map (`...base.accents`) and the base's `icons` spreads the defaults —
+/// otherwise a page that diverges on one accent silently drops base's other
+/// accents, and an emitted `icons` block would replace `kDefaultIcons` while
+/// `role_lint` still assumes the defaults are present.
+void _emitRoles(StringBuffer b, Map<String, ResolvedRole> roles,
+    {bool isOverride = false}) {
   final accents = <String, ResolvedRole>{};
   final icons = <String, ResolvedRole>{};
   final simple = <String>[];
@@ -162,17 +169,17 @@ void _emitRoles(StringBuffer b, Map<String, ResolvedRole> roles) {
     b.writeln('  $key: ${_expr(role)},$confirm');
   }
   if (accents.isNotEmpty) {
-    final entries = accents.keys.toList()..sort();
     b.writeln('  accents: {');
-    for (final name in entries) {
-      b.writeln("    '$name': ${_expr(accents[name]!)},");
+    if (isOverride) b.writeln('    ...base.accents,');
+    for (final name in accents.keys.toList()..sort()) {
+      b.writeln("    '$name': ${_accentExpr(accents[name]!)},");
     }
     b.writeln('  },');
   }
   if (icons.isNotEmpty) {
-    final entries = icons.keys.toList()..sort();
     b.writeln('  icons: {');
-    for (final name in entries) {
+    b.writeln(isOverride ? '    ...base.icons,' : '    ...kDefaultIcons,');
+    for (final name in icons.keys.toList()..sort()) {
       b.writeln("    '$name': ${_expr(icons[name]!)},");
     }
     b.writeln('  },');
@@ -180,12 +187,41 @@ void _emitRoles(StringBuffer b, Map<String, ResolvedRole> roles) {
 }
 
 /// The Dart expression for a role value: colours/numbers are wrapped, everything
-/// else (`TextStyle(...)`, `LinearGradient(...)`, `NeoAccent(...)`) is verbatim.
+/// else (`TextStyle(...)`, `LinearGradient(...)`) is verbatim.
 String _expr(ResolvedRole role) => switch (role.kind) {
       ValueKind.color => 'Color(${role.value})',
       ValueKind.number => role.value,
       _ => role.value,
     };
+
+/// An `accents` map value is typed `NeoAccent`: wrap a bare colour, else the
+/// value is already a `NeoAccent(...)` literal.
+String _accentExpr(ResolvedRole role) => role.kind == ValueKind.color
+    ? 'NeoAccent(Color(${role.value}))'
+    : role.value;
+
+/// Dart reserved words that cannot be a variable name (would break `final X =`).
+const Set<String> _dartReserved = {
+  'assert', 'break', 'case', 'catch', 'class', 'const', 'continue', 'default',
+  'do', 'else', 'enum', 'extends', 'false', 'final', 'finally', 'for', 'if',
+  'in', 'is', 'new', 'null', 'rethrow', 'return', 'super', 'switch', 'this',
+  'throw', 'true', 'try', 'var', 'void', 'while', 'with', //
+};
+
+/// A page's override variable name: sanitize, guard reserved words, and dedupe
+/// against names already emitted (including the `base` variable) so two pages
+/// that sanitize alike don't produce duplicate `final` declarations.
+String _uniqueIdent(String page, Set<String> used) {
+  var id = _ident(page);
+  if (_dartReserved.contains(id)) id = '${id}_';
+  var unique = id;
+  var n = 2;
+  while (!used.add(unique)) {
+    unique = '$id$n';
+    n++;
+  }
+  return unique;
+}
 
 String _ident(String page) {
   final cleaned = page.replaceAll(RegExp(r'[^A-Za-z0-9]'), ' ').trim();
