@@ -1,0 +1,54 @@
+{
+  "version": 1,
+  "blocks": [
+    {
+      "type": "header",
+      "title": "Connect Neo 1 with other Connector",
+      "subtitle": "Give any AI assistant direct access to your NeoSapien memories."
+    },
+    {
+      "type": "callout",
+      "tone": "accent",
+      "title": "Requires laptop for setup",
+      "bullets": ["Works everywhere once connected."]
+    },
+    {
+      "type": "steps",
+      "items": [
+        { "caption": "Open your tool's MCP settings" },
+        { "caption": "Add the server URL", "code": "https://api.neosapien.xyz/mcp" },
+        { "caption": "Sign in with the NeoSapien account", "detail": "(This can be different from your ChatGPT account)" },
+        { "caption": "Congrats 🎉 NeoSapien MCP is now connected" }
+      ]
+    },
+    {
+      "type": "callout",
+      "tone": "accent",
+      "title": "If NeoSapien MCP doesn't work or appear in the chat, do one of these:",
+      "bullets": [
+        "Add “from NeoSapien” to your message",
+        "Close the tab and reopen ChatGPT",
+        "Re-authenticate with the existing NeoSapien account",
+        "Remove the NeoSapien from connectors and add it again."
+      ]
+    },
+    {
+      "type": "header",
+      "title": "Here's what it does for you",
+      "subtitle": "You ask, Neo 1 recalls, your AI does the work. Things you can do:"
+    },
+    { "type": "header", "tone": "accent", "title": "Catch up on your day", "subtitle": "“Summarise everything I said today.”" },
+    { "type": "header", "tone": "accent", "title": "Draft your replies", "subtitle": "“Write the follow up email on what I owe Subodh”" },
+    { "type": "header", "tone": "accent", "title": "Prep for what's next", "subtitle": "“Prep me for my meeting with Mohit, what did he ask last time?”" },
+    { "type": "header", "tone": "accent", "title": "Recall any detail", "subtitle": "“What's the medicine I discussed for my father?”" },
+    { "type": "header", "tone": "accent", "title": "Turn talk into to-dos", "subtitle": "“Make a task list from my last daily standup”" },
+    { "type": "header", "tone": "accent", "title": "Work across your tools", "subtitle": "“Add those tasks to my Notion.” Your AI has both Neo 1 and your other apps." },
+    { "type": "header", "tone": "accent", "title": "Export data", "subtitle": "“Export all memories from yesterday as a CSV”" },
+    {
+      "type": "callout",
+      "tone": "accent",
+      "title": "Not getting results?",
+      "bullets": ["Add “from NeoSapien” to your message."]
+    }
+  ]
+}
