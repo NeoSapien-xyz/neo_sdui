@@ -8,8 +8,11 @@ description: Use when turning any Figma selection — a page, frame, component, 
 Turn a Figma selection — a page, frame, component, or node — into a neo_sdui wire document. The
 MCP guide is one example, not the boundary: any selection destined for a neo_sdui screen is in
 scope. The wire carries **semantics only**
-(structure + text + role tags) — never look. `neofig` owns the look (colors, fonts, the theme);
-figwire owns the wire. They are mirror halves of the same pipeline.
+(structure + text + role tags) — never look. From the *same* Figma read, figwire also produces an
+optional **look projection**: a role ledger that accumulates across pages and compiles to a paste-in
+`NeoSduiTheme` (a base theme + per-page `copyWith` overrides). The wire goes to Remote Config; the
+theme goes to the app. `neofig` owns look→widget *code*; figwire owns both the wire and the theme —
+two projections of one read (see `references/theme-extract.md`).
 
 ## Status — this skill is young, and meant to grow
 
@@ -64,6 +67,11 @@ reported, not force-fit into a wrapper. Pull each block's text as `string-or-run
 `tone:"accent"` per `references/accent-tones.md`. Do not invent a block type — off-roster types are
 a hard error.
 
+**Look projection (optional theme).** As you classify, record each block's `tone`/`emphasis`/`icon`
+role into the ledger's `roleUsage`, and append the page's look observations (colors, type, gradients)
+to the role ledger — the *complement* of the wire, per `references/theme-extract.md`. Look values
+never ride the wire; they only go to the ledger.
+
 ### 3. Assemble
 
 Build the whole-page `{version, blocks, views}` in reading order. Put navigable sub-screens
@@ -76,7 +84,9 @@ element and let the human wire the real `route:`/`screen:`/`sheet:` once all pag
 Never write an ungated document. In order: (a) run the hard validate gate
 (`check_wire_test.dart` — fails on off-roster types / structural errors); (b) compute the coverage
 report against the independent inventory (downgraded on the screenshot path); (c) render the
-structural preview PNG (`render_wire_test.dart`); (d) secret-scan the extracted text.
+structural preview PNG (`render_wire_test.dart`); (d) secret-scan the extracted text. If the run
+accumulated a theme, also run the theme gates — compile + role-drift lint + round-trip render (see
+`references/verify-output.md` §6).
 
 ### 5. Write
 
@@ -84,14 +94,21 @@ Only after the validate gate passes: write the wire `.json` to a repo location t
 show the coverage report, preview path, and any low-confidence / secret flags for sign-off. No
 Firebase push.
 
+If a theme was accumulated, run the terminal compile once at the end and hand the user the base
+`NeoSduiTheme` + per-page `copyWith` overrides + the coverage report, resolving any conflict roles via
+the hybrid prompt (`references/theme-extract.md`). The theme is pasted into the app; figwire does not
+wire route/guide → theme selection (that is app-side).
+
 ## References
 
 - `references/wire-contract.md` — the 14 block types, their fields, the string-or-runs shape, enums,
   action grammar, the forbidden-on-wire list, and a minimal document.
 - `references/accent-tones.md` — the accent-green → `tone:"accent"` signal (and never emit the hex).
 - `references/ingestion.md` — MCP call order, REST, screenshot degrade, token handling, seat limits.
-- `references/verify-output.md` — the four verify gates and the write step, with the exact commands.
+- `references/verify-output.md` — the four wire gates, the theme gates (§6), and the write step, with the exact commands.
+- `references/theme-extract.md` — the look projection: token-first extraction, the role-ledger format, the terminal compile, and the hybrid conflict prompt.
 
 Package tools these call (in `packages/neo_sdui/`):
 - `test/tools/check_wire_test.dart` — `NEO_WIRE_JSON=<path> fvm flutter test test/tools/check_wire_test.dart` → structural + vocabulary gate.
-- `test/tools/render_wire_test.dart` — `NEO_WIRE_JSON=<path> fvm flutter test --update-goldens test/tools/render_wire_test.dart` → `.render/preview.png`.
+- `test/tools/render_wire_test.dart` — `NEO_WIRE_JSON=<path> [NEO_THEME_LEDGER=<ledger>] fvm flutter test --update-goldens test/tools/render_wire_test.dart` → `.render/preview.png` (optionally under the compiled theme).
+- `test/tools/compile_theme_test.dart` — `NEO_THEME_LEDGER=<ledger> [NEO_THEME_OUT=<theme.dart>] fvm flutter test test/tools/compile_theme_test.dart` → paste-in `NeoSduiTheme` + coverage report + role-drift lint.

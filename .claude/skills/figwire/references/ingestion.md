@@ -12,6 +12,11 @@ MCP/REST calls as a scarce high-fidelity pass.
    - `get_screenshot` — the visual truth for classification and accent detection.
    - `get_design_context` — consult for **exact text strings** (it returns React/Tailwind code; read
      the string literals out of it, ignore the component decisions).
+   - `get_variable_defs` — bound color/number/type **variables** and styles: the source of truth for
+     the *look projection* (the theme), not the wire. Prefer over reading pixels. Look-only — see
+     `theme-extract.md`.
+   - `get_shader_fill` / `get_shader_effect` — gradient fills for the theme's
+     `cardGradient`/`groupGradient`/`accentGradient`. Look projection only, never the wire.
 2. **REST `/nodes` (optional, exact text).** When a `FIGMA_TOKEN` is configured, one call returns the
    whole page subtree with exact `characters`:
    ```bash
@@ -41,7 +46,10 @@ verifies character-by-character. A page containing `code`/URL blocks should use 
 ## Seat reality (why the screenshot is the default)
 
 The authenticated Figma account may be a **View seat on a Starter tier**, capped at ~6 read calls per
-**month** across `get_metadata`/`get_screenshot`/`get_design_context`/REST combined. One MCP page pass
+**month** across `get_metadata`/`get_screenshot`/`get_design_context`/`get_variable_defs`/shader/REST
+combined — the look-projection reads (`get_variable_defs`, `get_shader_fill`/`get_shader_effect`) count
+too, so on a View seat prefer the screenshot for the look and reserve token reads for a Dev/Full seat.
+One MCP page pass
 (~2–3 calls) is a third of the monthly budget; REST is 1 call/page (whole subtree). Budget one clean
 pass per page; iterate from the exported screenshot (0 API calls). Volume needs a Dev/Full seat.
 

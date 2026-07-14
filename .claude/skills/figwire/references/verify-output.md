@@ -58,3 +58,25 @@ Only after 1 passes (no blocking issues): write the wire `.json` to the repo (a 
 config location the user names) for review and commit. Print the coverage report + preview path +
 any low-confidence / secret flags so the human can sign off. Do **not** push to Firebase — that is
 out of scope.
+
+## 6. Theme compile + verify (only if the run also built a look projection)
+
+When the run accumulated a role ledger (`theme-extract.md`), the theme has its own gates — it fails by
+rendering *wrong*, not by vanishing, so the wire gates can't catch it. Run these on the final ledger:
+
+```bash
+# Compile + role-drift lint (fails if a wire role has no theme slot):
+NEO_THEME_LEDGER=<ledger.json> NEO_THEME_OUT=<theme.dart> \
+  fvm flutter test test/tools/compile_theme_test.dart
+
+# Confirm the emitted theme actually compiles:
+fvm flutter analyze <theme.dart>
+
+# Round-trip render an accumulated wire UNDER the compiled theme, to eyeball vs the Figma screenshot:
+NEO_WIRE_JSON=<wire.json> NEO_THEME_LEDGER=<ledger.json> \
+  fvm flutter test --update-goldens test/tools/render_wire_test.dart   # writes .render/preview.png
+```
+
+The compile prints the paste-in `NeoSduiTheme` (base + per-page `copyWith`) and a coverage report;
+surface every `// confirm:` (inferred) and `// TODO(theme):` (no data) for the human, and resolve the
+compile's **conflict roles** via the hybrid prompt in `theme-extract.md` before finalizing.
