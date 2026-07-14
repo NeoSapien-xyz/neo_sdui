@@ -27,6 +27,8 @@ export 'src/theme/neo_sdui_theme.dart';
 
 // Authoring (figwire theme-companion: ledger → compile → lint)
 export 'src/authoring/theme_ledger.dart';
+export 'src/authoring/theme_compile.dart';
+export 'src/authoring/role_lint.dart';
 
 // Renderer
 export 'src/render/neo_sdui_view.dart';
