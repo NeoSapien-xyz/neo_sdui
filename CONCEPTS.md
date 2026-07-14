@@ -33,3 +33,6 @@ A semantic name the wire carries for a look decision — an emphasis, a tone, an
 
 ### View
 A named sub-screen carried in the wire alongside the top-level blocks, rendered on demand rather than inline. A block's action targets a view by name and presents it as a modal sheet or a pushed screen; the wire names the destination and the presentation kind, while the client owns the transition. A view holds its own block list, resolved the same resilient way as the main screen.
+
+### Role ledger
+The persistent cross-screen accumulator the `figwire` skill fills with the look it reads from each Figma page but is forbidden to put on the wire — role→value observations (color roles, type scale, radius/space scales, surfaces, gradients, named accents, icons), tagged by source page. It is the authoring-time counterpart of the wire: a single Figma read forks into the wire (semantics) and the ledger (look). Pages are fed part by part across runs, so the ledger accumulates and reconciles (auto-merging near-duplicate values), and a terminal compile step resolves it into one base NeoSduiTheme plus a `copyWith` override per divergent page. It exists so the theme is derived from the same read as the wire, never a second one, and so the two stay reconciled on a shared Role vocabulary.

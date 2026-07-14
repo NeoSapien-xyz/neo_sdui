@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ideation: figwire's theme half — how figwire also yields a NeoSduiTheme</title>
+<style>
+  :root{
+    --bg:#fbfbfa; --fg:#1a1d1c; --muted:#5c6360; --border:#e4e4e0;
+    --card:#ffffff; --accent:#0a8f66; --accent-soft:#e6f6ef;
+    --warn:#9a6b00; --warn-soft:#fdf4e0; --info-soft:#eaf1fb; --info:#2f5fb0;
+    --code-bg:#f2f2ef; --diagram-bg:#fbfbfa;
+    --mono:ui-monospace,SFMono-Regular,Menlo,"Courier New",monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0d100f; --fg:#e9ecea; --muted:#9aa19d; --border:#262b29;
+      --card:#151918; --accent:#31d39a; --accent-soft:#12211b;
+      --warn:#e0b357; --warn-soft:#241d0e; --info-soft:#0f1a2b; --info:#7aa6e6;
+      --code-bg:#1a1f1d; --diagram-bg:#10130f;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0d100f; --fg:#e9ecea; --muted:#9aa19d; --border:#262b29;
+    --card:#151918; --accent:#31d39a; --accent-soft:#12211b;
+    --warn:#e0b357; --warn-soft:#241d0e; --info-soft:#0f1a2b; --info:#7aa6e6;
+    --code-bg:#1a1f1d; --diagram-bg:#10130f;
+  }
+  :root[data-theme="light"]{
+    --bg:#fbfbfa; --fg:#1a1d1c; --muted:#5c6360; --border:#e4e4e0;
+    --card:#ffffff; --accent:#0a8f66; --accent-soft:#e6f6ef;
+    --warn:#9a6b00; --warn-soft:#fdf4e0; --info-soft:#eaf1fb; --info:#2f5fb0;
+    --code-bg:#f2f2ef; --diagram-bg:#fbfbfa;
+  }
+  *{box-sizing:border-box}
+  body{background:var(--bg);color:var(--fg);
+    font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    margin:0;padding:0}
+  .wrap{max-width:900px;margin-inline:auto;padding:2.4rem 1.4rem 4rem}
+  p,li{max-width:72ch}
+  h1{font-size:1.9rem;line-height:1.2;margin:.2em 0 .1em}
+  h2{font-size:1.32rem;margin:2.4rem 0 .6rem;padding-bottom:.3rem;border-bottom:1px solid var(--border)}
+  h3{font-size:1.08rem;margin:.2rem 0 .4rem}
+  code{font-family:var(--mono);font-size:.86em;background:var(--code-bg);
+    padding:.1em .38em;border-radius:5px}
+  pre{background:var(--code-bg);padding:.9rem 1rem;border-radius:9px;overflow-x:auto;
+    border:1px solid var(--border)}
+  pre code{background:none;padding:0}
+  a{color:var(--accent)}
+  .eyebrow{text-transform:uppercase;letter-spacing:.09em;font-size:.72rem;
+    font-weight:700;color:var(--accent)}
+  .meta{display:flex;flex-wrap:wrap;gap:.5rem;margin:1rem 0 0}
+  .meta .pill{border:1px solid var(--border);border-radius:999px;
+    padding:.22rem .7rem;font-size:.78rem;color:var(--muted);background:var(--card)}
+  .meta .pill b{color:var(--fg);font-weight:600}
+  .lede{font-size:1.05rem;color:var(--fg)}
+  .verdict{background:var(--accent-soft);border:1px solid var(--border);
+    border-radius:12px;padding:1rem 1.2rem;margin:1.2rem 0}
+  .verdict .eyebrow{color:var(--accent)}
+  .grounding{background:var(--card);border:1px solid var(--border);
+    border-radius:12px;padding:.4rem 1.2rem 1rem}
+  .axes{list-style:none;padding:0;margin:.4rem 0}
+  .axes li{border-left:3px solid var(--accent);padding:.3rem 0 .3rem .8rem;
+    margin:.5rem 0;max-width:none}
+  .axes li b{font-family:var(--mono);font-size:.82rem;color:var(--accent);
+    display:inline-block;min-width:2.6rem}
+  .jump{background:var(--card);border:1px solid var(--border);border-radius:10px;
+    padding:.7rem 1rem;margin:.6rem 0 1.4rem}
+  .jump ol{margin:.2rem 0;padding-left:1.3rem}
+  .jump a{text-decoration:none}
+  .idea{background:var(--card);border:1px solid var(--border);border-radius:13px;
+    padding:1.1rem 1.3rem 1.2rem;margin:1.1rem 0}
+  .idea .rank{font-family:var(--mono);color:var(--accent);font-weight:700}
+  .idea .rec{display:inline-block;font-size:.68rem;font-weight:700;
+    text-transform:uppercase;letter-spacing:.06em;background:var(--accent);
+    color:#fff;padding:.12rem .5rem;border-radius:999px;margin-left:.5rem;vertical-align:middle}
+  .idea dl{display:grid;grid-template-columns:max-content 1fr;gap:.3rem .9rem;
+    margin:.7rem 0 0}
+  .idea dt{font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;
+    font-weight:700;color:var(--muted);padding-top:.15rem}
+  .idea dd{margin:0}
+  .idea .axis-tag{font-family:var(--mono);font-size:.82rem}
+  .basis-direct{color:var(--accent);font-weight:600}
+  .basis-external{color:var(--info);font-weight:600}
+  .basis-reasoned{color:var(--warn);font-weight:600}
+  .chips{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.8rem}
+  .chip{font-size:.74rem;border:1px solid var(--border);border-radius:999px;
+    padding:.2rem .65rem;color:var(--muted);background:var(--bg)}
+  .chip b{color:var(--fg);font-weight:600}
+  figure{margin:1rem 0 .3rem;background:var(--diagram-bg);border:1px solid var(--border);
+    border-radius:11px;padding:1rem}
+  figure svg{display:block;width:100%;height:auto}
+  figcaption{font-size:.8rem;color:var(--muted);margin-top:.5rem}
+  table{border-collapse:collapse;width:100%;margin:.6rem 0;font-size:.92rem}
+  th,td{border:1px solid var(--border);padding:.5rem .7rem;text-align:left;vertical-align:top}
+  th{background:var(--card);font-size:.76rem;text-transform:uppercase;letter-spacing:.05em}
+  .rej-num{font-family:var(--mono);color:var(--muted)}
+  footer.composition-signal{margin-top:3rem;padding-top:1rem;border-top:1px solid var(--border);
+    font-size:.78rem;color:var(--muted)}
+  .svg-label{fill:var(--fg);font:600 12px var(--mono);paint-order:stroke fill;
+    stroke:var(--diagram-bg);stroke-width:3px;stroke-linejoin:round}
+  .svg-sub{fill:var(--muted);font:11px -apple-system,sans-serif;paint-order:stroke fill;
+    stroke:var(--diagram-bg);stroke-width:3px}
+  .svg-box{fill:var(--card);stroke:var(--border);stroke-width:1.5}
+  .svg-box-accent{fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.5}
+  .svg-box-warn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:1.5}
+  .svg-arrow{stroke:var(--muted);stroke-width:1.6;fill:none}
+  .svg-arrow-accent{stroke:var(--accent);stroke-width:1.8;fill:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <span class="eyebrow">Ideation · Repo-grounded</span>
+  <h1>figwire's theme half — turning one Figma read into <em>both</em> the wire and a paste-in <code>NeoSduiTheme</code></h1>
+  <div class="meta">
+    <span class="pill"><b>Date:</b> 2026-07-15</span>
+    <span class="pill"><b>Topic:</b> figwire-theme-companion</span>
+    <span class="pill"><b>Mode:</b> repo-grounded</span>
+    <span class="pill"><b>Focus:</b> should figwire also emit a NeoSduiTheme; one skill or two</span>
+  </div>
+
+  <section>
+    <p class="lede">The question in one line: figwire reads a Figma selection and writes the
+    <em>semantic</em> wire. Can the same skill also hand back the <em>look</em> — a
+    <code>NeoSduiTheme</code> literal to paste into the app — accumulated across many screens fed
+    part by part, ending in one complete theme?</p>
+
+    <div class="verdict">
+      <span class="eyebrow">Verdict</span>
+      <p style="margin:.3rem 0 0"><b>Viable — strongly.</b> The theme is the exact
+      <em>complement</em> of the wire. figwire already reads every pixel from Figma and then
+      <em>discards</em> it to honor the Iron Rule (no hex/px/font on the wire). The theme is
+      precisely that discarded projection, kept instead of thrown away — near-free per screen, and
+      it dodges a second read against a seat-capped Figma plan.</p>
+      <p style="margin:.6rem 0 0"><b>One skill, not two.</b> Not "cram pixel logic into the wire
+      classifier," and not "a separate skill that re-reads Figma." The fit is
+      <em>one ingestion → two projections</em>, sharing a role ledger so the wire's role names and
+      the theme's role slots can never drift, plus a <em>terminal compile step</em> that turns the
+      cross-screen ledger into the paste-in Dart literal. This <em>sharpens</em> figwire's
+      invariant rather than breaking it: "no pixels on the wire" stays; add "every pixel goes to the
+      theme." See idea&nbsp;<a href="#i1">1</a>.</p>
+    </div>
+  </section>
+
+  <h2 id="grounding">Grounding Context</h2>
+  <div class="grounding">
+    <h3>Codebase context</h3>
+    <ul>
+      <li><b>The Iron Rule &amp; the complement.</b> <code>figwire</code>'s contract forbids any
+        <code>#hex</code>/<code>px</code>/font/gradient on the wire; the one visual signal it reads
+        is accent-green → <code>tone:"accent"</code>. Everything else about look is read and dropped.
+        The theme is what you get by keeping the dropped half.</li>
+      <li><b>Existing split.</b> <code>neofig</code> owns look→widget <em>code</em> for a single
+        component; <code>figwire</code> owns semantics→wire. Neither emits a cross-screen
+        <code>NeoSduiTheme</code> — that is the gap.</li>
+      <li><b>Seat cap.</b> The Figma seat is hard-capped (~6 reads/month); the screenshot path is the
+        everyday path. Any design that reads Figma twice per screen is a non-starter.</li>
+      <li><b>The target class is fixed and known.</b> <code>NeoSduiTheme</code> is ~40 fields: role
+        colors, a 4-slot type scale + <code>mono</code>, radius/space scales, card/group/grid
+        surface treatments, <code>cardGradient</code>/<code>groupGradient</code>/<code>accentGradient</code>,
+        the <code>accents</code> and <code>icons</code> maps, and motion. It already has
+        <code>copyWith</code> and a <code>.fallback()</code> factory — the codegen target is a
+        constructor literal shaped exactly like <code>.fallback()</code>.</li>
+      <li><b>The coupling.</b> The wire names roles (<code>tone:"brand"</code>,
+        <code>emphasis:"high"</code>, <code>icon:"sparkle"</code>); the theme defines the pixels for
+        those exact names (<code>accents["brand"]</code>, <code>groupGradient</code>,
+        <code>icons["sparkle"]</code>). A wire role with no theme slot renders flat; a theme slot no
+        wire names is dead. The two outputs are joined at the role vocabulary.</li>
+    </ul>
+    <h3>External context <span style="font-weight:400;color:var(--muted)">(webfetch + context7, as requested)</span></h3>
+    <ul>
+      <li><b>Token layer &gt; pixel scraping.</b> Every mature Figma→code pipeline
+        (<a href="https://docs.tokens.studio/transform-tokens/style-dictionary">Tokens Studio</a>,
+        Style Dictionary, the
+        <a href="https://developers.figma.com/docs/rest-api/variables/">Figma Variables REST API</a>)
+        treats the <em>variable/style layer</em> as the source of truth and calls frame-scraping
+        unreliable. Figma MCP already exposes <code>get_variable_defs</code>,
+        <code>get_shader_fill</code>, <code>get_shader_effect</code>.</li>
+      <li><b>"Many screens → one theme" is a solved shape.</b> Accumulate an intermediate token doc,
+        then codegen once. A Claude-Code plugin
+        (<a href="https://github.com/gregorymm/design-tokens">gregorymm/design-tokens</a>) does exactly
+        Figma→DTCG→Style Dictionary. Multi-mode/multi-theme = variable "modes" / Tokens Studio
+        "themes" — the direct analog of neo's per-guide theme.</li>
+      <li><b>Flutter (context7).</b> <code>NeoSduiTheme</code> is already the <code>ThemeExtension</code>
+        analog (immutable + <code>copyWith</code>); a paste-in literal needs no <code>lerp</code>/
+        <code>of(context)</code> plumbing. Per-screen look differences resolve by handing a subtree a
+        different theme, never by changing the wire.</li>
+    </ul>
+  </div>
+
+  <h2 id="axes">Topic Axes</h2>
+  <ul class="axes">
+    <li><b>A1</b> <b style="min-width:0">Skill topology</b> — one skill vs new sibling vs shared-core vs staged pipeline.</li>
+    <li><b>A2</b> <b style="min-width:0">Extraction source</b> — Figma variables/styles vs pixel-scrape vs hybrid; shaders/gradients.</li>
+    <li><b>A3</b> <b style="min-width:0">Cross-screen accumulation</b> — part-by-part screens → one theme; reconcile drift; one theme vs per-guide modes.</li>
+    <li><b>A4</b> <b style="min-width:0">Output form &amp; wire↔theme coupling</b> — token ledger vs Dart literal; which fields auto-fill; role-vocabulary registry.</li>
+    <li><b>A5</b> <b style="min-width:0">Theme-side verify</b> — the theme can be silently <em>wrong</em> (wrong hex); its gate.</li>
+  </ul>
+
+  <h2 id="ideas">Ranked Ideas</h2>
+  <div class="jump">
+    <b style="font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Jump to</b>
+    <ol>
+      <li><a href="#i1">One ingestion, two projections (the topology answer)</a></li>
+      <li><a href="#i2">Cross-screen token ledger, compile once</a></li>
+      <li><a href="#i3">Shared role registry couples wire ↔ theme</a></li>
+      <li><a href="#i4">Variables/styles-first extraction, pixel fallback</a></li>
+      <li><a href="#i5">Reconciliation branches into per-guide modes</a></li>
+      <li><a href="#i6">Emit paste-in NeoSduiTheme literal + coverage report</a></li>
+      <li><a href="#i7">Theme's gate: round-trip render + role-drift lint</a></li>
+    </ol>
+  </div>
+
+  <!-- IDEA 1 -->
+  <article class="idea" id="i1">
+    <h3><span class="rank">1.</span> One ingestion, two projections <span class="rec">Recommended spine</span></h3>
+    <p>A single figwire run reads the Figma selection <em>once</em>, then forks into two writers over
+    the same in-memory node data: the <b>wire writer</b> (semantics → per-screen <code>.json</code>,
+    unchanged) and the <b>theme writer</b> (look → appended to a cross-screen theme ledger). The theme
+    logic lives in its own reference (<code>references/theme-extract.md</code>) and its own accumulator
+    file — modular, but never a separate Figma reader. figwire's rule is unchanged and, in fact,
+    sharpened: <em>no pixels on the wire; every pixel goes to the theme.</em></p>
+    <figure>
+      <svg viewBox="0 0 640 210" role="img" aria-label="One Figma read splits into a wire projection and a theme projection">
+        <rect class="svg-box" x="20" y="80" width="150" height="52" rx="9"/>
+        <text class="svg-label" x="95" y="102" text-anchor="middle">Figma read ×1</text>
+        <text class="svg-sub" x="95" y="120" text-anchor="middle">metadata · screenshot</text>
+        <path class="svg-arrow" d="M170 96 H250"/>
+        <path class="svg-arrow" d="M170 116 H250"/>
+        <rect class="svg-box" x="250" y="30" width="180" height="56" rx="9"/>
+        <text class="svg-label" x="340" y="52" text-anchor="middle">Wire projection</text>
+        <text class="svg-sub" x="340" y="70" text-anchor="middle">semantics · roles · text</text>
+        <rect class="svg-box-accent" x="250" y="126" width="180" height="56" rx="9"/>
+        <text class="svg-label" x="340" y="148" text-anchor="middle">Theme projection</text>
+        <text class="svg-sub" x="340" y="166" text-anchor="middle">the pixels it would drop</text>
+        <path class="svg-arrow" d="M250 96 C230 96 232 58 250 58"/>
+        <path class="svg-arrow-accent" d="M250 116 C230 116 232 154 250 154"/>
+        <rect class="svg-box" x="490" y="30" width="130" height="56" rx="9"/>
+        <text class="svg-label" x="555" y="52" text-anchor="middle">screen.json</text>
+        <text class="svg-sub" x="555" y="70" text-anchor="middle">→ Remote Config</text>
+        <rect class="svg-box-accent" x="490" y="126" width="130" height="56" rx="9"/>
+        <text class="svg-label" x="555" y="148" text-anchor="middle">theme ledger</text>
+        <text class="svg-sub" x="555" y="166" text-anchor="middle">→ one .dart later</text>
+        <path class="svg-arrow" d="M430 58 H490"/>
+        <path class="svg-arrow-accent" d="M430 154 H490"/>
+      </svg>
+      <figcaption>The wire and the theme are two projections of the <em>same</em> read — the wire keeps
+      semantics, the theme keeps the look the wire is forbidden to carry. Neither reads Figma twice.</figcaption>
+    </figure>
+    <dl>
+      <dt>Axis</dt><dd class="axis-tag">A1 · skill topology</dd>
+      <dt>Basis</dt><dd><span class="basis-reasoned">reasoned:</span> the wire and theme partition the
+        same Figma data with zero overlap — semantics vs look — so one read serves both; a second
+        skill can only re-derive what the first already held.</dd>
+      <dt>Rationale</dt><dd>Directly answers "one skill or two." The seat cap makes double-reading
+        untenable, and the role coupling (idea 3) makes independent generation unsafe. Shared
+        ingestion is the only topology that satisfies both.</dd>
+      <dt>Downsides</dt><dd>Identity risk — figwire is known as "the no-pixels skill," and bolting a
+        pixel-<em>emitting</em> output onto it can confuse the contract. Mitigation: pixels never touch
+        the wire file; they land in a separate theme artifact, so the wire's rule reads unchanged.</dd>
+    </dl>
+    <div class="chips"><span class="chip"><b>Confidence:</b> 88%</span><span class="chip"><b>Complexity:</b> Medium</span></div>
+  </article>
+
+  <!-- IDEA 2 -->
+  <article class="idea" id="i2">
+    <h3><span class="rank">2.</span> Cross-screen token ledger, compile once</h3>
+    <p>Because you feed screens "part by part," the theme cannot be written per screen — it is
+    <em>singular and cross-screen</em>. Each run appends its role→value observations to a running JSON
+    ledger (a sidecar, e.g. <code>.theme/ledger.json</code>): "screen 4 says <code>accent = #00F1A0</code>,
+    <code>radiusLg = 16</code>, <code>title = 22/w600</code>." A separate terminal command
+    (<code>figwire theme compile</code>) reconciles the whole ledger and emits the one
+    <code>NeoSduiTheme(...)</code> literal. This is the standard Figma→tokens→codegen two-stage shape.</p>
+    <figure>
+      <svg viewBox="0 0 640 190" role="img" aria-label="Screens each append to a role ledger which compiles once into one theme">
+        <rect class="svg-box" x="20" y="24" width="120" height="34" rx="7"/>
+        <text class="svg-label" x="80" y="45" text-anchor="middle">screen 1</text>
+        <rect class="svg-box" x="20" y="70" width="120" height="34" rx="7"/>
+        <text class="svg-label" x="80" y="91" text-anchor="middle">screen 2</text>
+        <rect class="svg-box" x="20" y="116" width="120" height="34" rx="7"/>
+        <text class="svg-label" x="80" y="137" text-anchor="middle">screen N</text>
+        <path class="svg-arrow-accent" d="M140 41 C210 41 210 78 270 82"/>
+        <path class="svg-arrow-accent" d="M140 87 H270"/>
+        <path class="svg-arrow-accent" d="M140 133 C210 133 210 96 270 90"/>
+        <rect class="svg-box-accent" x="270" y="52" width="150" height="62" rx="9"/>
+        <text class="svg-label" x="345" y="78" text-anchor="middle">role ledger</text>
+        <text class="svg-sub" x="345" y="96" text-anchor="middle">append · reconcile</text>
+        <path class="svg-arrow" d="M420 83 H500"/>
+        <text class="svg-sub" x="460" y="74" text-anchor="middle">compile ×1</text>
+        <rect class="svg-box" x="500" y="52" width="120" height="62" rx="9"/>
+        <text class="svg-label" x="560" y="78" text-anchor="middle">NeoSdui</text>
+        <text class="svg-label" x="560" y="94" text-anchor="middle">Theme.dart</text>
+      </svg>
+      <figcaption>The ledger is the accumulator; the Dart literal is produced once, at the end, from the
+      whole set — not overwritten per screen.</figcaption>
+    </figure>
+    <dl>
+      <dt>Axis</dt><dd class="axis-tag">A3 · cross-screen accumulation</dd>
+      <dt>Basis</dt><dd><span class="basis-external">external:</span> the accumulate-then-codegen-once
+        pipeline (DTCG token doc → Style Dictionary → platform output) is the established Figma-to-code
+        shape; gregorymm/design-tokens and Tokens Studio both stage it this way.</dd>
+      <dt>Rationale</dt><dd>Makes "feed me screens part by part, give me one theme at the end" a
+        first-class flow instead of a manual merge. The ledger also becomes the diff surface for
+        conflicts (idea 5).</dd>
+      <dt>Downsides</dt><dd>A persistent sidecar is state the user must not lose between runs; needs a
+        clear reset/scope story (per-guide? per-app?). Ledger location and lifecycle need naming.</dd>
+    </dl>
+    <div class="chips"><span class="chip"><b>Confidence:</b> 84%</span><span class="chip"><b>Complexity:</b> Medium</span></div>
+  </article>
+
+  <!-- IDEA 3 -->
+  <article class="idea" id="i3">
+    <h3><span class="rank">3.</span> Shared role registry couples wire ↔ theme</h3>
+    <p>The single strongest reason the two outputs must share a pass: they are joined at the role
+    vocabulary. When the wire writer emits <code>tone:"brand"</code>, that same run registers a
+    <code>brand</code> slot in the theme ledger and drops the observed hue into it. The ledger is the
+    one registry both writers draw from, so a wire role can never ship without its theme pixels, and a
+    theme accent can never sit unused. Generating wire and theme independently is exactly how they
+    drift.</p>
+    <dl>
+      <dt>Axis</dt><dd class="axis-tag">A4 · output &amp; coupling</dd>
+      <dt>Basis</dt><dd><span class="basis-direct">direct:</span> <code>accentFor</code> resolves a
+        <code>tone</code> against <code>accents[tone]</code> first, then built-in
+        <code>accent</code>/<code>critical</code>; an unmapped tone returns null and "the text stays its
+        default (non-accent) look." A role the wire names but the theme skips silently renders flat.</dd>
+      <dt>Rationale</dt><dd>This is the correctness spine that forces idea 1. It also gives the theme a
+        <em>gateable</em> invariant (idea 7): every role named across all accumulated wires must resolve
+        in the compiled theme.</dd>
+      <dt>Downsides</dt><dd>Couples the two writers' internal data model — a refactor of one now touches
+        the shared ledger schema. Acceptable: the coupling is real in the runtime already, this just
+        stops pretending otherwise.</dd>
+    </dl>
+    <div class="chips"><span class="chip"><b>Confidence:</b> 86%</span><span class="chip"><b>Complexity:</b> Medium</span></div>
+  </article>
+
+  <!-- IDEA 4 -->
+  <article class="idea" id="i4">
+    <h3><span class="rank">4.</span> Variables/styles-first extraction, pixel fallback</h3>
+    <p>Fill the ledger from the token layer when it exists: <code>get_variable_defs</code> for
+    color/number/type variables and bound styles, <code>get_shader_fill</code>/<code>get_shader_effect</code>
+    for the gradients that map onto <code>cardGradient</code>/<code>groupGradient</code>/<code>accentGradient</code>.
+    Only when a file binds no variables do you degrade to reading exact values from
+    <code>get_design_context</code>/REST, and only then to eyeballing the screenshot. Prefer structure
+    over scraping, exactly as the design-token ecosystem does.</p>
+    <dl>
+      <dt>Axis</dt><dd class="axis-tag">A2 · extraction source</dd>
+      <dt>Basis</dt><dd><span class="basis-external">external:</span> "Using Figma's Variables API
+        provides a programmatic, maintainable approach … compared to scraping"; variables are the
+        published single source of truth. Figma MCP ships dedicated <code>get_variable_defs</code> and
+        shader tools.</dd>
+      <dt>Rationale</dt><dd>Turns most of the ~40 fields into a near-deterministic lookup when a design
+        system is wired, and cleanly captures the branded gradients neo's theme already has slots for —
+        no hand-transcribing stops.</dd>
+      <dt>Downsides</dt><dd>Many real files bind <em>no</em> variables; then you're on the expensive/
+        manual path, and exact hex needs a design-context read (seat cost). Reading variables can itself
+        be an extra MCP call to budget.</dd>
+    </dl>
+    <div class="chips"><span class="chip"><b>Confidence:</b> 80%</span><span class="chip"><b>Complexity:</b> Medium</span></div>
+  </article>
+
+  <!-- IDEA 5 -->
+  <article class="idea" id="i5">
+    <h3><span class="rank">5.</span> Reconciliation branches into per-guide modes</h3>
+    <p>When two screens disagree on a role, the compiler must tell apart two cases: <b>drift</b> (screen
+    A's accent <code>#00F1A0</code> vs B's <code>#00F0A0</code> — near-dupes, pick a canonical value and
+    move on) versus <b>intent</b> (the "troubleshooting" guide is genuinely amber where the base guide is
+    green). Drift collapses to one value; intent branches into a second theme — or a
+    <code>copyWith</code> override layered on the base. This is the per-guide-theme question made
+    concrete, and it mirrors Figma variable "modes."</p>
+    <dl>
+      <dt>Axis</dt><dd class="axis-tag">A3 · cross-screen accumulation</dd>
+      <dt>Basis</dt><dd><span class="basis-external">external:</span> multi-mode/multi-theme (variable
+        modes, Tokens Studio "themes") is a first-class ecosystem concept — a matrix of values per role,
+        one column per mode; the direct analog of neo handing each guide its own <code>NeoSduiTheme</code>.</dd>
+      <dt>Rationale</dt><dd>Prevents the accumulator from silently averaging two guides into a muddy
+        single theme. A near-dupe threshold auto-merges; anything past it surfaces as "same role, real
+        difference — base value or a mode?"</dd>
+      <dt>Downsides</dt><dd>The drift-vs-intent threshold is a heuristic; too tight spams the user with
+        conflicts, too loose merges away a real brand difference. Needs a human confirm on the
+        borderline, not full automation.</dd>
+    </dl>
+    <div class="chips"><span class="chip"><b>Confidence:</b> 72%</span><span class="chip"><b>Complexity:</b> High</span></div>
+  </article>
+
+  <!-- IDEA 6 -->
+  <article class="idea" id="i6">
+    <h3><span class="rank">6.</span> Emit a paste-in <code>NeoSduiTheme</code> literal + coverage report</h3>
+    <p>The compile step writes a <code>NeoSduiTheme(...)</code> constructor literal shaped exactly like
+    <code>.fallback()</code> — copy-paste straight into the app — plus a coverage report saying which of
+    the ~40 fields were filled from tokens, which were inferred, and which are
+    <code>// TODO(theme):</code> because Figma couldn't answer. Colors and gradients fill cleanly; the
+    honest weak spot is the <b>type scale</b>: many observed font sizes must cluster into
+    <code>title/subtitle/body/caption</code> + <code>mono</code>, which is inference that wants a human
+    glance before sign-off.</p>
+    <pre><code>NeoSduiTheme(
+  accent: Color(0xFF00F1A0),        // from variable "brand/primary"
+  surface: Color(0xFF202423),       // from variable "surface/1"
+  danger: Color(0xFFFF5A5F),        // from variable "status/error"
+  accents: {'brand': NeoAccent(Color(0xFF7A5CFF))},   // wire tone:"brand"
+  cardGradient: LinearGradient(...),                  // from get_shader_fill
+  title: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),  // inferred cluster — confirm
+  // TODO(theme): gridLine — no variable bound; read from screenshot or set by hand
+)</code></pre>
+    <dl>
+      <dt>Axis</dt><dd class="axis-tag">A4 · output &amp; coupling</dd>
+      <dt>Basis</dt><dd><span class="basis-reasoned">reasoned:</span> the class already carries
+        <code>copyWith</code> + a <code>.fallback()</code> literal, so the codegen target is a known,
+        fixed constructor shape — no intermediate format or build step needed to reach paste-in
+        (context7 confirms no <code>lerp</code>/<code>of()</code> plumbing for a static theme literal).</dd>
+      <dt>Rationale</dt><dd>Delivers exactly what the user asked for — a theme to drop in the app — and
+        the coverage report keeps the tool honest about what it guessed versus what it read.</dd>
+      <dt>Downsides</dt><dd>Type-scale clustering is genuinely lossy and the most likely field to be
+        wrong; over-trusting it ships a subtly-off theme. Keep it flagged low-confidence, never silent.</dd>
+    </dl>
+    <div class="chips"><span class="chip"><b>Confidence:</b> 83%</span><span class="chip"><b>Complexity:</b> Medium</span></div>
+  </article>
+
+  <!-- IDEA 7 -->
+  <article class="idea" id="i7">
+    <h3><span class="rank">7.</span> The theme's gate: round-trip render + role-drift lint</h3>
+    <p>figwire gates the wire because a bad block <em>vanishes silently</em>. The theme's failure mode is
+    different: it renders, but <em>wrong</em> (wrong hex, wrong radius). So it needs its own two gates.
+    <b>Round-trip render</b> — render an accumulated wire under the compiled theme and put it beside the
+    Figma screenshot for an eyeball diff (the theme's analog of the preview PNG). <b>Role-drift lint</b> —
+    assert every <code>tone</code>/<code>emphasis</code>/<code>icon</code> named across all accumulated
+    wires resolves in the compiled theme, and flag theme slots no wire uses. That lint is the
+    theme-side of the existing vocabulary gate.</p>
+    <dl>
+      <dt>Axis</dt><dd class="axis-tag">A5 · theme-side verify</dd>
+      <dt>Basis</dt><dd><span class="basis-direct">direct:</span> figwire's verify already renders a
+        structural preview PNG and runs a strict vocabulary gate; the theme reuses that render harness with
+        a real theme instead of the test default, and extends the gate's role check to the theme side.</dd>
+      <dt>Rationale</dt><dd>Closes the loop the wire gate can't: an on-vocabulary wire under a wrong-hex
+        theme passes every existing check yet looks broken. Only a render-vs-source diff catches it.</dd>
+      <dt>Downsides</dt><dd>Pixel-diffing against a Figma screenshot is fuzzy (fonts, anti-aliasing) —
+        it's an eyeball aid, not a hard assert. The role-drift lint, by contrast, is exact and cheap.</dd>
+    </dl>
+    <div class="chips"><span class="chip"><b>Confidence:</b> 78%</span><span class="chip"><b>Complexity:</b> Medium</span></div>
+  </article>
+
+  <h2 id="rejected">Rejection Summary</h2>
+  <table>
+    <thead><tr><th>#</th><th>Idea</th><th>Reason rejected</th></tr></thead>
+    <tbody>
+      <tr><td class="rej-num">R1</td><td>Cram theme extraction into figwire's semantic classifier (one output becomes two, same code path)</td><td>Conflates the 14-symbol semantic classifier with pixel extraction and muddies the "no pixels" identity. Fixed by idea 1: same <em>run</em>, separate writer + separate artifact.</td></tr>
+      <tr><td class="rej-num">R2</td><td>A fully separate <code>figtheme</code> skill that reads Figma independently</td><td>Doubles the seat-capped Figma read per screen, and re-deriving roles independently is exactly how wire and theme drift (idea 3).</td></tr>
+      <tr><td class="rej-num">R3</td><td>Make <code>neofig</code> emit the theme (it owns "look")</td><td>neofig works at single-component grain and emits widget code; a theme is cross-screen and has no coupling to the wire's role vocabulary. Wrong grain, wrong join.</td></tr>
+      <tr><td class="rej-num">R4</td><td>Pure screenshot pixel-scrape as the primary source</td><td>Screenshots carry no exact hex/number; the ecosystem calls scraping unreliable. Kept only as the last-resort degrade path inside idea 4.</td></tr>
+      <tr><td class="rej-num">R5</td><td>Overwrite the theme each screen (last-screen-wins)</td><td>Discards every earlier screen's roles — the opposite of the accumulator the "part by part" requirement needs (idea 2).</td></tr>
+      <tr><td class="rej-num">R6</td><td>Emit DTCG token JSON and require a separate Style-Dictionary step to reach Dart</td><td>Over-built for neo: the target class already exists and is paste-ready. The intermediate token-format layer is a future portability nicety, not needed to ship (idea 6 goes straight to the literal).</td></tr>
+    </tbody>
+  </table>
+
+  <footer class="composition-signal">
+    Composed 2026-07-15 by ce-ideate · repo-grounded · source: session prompt on extending the
+    <code>figwire</code> skill to also yield a <code>NeoSduiTheme</code>. Grounded against the neo_sdui
+    codebase plus webfetch (Figma Variables API, Tokens Studio, Style Dictionary) and context7 (Flutter theming).
+  </footer>
+
+</div>
+</body>
+</html>
