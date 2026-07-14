@@ -288,7 +288,7 @@ void main() {
 
   // A featured group paints the theme's grid behind its children; a plain group,
   // or a null gridLine, stays flat. The grid is theme data, never on the wire.
-  final _gridFinder = find.byWidgetPredicate(
+  final gridFinder = find.byWidgetPredicate(
     (w) => w is CustomPaint && w.painter.runtimeType.toString() == 'GridPainter',
   );
 
@@ -317,7 +317,7 @@ void main() {
         ),
       );
 
-  final _gridTheme =
+  final gridTheme =
       NeoSduiTheme.fallback().copyWith(gridLine: const Color(0x14FFFFFF));
 
   testWidgets('a featured group paints the grid behind its children', (tester) async {
@@ -327,8 +327,8 @@ void main() {
       'children': [
         {'type': 'code', 'content': 'claude mcp add neosapien'},
       ],
-    }, _gridTheme);
-    expect(_gridFinder, findsOneWidget);
+    }, gridTheme);
+    expect(gridFinder, findsOneWidget);
     expect(find.text('claude mcp add neosapien'), findsOneWidget); // content on top
   });
 
@@ -338,8 +338,8 @@ void main() {
       'children': [
         {'type': 'text', 'body': 'flat'},
       ],
-    }, _gridTheme);
-    expect(_gridFinder, findsNothing);
+    }, gridTheme);
+    expect(gridFinder, findsNothing);
     expect(find.text('flat'), findsOneWidget);
   });
 
@@ -351,7 +351,7 @@ void main() {
         {'type': 'text', 'body': 'flat'},
       ],
     }, NeoSduiTheme.fallback());
-    expect(_gridFinder, findsNothing);
+    expect(gridFinder, findsNothing);
     expect(find.text('flat'), findsOneWidget);
   });
 
@@ -389,6 +389,27 @@ void main() {
     expect(decos.any((d) => d.gradient == grad), isFalse);
   });
 
+  testWidgets('steps layout:row lays the steps side by side with badges',
+      (tester) async {
+    await _pump(tester, {
+      'type': 'steps',
+      'layout': 'row',
+      'items': [
+        {'caption': 'Pick your AI'},
+        {'caption': 'Follow the quick guide'},
+        {'caption': 'Ask it anything'},
+      ],
+    });
+    // Equal-width cells -> one Expanded per step (the vertical layout wraps in
+    // Padding, never Expanded).
+    expect(find.byType(Expanded), findsNWidgets(3));
+    expect(find.text('Pick your AI'), findsOneWidget);
+    expect(find.text('Ask it anything'), findsOneWidget);
+    // Numbered badges intact.
+    expect(find.text('1'), findsOneWidget);
+    expect(find.text('3'), findsOneWidget);
+  });
+
   testWidgets('a spacer variant:rule draws a themed hairline', (tester) async {
     const line = Color(0xFF334033);
     await _pumpThemed(tester, {'type': 'spacer', 'variant': 'rule'},
@@ -418,6 +439,32 @@ void main() {
     expect(find.text('›'), findsNothing);
     await tester.tap(find.text('ChatGPT'));
     expect(got, isA<RouteAction>());
+  });
+
+  testWidgets('a step renders nested blocks (a grid card wrapping a code block)',
+      (tester) async {
+    const cmd =
+        'claude mcp add --transport http neosapien https://api.neosapien.xyz/mcp';
+    await pumpGroup(tester, {
+      'type': 'steps',
+      'items': [
+        {
+          'caption': 'Add to Claude Code',
+          'blocks': [
+            {
+              'type': 'group',
+              'emphasis': 'high',
+              'children': [
+                {'type': 'code', 'content': cmd},
+              ],
+            },
+          ],
+        },
+      ],
+    }, gridTheme);
+    expect(find.text('Add to Claude Code'), findsOneWidget); // the caption
+    expect(find.text(cmd), findsOneWidget); // the nested code block
+    expect(gridFinder, findsOneWidget); // the nested featured group's grid
   });
 }
 

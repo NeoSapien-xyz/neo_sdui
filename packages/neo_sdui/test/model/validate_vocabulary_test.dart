@@ -86,8 +86,9 @@ void main() {
       );
     });
 
-    test('steps/faq items are leaf maps, not nested blocks', () {
-      // A stray `type` on an item must NOT be recursed as a block.
+    test("an item's own stray `type` is not recursed as a block", () {
+      // The item MAP itself is leaf content — a stray `type` on it must NOT be
+      // recursed. Only a step item's explicit `blocks` list is a carrier (below).
       final issues = validateWireVocabulary({
         'version': 1,
         'blocks': [
@@ -97,9 +98,38 @@ void main() {
               {'question': 'q', 'answer': 'a', 'type': 'banner'},
             ],
           },
+          {
+            'type': 'steps',
+            'items': [
+              {'caption': 'c', 'type': 'banner'},
+            ],
+          },
         ],
       });
       expect(issues, isEmpty);
+    });
+
+    test('an off-roster type inside a step item `blocks` is caught', () {
+      final issues = validateWireVocabulary({
+        'version': 1,
+        'blocks': [
+          {
+            'type': 'steps',
+            'items': [
+              {'caption': 'ok'},
+              {
+                'caption': 'card',
+                'blocks': [
+                  {'type': 'banner'},
+                ],
+              },
+            ],
+          },
+        ],
+      });
+      expect(issues, hasLength(1));
+      expect(issues.single.isBlocking, isTrue);
+      expect(issues.single.path, 'blocks[0].items[1].blocks[0].type');
     });
 
     test('non-map block and non-list blocks degrade to an issue, never throw',

@@ -48,9 +48,9 @@ const Set<String> _layoutTypes = {'row', 'column', 'group'};
 
 /// Check every block in a decoded document against the roster and required-field
 /// table. Recurses the real `BlockNode` carriers — top-level `blocks`, each
-/// view's `blocks`, `children`, each `tabs[].blocks`, and every block's
-/// `fallback`. `steps`/`faq` `items` are leaf content maps, not nested blocks.
-/// Empty result = sound. Never throws.
+/// view's `blocks`, `children`, each `tabs[].blocks`, each `steps` item's
+/// optional `blocks`, and every block's `fallback`. `faq` items and a step's
+/// caption/detail/code stay leaf content. Empty result = sound. Never throws.
 List<WireVocabIssue> validateWireVocabulary(Map<String, Object?> json) {
   final issues = <WireVocabIssue>[];
 
@@ -107,6 +107,17 @@ void _checkBlock(Object? block, String path, List<WireVocabIssue> out) {
       for (var i = 0; i < tabs.length; i++) {
         final t = tabs[i];
         if (t is Map) _checkChildList(t['blocks'], '$path.tabs[$i].blocks', out);
+      }
+    }
+  } else if (type == 'steps') {
+    // A step item is a leaf content map EXCEPT its optional `blocks` list, which
+    // the renderer builds like any child blocks — recurse those so an off-roster
+    // type inside a step-1 card is caught, same as `children`/`tabs`.
+    final items = block['items'];
+    if (items is List) {
+      for (var i = 0; i < items.length; i++) {
+        final it = items[i];
+        if (it is Map) _checkChildList(it['blocks'], '$path.items[$i].blocks', out);
       }
     }
   }

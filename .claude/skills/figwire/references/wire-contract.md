@@ -35,7 +35,7 @@ Emitting any other `type` is a **hard error** — the renderer drops it and the 
 | `media` | `url` (string) | `ratio` (num>0), `kind` (`image`/`video`, add-on), `width`/`height` | image/video |
 | `code` | `content` (string, **verbatim**) | `label` (string), `language` (add-on) | copyable command/URL |
 | `card` | `title` (string) | `subtitle`, `action`, `actionLabel`, `thumb`, `variant:"tile"`, `ratio`, `shape`, `emphasis` | tappable card; `emphasis:"high"` → featured (theme `cardGradient`) surface; `actionLabel` (string) → a trailing accent label ("Open Guide →") replacing the default `›` caret |
-| `steps` | non-empty `items` | `tone` (recolors the number badges) | each item: `caption` (string-or-runs, **required**), `detail` (string), `code` (string), `image` (url string), `ratio` (num>0) |
+| `steps` | non-empty `items` | `tone` (recolors the number badges), `layout:"row"` | `layout:"row"` lays the steps side by side (numbered badge over caption — the compact 1·2·3 strip); default is the vertical checklist. Each item: `caption` (string-or-runs, **required**), `detail` (string), `code` (string), `image` (url string), `ratio` (num>0), `blocks` (**block[]** — composed content rendered full-width under the caption, e.g. a grid `group` wrapping a `row` + `code`; the one place a step holds child blocks instead of a baked `image`) |
 | `faq` | non-empty `items` | — | each item: `question` + `answer` (strings, **required**) |
 | `tabs` | non-empty `tabs` | — | each tab: `label` (string), `blocks` (block[]) |
 | `row` | non-empty `children` (block[]) | — | side-by-side |
@@ -63,6 +63,7 @@ A run is `{ "text": "<string>", "tone": "accent" }`. Only `tone:"accent"` is mea
 - `emphasis`: `"high"` | `"low"` | (default `normal`).
 - `shape`: `"squircle"` | `"rounded"`.
 - `variant`: `"tile"` (card) | `"rule"` (spacer).
+- `layout` (steps): `"row"` — lay the steps side by side instead of stacked.
 - `present` (view): `"sheet"` | `"screen"`.
 
 **`icon` (open role, `header`/`callout`):** a **named** icon role — `"sparkle"`, `"download"`,
