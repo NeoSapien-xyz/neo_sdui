@@ -27,3 +27,9 @@ An optional package that composes into the base via `NeoSdui.compose`, contribut
 
 ### NeoSduiTheme
 The client-owned role palette every block derives its look from — accent/surface/danger roles, type/radius/spacing scales, motion tokens (duration, curve, a `reduceMotion` flag), and surface treatments (elevation, gradient fills) — reached through the surrounding scope. Because the wire carries no look, two guides that must look different do so by being handed different themes, not by shipping different block code or different wire pixels. The host app fills the theme from its own bare styles.
+
+### Role
+A semantic name the wire carries for a look decision — an emphasis, a tone, an icon, a shape, a named variant — that the client theme resolves into concrete pixels. The wire names the role; the theme owns the pixels behind it, so the same role renders differently under two themes and a role the theme does not map falls back to a plain, undecorated default. The role is the unit of the look vocabulary: it grows by adding a role the theme resolves, never a pixel on the wire.
+
+### View
+A named sub-screen carried in the wire alongside the top-level blocks, rendered on demand rather than inline. A block's action targets a view by name and presents it as a modal sheet or a pushed screen; the wire names the destination and the presentation kind, while the client owns the transition. A view holds its own block list, resolved the same resilient way as the main screen.

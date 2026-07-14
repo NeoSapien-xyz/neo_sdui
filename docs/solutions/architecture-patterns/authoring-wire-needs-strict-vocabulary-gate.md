@@ -1,6 +1,7 @@
 ---
 title: Authoring resilient-runtime SDUI needs a strict vocabulary gate the runtime deliberately omits
 date: 2026-07-14
+last_updated: 2026-07-15
 category: architecture-patterns
 module: neo_sdui
 problem_type: architecture_pattern
@@ -119,11 +120,15 @@ enum WireIssueSeverity {
 
 - **Recurse only the real `BlockNode` carriers the renderer traverses:**
   top-level `blocks`, each view's `blocks`, `children` (row/column/group), each
-  `tabs[].blocks`, and every block's `fallback`. **The trap:** `steps`/`faq`
-  `items` are leaf content maps, NOT nested blocks. Recursing them as blocks would
-  be wrong — a stray `type` on an item must be ignored, not flagged. That is why
-  `_checkBlock` recurses `children` and `tabs[].blocks` but reads `items` only
-  inside `_missingRequired`.
+  `tabs[].blocks`, a `steps` item's optional `blocks` list, and every block's
+  `fallback`. **The trap:** a `steps`/`faq` item MAP is leaf content — a stray
+  `type` on the item *itself* must be ignored, not flagged — but a `steps` item's
+  `blocks` sub-list *is* a real carrier the renderer builds, so it is recursed
+  (added when a step gained composed content — see the three-homes decision in
+  [`sdui-look-is-client-owned.md`](sdui-look-is-client-owned.md)). The rule
+  generalizes: **any new place that holds child blocks must join this recursion
+  set, or an off-roster type inside it drops silently** — a plain new *field*
+  never does, only a new carrier.
 
 - **Never throws; collects issues** (same posture as `validateDocument`).
 
@@ -198,8 +203,9 @@ validateWireVocabulary({
 would drop it to `SizedBox.shrink`. Only the vocabulary gate catches it — as a
 `block` severity, so the skill refuses to write.
 
-**`steps`/`faq` items are leaf maps, not blocks.** A stray `type` on an item must
-be ignored, never recursed:
+**An item MAP is leaf content, not a block.** A stray `type` on a `steps`/`faq`
+item must be ignored, never recursed (a `steps` item's `blocks` *sub-list* is a
+separate carrier that IS recursed — see the carriers bullet above):
 
 ```dart
 validateWireVocabulary({

@@ -1,6 +1,7 @@
 ---
 title: "Server-driven UI: the wire carries semantics, the client owns the look"
 date: 2026-07-11
+last_updated: 2026-07-15
 category: architecture-patterns
 module: neo_sdui
 problem_type: architecture_pattern
@@ -11,6 +12,7 @@ applies_when:
   - Two guides must look different but share the same block code
   - Tempted to put a hex, font size, or padding on the Remote Config wire
   - Adding a new block type or a whole new guide
+  - Wiring a Figma element that looks like a custom widget (grid surface, shader text, an inline code card)
   - Judging whether neo_sdui's SDUI approach matches what large product teams do
 tags:
   - server-driven-ui
@@ -57,8 +59,46 @@ never define.** Concretely, in `neo_sdui`:
 - **One-off bespoke look** → register a custom builder
   (`registry.register('cta', myNeumorphicCta)`), the client-owned component escape
   hatch. Not a wire field.
-- The wire carries only **semantic tokens**: `emphasis` (high/normal/low), `tone`
-  (default/accent/critical), and named variants like `variant:"tile"`.
+- The wire carries only **semantic tokens**: `emphasis` (high/normal/low — where
+  `high` also *selects* a featured surface), `tone` (accent/critical, plus named
+  hues the theme defines), and named variants like `variant:"tile"`/`"rule"` and
+  `layout:"row"`.
+
+### Growing the catalog in practice — the three homes
+
+When a Figma element looks "custom" (a grid-textured hero, a shader headline, a
+code card sitting *inside* a step), classify it into one of **three homes** before
+writing code — the same three levers above, named for the decision:
+
+1. **LOOK** (a gradient, glow, grid, gradient-text, an icon glyph) → a **theme
+   data field**; the wire names only a role/`emphasis`. A new *content field*
+   needs no allowlist change (only `type` is gated), so these are cheap:
+   `cardGradient`, `groupGradient`, `gridLine`/`gridSpacing`, `divider`, the
+   `accents` map (named accent hues), the `icons` map, `actionLabel`.
+2. **COMPOSITION** (an arrangement of existing blocks) → **wire structure, no
+   code**. `row`/`column`/`group`/`tabs` already nest children; a *leaf* can grow
+   a carrier when a real need appears — a `steps` item took an optional `blocks`
+   list so a live grid-card-with-code sits in the numbered sequence where a baked
+   `image` can't. Adding a **new child-block carrier** (unlike a plain field)
+   requires the vocabulary gate to recurse it, or an off-roster type inside drops
+   silently — see [`authoring-wire-needs-strict-vocabulary-gate.md`](authoring-wire-needs-strict-vocabulary-gate.md).
+3. **A GENUINELY NEW INTERACTIVE WIDGET KIND** (video, syntax highlighting) → a
+   **registry add-on** (last-wins + `requires`/`fallback`), the one home that adds
+   a *capability*, at the cost of a client release — see
+   [`addon-core-floor-and-last-wins-upgrade.md`](addon-core-floor-and-last-wins-upgrade.md).
+
+Most "custom widgets" dissolve into home 1. Two rules keep the boundaries honest:
+
+- **Promotion rule** — mint a new block `type` only when a thing carries
+  server-controlled data **and** recurs. One-off decoration is never a block: a
+  divider (look, no data) rides as `spacer variant:"rule"`.
+- **Featured-surface pattern** — a "promoted" surface names `emphasis:"high"`;
+  the theme paints its `groupGradient` fill + `gridLine` grid (a `group`) or
+  `cardGradient` (a `card`) behind the children. The wire names the emphasis role
+  only — never the gradient stops or grid pixels. Like
+  [`accent-text-gradient-theme-owned.md`](accent-text-gradient-theme-owned.md),
+  every such field is a **nullable slot that defaults to flat**, so a theme that
+  sets nothing renders byte-identically and unrelated goldens never churn.
 
 ## Why This Matters
 
