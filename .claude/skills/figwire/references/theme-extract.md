@@ -60,9 +60,16 @@ for a genuinely new theme. Shape:
 - **`roleKey`** = the `NeoSduiTheme` field name: `accent`, `onAccent`, `surface`,
   `onSurface`, `danger`, `warning`, `background`, `textPrimary`, `textMuted`,
   `title`/`subtitle`/`body`/`caption`/`mono`, `radiusSm`/`Md`/`Lg`,
-  `spaceSm`/`Md`/`Lg`, `blockSpacing`, `cardColor`, `cardGradient`, `gridLine`,
-  `gridSpacing`, `groupGradient`, `divider`, `accentGradient`. A named accent hue
-  is `accents.<name>`; a named icon is `icons.<name>`.
+  `spaceSm`/`Md`/`Lg`, `blockSpacing`, `backdropBlur`, `cardColor`, `cardPadding`,
+  `cardShape`, `cardShadow`, `cardGradient`, `gridLine`, `gridSpacing`,
+  `groupGradient`, `divider`, `contentPadding`, `motionDuration`/`motionCurve`/
+  `reduceMotion`, `accentGradient`. A named accent hue is `accents.<name>`; a
+  named icon is `icons.<name>`. The authoritative list is the single `kRoleSlots`
+  registry in `theme_compile.dart` (the compile's source of truth — DTCG "token
+  map" style); a roleKey **not** in it is emitted as a `// TODO(theme): unsupported
+  role` comment, never as a broken `copyWith` arg. If you need a field that isn't
+  there, add it to `kRoleSlots` once — the live preview and the paste-in source
+  both pick it up (no second list to keep in sync).
 - **`kind` → how `value` is written:**
   - `color` — a bare 8-hex literal, `0xFF00F1A0` (the compile wraps it `Color(...)`).
   - `number` — a bare number, `16`.
@@ -84,6 +91,7 @@ batch — feeding order does not matter):
 
 ```bash
 NEO_THEME_LEDGER=<ledger.json> NEO_THEME_OUT=<theme.dart> \
+  [NEO_THEME_BASE_PAGE=<page>] \
   fvm flutter test packages/neo_sdui/test/tools/compile_theme_test.dart
 ```
 
@@ -96,6 +104,9 @@ the source to a file.
   emits an override, carrying only its differing fields.
 - **Near-duplicate values auto-merge** (a trivial `#00F1A0` vs `#00F0A0` drift is
   one value, no override).
+- **`NEO_THEME_BASE_PAGE=<page>` pins that page's look as the base** regardless of
+  page-count majority (the escape hatch, §4) — every other page's differing look
+  becomes an override.
 
 ## 4. Hybrid conflict prompt (the one human call)
 
@@ -106,8 +117,12 @@ genuinely differ. For each, ask the user the one question that isn't inferable:
 > `#FFC107` a **per-page override** for page C, or should it be the **base**?
 
 Near-dupes never reach this prompt (auto-merged); only real design differences
-do. Default: majority = base, minority = override. (A future escape hatch may let
-the user reassign which look is base — see the plan's Open Questions.)
+do. Default: majority = base, minority = override. **Escape hatch:** if the user
+says a *specific* page's look should be the base (e.g. the majority pages are
+placeholders and one hero screen is canonical), re-run the compile with
+`NEO_THEME_BASE_PAGE=<page>` to pin it — the majority then emits overrides
+instead. This is the explicit-source approach design-token tools take (a named
+base beats an implicit vote).
 
 ## 5. Hand off
 

@@ -36,12 +36,10 @@ List<RoleDriftIssue> lintRoleDrift(Reconciled r) {
   final out = <RoleDriftIssue>[];
 
   final namedAccents = <String>{
-    for (final k in r.base.keys)
-      if (k.startsWith('accents.')) k.substring('accents.'.length),
+    for (final k in r.base.keys) ?stripRolePrefix(k, kAccentsPrefix),
   };
   final namedIcons = <String>{
-    for (final k in r.base.keys)
-      if (k.startsWith('icons.')) k.substring('icons.'.length),
+    for (final k in r.base.keys) ?stripRolePrefix(k, kIconsPrefix),
   };
   final referencedAccents = <String>{};
   final referencedIcons = <String>{};

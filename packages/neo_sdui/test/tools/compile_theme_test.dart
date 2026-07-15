@@ -13,18 +13,20 @@ import 'package:neo_sdui/neo_sdui.dart';
 /// It reconciles the ledger (batch, order-independent), prints the paste-in
 /// `NeoSduiTheme` source and the coverage report, and runs the role-drift lint
 /// (`role_lint.dart`) — FAILING if a wire role names a slot the compiled theme
-/// does not resolve. Optionally writes the source to `NEO_THEME_OUT`. Unset (the
-/// default — e.g. plain `flutter test`), the test is skipped so the suite stays
-/// green.
+/// does not resolve. Optionally writes the source to `NEO_THEME_OUT`. Set
+/// `NEO_THEME_BASE_PAGE` to pin that page's look as the base (else majority wins
+/// — the R8 escape hatch). Unset `NEO_THEME_LEDGER` (the default — e.g. plain
+/// `flutter test`), the test is skipped so the suite stays green.
 void main() {
   final ledgerPath = Platform.environment['NEO_THEME_LEDGER'];
   final outPath = Platform.environment['NEO_THEME_OUT'];
+  final basePage = Platform.environment['NEO_THEME_BASE_PAGE'];
 
   test('ledger compiles to a role-drift-clean theme', () {
     final json =
         jsonDecode(File(ledgerPath!).readAsStringSync()) as Map<String, Object?>;
     final ledger = RoleLedger.fromJson(json);
-    final reconciled = ledger.reconcile();
+    final reconciled = ledger.reconcile(basePage: basePage);
 
     final source = emitTheme(reconciled);
     // ignore: avoid_print

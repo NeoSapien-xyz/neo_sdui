@@ -150,6 +150,49 @@ void main() {
     expect(src, contains('...base.accents,'));
   });
 
+  test('an inferred override keeps its `// confirm:` marker', () {
+    final r = (RoleLedger()
+          ..observe(_color('accent', '0xFF00F1A0', 'a'))
+          ..observe(_color('accent', '0xFF00F1A0', 'b'))
+          ..observe(_color('accent', '0xFFFFC107', 'odd', Provenance.inferred)))
+        .reconcile();
+    final src = emitTheme(r);
+    expect(src, contains('final odd = base.copyWith('));
+    expect(src, contains('accent: Color(0xFFFFC107),  // confirm:'));
+  });
+
+  test('an unsupported roleKey is flagged, never emitted as a bad copyWith arg',
+      () {
+    final r = (RoleLedger()
+          ..observe(_color('accent', '0xFF00F1A0', 'home'))
+          ..observe(const Observation(
+              roleKey: 'bogusField', // not a NeoSduiTheme field
+              value: '0xFF111111',
+              page: 'home',
+              provenance: Provenance.variable,
+              kind: ValueKind.color)))
+        .reconcile();
+    final src = emitTheme(r);
+    // would be `bogusField: Color(...)` — invalid Dart — under the old generic
+    // emit; now it is skipped and reported instead.
+    expect(src, isNot(contains('bogusField:')));
+    expect(src, contains('// TODO(theme): unsupported role(s) bogusField'));
+  });
+
+  test('buildBaseTheme paints a number role straight from the registry', () {
+    final r = (RoleLedger()
+          ..observe(const Observation(
+              roleKey: 'spaceLg',
+              value: '40',
+              page: 'home',
+              provenance: Provenance.variable,
+              kind: ValueKind.number)))
+        .reconcile();
+    // the single-source registry drives the live build — no hand-kept field
+    // list to drift from what emitTheme writes.
+    expect(buildBaseTheme(r).spaceLg, 40);
+  });
+
   test('a todo-provenance role is flagged on a standalone TODO(theme) line', () {
     final r = (RoleLedger()
           ..observe(const Observation(

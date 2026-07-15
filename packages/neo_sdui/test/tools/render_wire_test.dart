@@ -27,6 +27,7 @@ import 'package:neo_sdui/neo_sdui.dart';
 void main() {
   final wirePath = Platform.environment['NEO_WIRE_JSON'];
   final ledgerPath = Platform.environment['NEO_THEME_LEDGER'];
+  final basePage = Platform.environment['NEO_THEME_BASE_PAGE'];
 
   testWidgets('renders the wire JSON to a preview PNG', (tester) async {
     final json =
@@ -38,7 +39,7 @@ void main() {
         : buildBaseTheme(RoleLedger.fromJson(
                 jsonDecode(File(ledgerPath).readAsStringSync())
                     as Map<String, Object?>)
-            .reconcile());
+            .reconcile(basePage: basePage));
 
     // Probe with a tiny viewport so content always overflows, read the scroll
     // extent to get the full content height, then re-pump at that height so a

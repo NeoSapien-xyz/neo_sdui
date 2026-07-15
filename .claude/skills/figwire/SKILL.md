@@ -111,4 +111,4 @@ wire route/guide → theme selection (that is app-side).
 Package tools these call (in `packages/neo_sdui/`):
 - `test/tools/check_wire_test.dart` — `NEO_WIRE_JSON=<path> fvm flutter test test/tools/check_wire_test.dart` → structural + vocabulary gate.
 - `test/tools/render_wire_test.dart` — `NEO_WIRE_JSON=<path> [NEO_THEME_LEDGER=<ledger>] fvm flutter test --update-goldens test/tools/render_wire_test.dart` → `.render/preview.png` (optionally under the compiled theme).
-- `test/tools/compile_theme_test.dart` — `NEO_THEME_LEDGER=<ledger> [NEO_THEME_OUT=<theme.dart>] fvm flutter test test/tools/compile_theme_test.dart` → paste-in `NeoSduiTheme` + coverage report + role-drift lint.
+- `test/tools/compile_theme_test.dart` — `NEO_THEME_LEDGER=<ledger> [NEO_THEME_OUT=<theme.dart>] [NEO_THEME_BASE_PAGE=<page>] fvm flutter test test/tools/compile_theme_test.dart` → paste-in `NeoSduiTheme` + coverage report + role-drift lint (`NEO_THEME_BASE_PAGE` pins that page's look as the base).

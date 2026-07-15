@@ -52,9 +52,38 @@ void main() {
       expect(r.conflictRoles, ['accent']);
       expect(r.base['accent']!.value, '0xFF00F1A0'); // majority (2 pages)
       expect(r.base['accent']!.pageCount, 2);
-      expect(r.overridesByPage['odd']!['accent'], '0xFFFFC107');
+      expect(r.overridesByPage['odd']!['accent']!.value, '0xFFFFC107');
       // the majority pages carry no override
       expect(r.overridesByPage.containsKey('base1'), isFalse);
+    });
+
+    test('an override carries the diverging cluster\'s provenance', () {
+      final r = (RoleLedger()
+            ..observe(_c('accent', '0xFF00F1A0', 'a'))
+            ..observe(_c('accent', '0xFF00F1A0', 'b'))
+            ..observe(_c('accent', '0xFFFFC107', 'odd', Provenance.inferred)))
+          .reconcile();
+      // provenance rides the override (not hardcoded to variable) so the
+      // compile can still flag it `// confirm:`.
+      expect(r.overridesByPage['odd']!['accent']!.provenance,
+          Provenance.inferred);
+    });
+
+    test('basePage pins the base cluster over page-count majority (R8)', () {
+      final feed = RoleLedger()
+        ..observe(_c('accent', '0xFF00F1A0', 'a')) // majority green (2 pages)
+        ..observe(_c('accent', '0xFF00F1A0', 'b'))
+        ..observe(_c('accent', '0xFFFFC107', 'hero')); // minority amber, far
+
+      final pinned = feed.reconcile(basePage: 'hero');
+      expect(pinned.base['accent']!.value, '0xFFFFC107'); // pinned, not majority
+      expect(pinned.overridesByPage['a']!['accent']!.value, '0xFF00F1A0');
+      expect(pinned.overridesByPage['b']!['accent']!.value, '0xFF00F1A0');
+      expect(pinned.overridesByPage.containsKey('hero'), isFalse);
+
+      // an unknown basePage falls back to majority.
+      expect(feed.reconcile(basePage: 'nope').base['accent']!.value,
+          '0xFF00F1A0');
     });
 
     test('is feeding-order independent (guards batch-not-incremental, KTD6)', () {

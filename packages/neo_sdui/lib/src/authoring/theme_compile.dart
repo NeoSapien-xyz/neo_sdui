@@ -15,57 +15,124 @@ import 'package:flutter/widgets.dart';
 import '../theme/neo_sdui_theme.dart';
 import 'theme_ledger.dart';
 
+/// How a live [NeoSduiTheme] absorbs one scalar role value.
+typedef LiveApply = NeoSduiTheme Function(NeoSduiTheme base, String value);
+
+/// One theme slot: its value [kind] and (for the colour/number roles the render
+/// preview actually paints) how it lands on a live theme.
+@immutable
+class RoleSlot {
+  const RoleSlot(this.kind, [this.live]);
+  final ValueKind kind;
+
+  /// Applies this role to a live theme for the preview; null for the
+  /// textStyle/gradient/other roles the structural preview leaves at fallback —
+  /// their full literal still rides the emitted paste-in source.
+  final LiveApply? live;
+}
+
+Color? _color(String v) {
+  final n = parseColorHex(v);
+  return n == null ? null : Color(n);
+}
+
+/// **The role registry** — the single source of truth (the DTCG / Style
+/// Dictionary "token map" analog) for every scalar roleKey the compile supports.
+/// [buildBaseTheme] applies the live-painted slots from here and [emitTheme]
+/// validates every emitted role against these keys, so the live preview and the
+/// paste-in source can never drift: add a theme field here **once** and both
+/// sides pick it up (an unknown roleKey is flagged, never silently half-handled).
+/// The map-typed slots (`accents.*`, `icons.*`) are keyed by prefix, not listed.
+final Map<String, RoleSlot> kRoleSlots = {
+  // Role colours — painted live.
+  'accent': RoleSlot(ValueKind.color, (t, v) => t.copyWith(accent: _color(v))),
+  'onAccent':
+      RoleSlot(ValueKind.color, (t, v) => t.copyWith(onAccent: _color(v))),
+  'surface':
+      RoleSlot(ValueKind.color, (t, v) => t.copyWith(surface: _color(v))),
+  'onSurface':
+      RoleSlot(ValueKind.color, (t, v) => t.copyWith(onSurface: _color(v))),
+  'danger': RoleSlot(ValueKind.color, (t, v) => t.copyWith(danger: _color(v))),
+  'warning':
+      RoleSlot(ValueKind.color, (t, v) => t.copyWith(warning: _color(v))),
+  'background':
+      RoleSlot(ValueKind.color, (t, v) => t.copyWith(background: _color(v))),
+  'textPrimary':
+      RoleSlot(ValueKind.color, (t, v) => t.copyWith(textPrimary: _color(v))),
+  'textMuted':
+      RoleSlot(ValueKind.color, (t, v) => t.copyWith(textMuted: _color(v))),
+  'cardColor':
+      RoleSlot(ValueKind.color, (t, v) => t.copyWith(cardColor: _color(v))),
+  'gridLine':
+      RoleSlot(ValueKind.color, (t, v) => t.copyWith(gridLine: _color(v))),
+  'divider':
+      RoleSlot(ValueKind.color, (t, v) => t.copyWith(divider: _color(v))),
+  // Scales — painted live.
+  'spaceSm': RoleSlot(
+      ValueKind.number, (t, v) => t.copyWith(spaceSm: double.tryParse(v))),
+  'spaceMd': RoleSlot(
+      ValueKind.number, (t, v) => t.copyWith(spaceMd: double.tryParse(v))),
+  'spaceLg': RoleSlot(
+      ValueKind.number, (t, v) => t.copyWith(spaceLg: double.tryParse(v))),
+  'blockSpacing': RoleSlot(
+      ValueKind.number, (t, v) => t.copyWith(blockSpacing: double.tryParse(v))),
+  'gridSpacing': RoleSlot(
+      ValueKind.number, (t, v) => t.copyWith(gridSpacing: double.tryParse(v))),
+  'backdropBlur': RoleSlot(
+      ValueKind.number, (t, v) => t.copyWith(backdropBlur: double.tryParse(v))),
+  // Type / gradient / shape roles — full literal rides the emitted source; the
+  // structural preview keeps fallback (no live painter).
+  'title': RoleSlot(ValueKind.textStyle),
+  'subtitle': RoleSlot(ValueKind.textStyle),
+  'body': RoleSlot(ValueKind.textStyle),
+  'caption': RoleSlot(ValueKind.textStyle),
+  'mono': RoleSlot(ValueKind.textStyle),
+  'cardGradient': RoleSlot(ValueKind.gradient),
+  'groupGradient': RoleSlot(ValueKind.gradient),
+  'accentGradient': RoleSlot(ValueKind.gradient),
+  'radiusSm': RoleSlot(ValueKind.other),
+  'radiusMd': RoleSlot(ValueKind.other),
+  'radiusLg': RoleSlot(ValueKind.other),
+  'contentPadding': RoleSlot(ValueKind.other),
+  'cardPadding': RoleSlot(ValueKind.other),
+  'cardShape': RoleSlot(ValueKind.other),
+  'cardShadow': RoleSlot(ValueKind.other),
+  'motionDuration': RoleSlot(ValueKind.other),
+  'motionCurve': RoleSlot(ValueKind.other),
+  'reduceMotion': RoleSlot(ValueKind.other),
+};
+
+/// A roleKey the compile knows how to place: a registered scalar slot or a
+/// map-typed `accents.*` / `icons.*` entry. Everything else is unsupported.
+bool _isKnownRole(String key) =>
+    kRoleSlots.containsKey(key) ||
+    key.startsWith(kAccentsPrefix) ||
+    key.startsWith(kIconsPrefix);
+
 /// A live [NeoSduiTheme] from a reconciled ledger, for U4's render preview.
 ///
-/// Parses what the render actually needs — the colour and numeric roles — and
-/// leaves `textStyle`/`gradient` roles at `fallback()` values (the structural
-/// preview renders fonts as the default test font anyway, so palette is what
-/// matters). The full-fidelity type/gradient literals still ride the emitted
-/// paste-in source; this builder exists so the render never has to `eval` that
-/// source (Dart has no runtime eval).
+/// Folds the reconciled base through [kRoleSlots], painting the colour/number
+/// roles the preview needs and leaving textStyle/gradient roles at `fallback()`
+/// (the structural preview renders fonts as the default test font anyway, so
+/// palette is what matters). The full-fidelity literals still ride the emitted
+/// paste-in source; this builder exists so the render never has to `eval` it
+/// (Dart has no runtime eval).
 NeoSduiTheme buildBaseTheme(Reconciled r) {
-  Color? colorRole(String key) {
-    final v = r.base[key];
-    return (v != null && v.kind == ValueKind.color)
-        ? _parseColor(v.value)
-        : null;
-  }
-
-  double? numberRole(String key) {
-    final v = r.base[key];
-    return (v != null && v.kind == ValueKind.number)
-        ? double.tryParse(v.value)
-        : null;
-  }
-
+  var theme = NeoSduiTheme.fallback();
   final accents = <String, NeoAccent>{};
   r.base.forEach((key, role) {
-    if (key.startsWith('accents.') && role.kind == ValueKind.color) {
-      final c = _parseColor(role.value);
-      if (c != null) accents[key.substring('accents.'.length)] = NeoAccent(c);
+    final live = kRoleSlots[key]?.live;
+    if (live != null) {
+      theme = live(theme, role.value);
+      return;
+    }
+    final accentName = stripRolePrefix(key, kAccentsPrefix);
+    if (accentName != null && role.kind == ValueKind.color) {
+      final c = _color(role.value);
+      if (c != null) accents[accentName] = NeoAccent(c);
     }
   });
-
-  return NeoSduiTheme.fallback().copyWith(
-    accent: colorRole('accent'),
-    onAccent: colorRole('onAccent'),
-    surface: colorRole('surface'),
-    onSurface: colorRole('onSurface'),
-    danger: colorRole('danger'),
-    warning: colorRole('warning'),
-    background: colorRole('background'),
-    textPrimary: colorRole('textPrimary'),
-    textMuted: colorRole('textMuted'),
-    cardColor: colorRole('cardColor'),
-    gridLine: colorRole('gridLine'),
-    divider: colorRole('divider'),
-    spaceSm: numberRole('spaceSm'),
-    spaceMd: numberRole('spaceMd'),
-    spaceLg: numberRole('spaceLg'),
-    blockSpacing: numberRole('blockSpacing'),
-    gridSpacing: numberRole('gridSpacing'),
-    accents: accents.isEmpty ? null : accents,
-  );
+  return accents.isEmpty ? theme : theme.copyWith(accents: accents);
 }
 
 /// The paste-in Dart source: a `base` theme plus a named `copyWith` per divergent
@@ -86,24 +153,19 @@ String emitTheme(Reconciled r) {
     b.writeln('// TODO(theme): no data for ${todo.join(', ')} '
         '— inheriting NeoSduiTheme.fallback().');
   }
+  final unsupported = r.base.keys.where((k) => !_isKnownRole(k)).toList()..sort();
+  if (unsupported.isNotEmpty) {
+    b.writeln('// TODO(theme): unsupported role(s) ${unsupported.join(', ')} '
+        '— not a NeoSduiTheme field; extend kRoleSlots or fix the ledger.');
+  }
 
   final pages = r.overridesByPage.keys.toList()..sort();
   final usedIdents = <String>{'base'}; // reserve the base variable name
   for (final page in pages) {
-    final overrides = <String, ResolvedRole>{
-      for (final e in r.overridesByPage[page]!.entries)
-        e.key: ResolvedRole(
-          roleKey: e.key,
-          value: e.value,
-          kind: r.base[e.key]?.kind ?? ValueKind.other,
-          provenance: Provenance.variable,
-          pageCount: 1,
-        ),
-    };
     b
       ..writeln()
       ..writeln('final ${_uniqueIdent(page, usedIdents)} = base.copyWith(');
-    _emitRoles(b, overrides, isOverride: true);
+    _emitRoles(b, r.overridesByPage[page]!, isOverride: true);
     b.writeln(');');
   }
   return b.toString();
@@ -153,12 +215,14 @@ void _emitRoles(StringBuffer b, Map<String, ResolvedRole> roles,
   final icons = <String, ResolvedRole>{};
   final simple = <String>[];
   for (final key in roles.keys) {
-    if (key.startsWith('accents.')) {
-      accents[key.substring('accents.'.length)] = roles[key]!;
-    } else if (key.startsWith('icons.')) {
-      icons[key.substring('icons.'.length)] = roles[key]!;
-    } else {
-      simple.add(key);
+    final accentName = stripRolePrefix(key, kAccentsPrefix);
+    final iconName = stripRolePrefix(key, kIconsPrefix);
+    if (accentName != null) {
+      accents[accentName] = roles[key]!;
+    } else if (iconName != null) {
+      icons[iconName] = roles[key]!;
+    } else if (kRoleSlots.containsKey(key)) {
+      simple.add(key); // unknown scalar roles are skipped — emitTheme TODOs them
     }
   }
   simple.sort();
@@ -240,9 +304,4 @@ List<String> _uncovered(Reconciled r) {
       if (e.value.provenance == Provenance.todo) e.key,
   ]..sort();
   return out;
-}
-
-Color? _parseColor(String hex) {
-  final v = int.tryParse(hex.replaceFirst('0x', ''), radix: 16);
-  return v == null ? null : Color(v);
 }

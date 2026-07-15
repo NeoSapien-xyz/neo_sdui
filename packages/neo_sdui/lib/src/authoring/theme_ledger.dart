@@ -32,6 +32,23 @@ enum Provenance { variable, inferred, todo }
 /// values are stored as the Dart literal and emitted verbatim.
 enum ValueKind { color, number, textStyle, gradient, other }
 
+/// Role-key prefixes for the two map-typed theme slots. A roleKey like
+/// `accents.brand` / `icons.download` targets a *named* entry in the theme's
+/// `accents`/`icons` map; every other roleKey is a scalar field. Shared so the
+/// compile and the lint split keys the same way — one literal, no per-file drift.
+const String kAccentsPrefix = 'accents.';
+const String kIconsPrefix = 'icons.';
+
+/// The name after [prefix] if [key] starts with it, else null.
+String? stripRolePrefix(String key, String prefix) =>
+    key.startsWith(prefix) ? key.substring(prefix.length) : null;
+
+/// Parse a `0xAARRGGBB` / `0xRRGGBB` (or bare-hex) literal to an int, or null if
+/// unparseable. The one hex parser — [_rgb] here and `theme_compile`'s `Color`
+/// wrapping both route through it (DRY: one parser, no per-file drift).
+int? parseColorHex(String hex) =>
+    int.tryParse(hex.replaceFirst('0x', ''), radix: 16);
+
 /// Lower is more trustworthy — used to keep the best provenance when duplicate
 /// observations of one value are folded together.
 int _provenanceRank(Provenance p) => switch (p) {
@@ -112,9 +129,11 @@ class Reconciled {
   /// roleKey → base value (the majority look).
   final Map<String, ResolvedRole> base;
 
-  /// page → {roleKey → override value} for every role where the page diverges
-  /// from base. Pages that match base do not appear.
-  final Map<String, Map<String, String>> overridesByPage;
+  /// page → {roleKey → override role} for every role where the page diverges
+  /// from base. Pages that match base do not appear. Each override is a full
+  /// [ResolvedRole] so its provenance rides along — an `inferred` override still
+  /// emits its `// confirm:` marker (metadata travels with the value, DTCG-style).
+  final Map<String, Map<String, ResolvedRole>> overridesByPage;
 
   /// Roles with more than one genuine cluster — the skill asks base-vs-override
   /// on these. Sorted for determinism.
@@ -153,16 +172,18 @@ class RoleLedger {
   }
 
   /// Batch reconcile over the whole observation set — feeding-order independent.
-  /// Per role: cluster near-duplicate values (kind-aware), pick the base cluster
-  /// by page count, and emit a per-page override for pages outside it.
-  Reconciled reconcile({int colorThreshold = 24}) {
+  /// Per role: cluster near-duplicate values (kind-aware), pick the base cluster,
+  /// and emit a per-page override for pages outside it. The base is the cluster
+  /// containing [basePage] when it names one (the explicit escape hatch, R8),
+  /// else the majority cluster (most pages).
+  Reconciled reconcile({int colorThreshold = 24, String? basePage}) {
     final byRole = <String, List<Observation>>{};
     for (final o in observations) {
       (byRole[o.roleKey] ??= <Observation>[]).add(o);
     }
 
     final base = <String, ResolvedRole>{};
-    final overridesByPage = <String, Map<String, String>>{};
+    final overridesByPage = <String, Map<String, ResolvedRole>>{};
     final conflictRoles = <String>[];
 
     byRole.forEach((roleKey, obs) {
@@ -171,7 +192,17 @@ class RoleLedger {
           final byPages = b.pages.length.compareTo(a.pages.length);
           return byPages != 0 ? byPages : a.canonical.compareTo(b.canonical);
         });
-      final baseCluster = clusters.first;
+      // Majority by default (clusters are sorted most-pages-first); an explicit
+      // basePage overrides that by pinning whichever cluster carries it.
+      var baseCluster = clusters.first;
+      if (basePage != null) {
+        for (final c in clusters) {
+          if (c.pages.contains(basePage)) {
+            baseCluster = c;
+            break;
+          }
+        }
+      }
       base[roleKey] = ResolvedRole(
         roleKey: roleKey,
         value: baseCluster.canonical,
@@ -181,9 +212,17 @@ class RoleLedger {
       );
       if (clusters.length > 1) {
         conflictRoles.add(roleKey);
-        for (final cl in clusters.skip(1)) {
+        for (final cl in clusters) {
+          if (identical(cl, baseCluster)) continue;
           for (final page in cl.pages) {
-            (overridesByPage[page] ??= <String, String>{})[roleKey] = cl.canonical;
+            (overridesByPage[page] ??= <String, ResolvedRole>{})[roleKey] =
+                ResolvedRole(
+              roleKey: roleKey,
+              value: cl.canonical,
+              kind: cl.kind,
+              provenance: cl.provenance,
+              pageCount: cl.pages.length,
+            );
           }
         }
       }
@@ -319,7 +358,7 @@ int _colorDistance(String a, String b) {
 
 /// [r, g, b] from a `0xAARRGGBB` / `0xRRGGBB` literal, or null if unparseable.
 List<int>? _rgb(String hex) {
-  final v = int.tryParse(hex.replaceFirst('0x', ''), radix: 16);
+  final v = parseColorHex(hex);
   if (v == null) return null;
   return [(v >> 16) & 0xFF, (v >> 8) & 0xFF, v & 0xFF];
 }
