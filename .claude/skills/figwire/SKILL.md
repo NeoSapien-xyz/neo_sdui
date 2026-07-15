@@ -14,6 +14,11 @@ optional **look projection**: a role ledger that accumulates across pages and co
 theme goes to the app. `neofig` owns look→widget *code*; figwire owns both the wire and the theme —
 two projections of one read (see `references/theme-extract.md`).
 
+The finished output is a **deliverable folder** — the wire doc plus its exported image assets, laid
+out to mirror the CDN and staged (gitignored) for the user to review and upload as-is. Exporting
+assets does not break the Iron Rule: the wire still carries only the image URL string, never the
+bytes (see `references/deliverables-and-assets.md`).
+
 ## Status — this skill is young, and meant to grow
 
 This is a first working cut, proven end-to-end against a hand-written sample but not yet against a
@@ -49,16 +54,21 @@ the whole package depends on.
 - A designer handed a screenshot of a screen, frame, or component to transcribe into a wire document.
 
 **Not for:** the neo app's Dart widgets (that's `neofig`), pushing JSON to Firebase Remote Config
-(out of scope — figwire writes a reviewable file), or inventing look.
+(out of scope — figwire writes a reviewable deliverable folder), or inventing look.
 
 ## Workflow
 
 ### 1. Ingest (see `references/ingestion.md`)
 
-MCP-first, degrade to a pasted/exported screenshot. Get the `get_metadata` node inventory first
-(it is the coverage denominator), the screenshot for visual truth, and exact text from
-`get_design_context`/REST for any `code`/URL block. The Figma seat is tightly capped — treat the
-screenshot as the everyday path. Handle the `FIGMA_TOKEN` via env var only, never logged.
+MCP-first, degrade to a pasted/exported screenshot only when the MCP is unavailable or a call
+fails. Get the `get_metadata` node inventory first (it is the coverage denominator), the screenshot
+for visual truth, and exact text from `get_design_context`/REST for any `code`/URL block. Handle the
+`FIGMA_TOKEN` via env var only, never logged.
+
+A guide-family is usually **several frames** (a hub + per-client guides + per-tab frames); collect
+them all. Only the main thread can read the Figma MCP — subagents cannot auth it, so pull every
+frame/screenshot/asset yourself and hand agents the files. See
+`references/deliverables-and-assets.md` for how frames collapse into blocks/views.
 
 ### 2. Classify + pull text (see `references/wire-contract.md`)
 
@@ -74,12 +84,30 @@ never ride the wire; they only go to the ledger.
 
 ### 3. Assemble
 
-Build the whole-page `{version, blocks, views}` in reading order. Put navigable sub-screens
-(FAQ, detail screens) in `views` with `present:"sheet"|"screen"` and point `card`/`cta` `action`s at
-them. **Navigation targets cannot be inferred** — emit `"action": "TODO:<hint>"` for every tappable
-element and let the human wire the real `route:`/`screen:`/`sheet:` once all pages exist.
+Build **one** `{version, blocks, views}` doc for the whole guide-family (not one per page): root
+`blocks` = the hub screen, `views` = every sub-screen (`present:"sheet"|"screen"`). Define a shared
+tail (FAQ / troubleshooting stamped on every screen) as ONE view and point each screen's `card`/`cta`
+`action` at it by name — never re-embed it. Collapse per-tab frames into one `tabs` block.
+**Navigation targets cannot be inferred** — emit `"action": "TODO:<hint>"` for every tappable
+element; the human wires the real `route:`/`screen:`/`sheet:` on the final call.
+See `references/deliverables-and-assets.md` for one-doc-per-family, multi-frame collapse, and when to split.
 
-### 4. Verify (see `references/verify-output.md`)
+### 4. Export assets (see `references/deliverables-and-assets.md`)
+
+Export each image node from Figma (`download_assets`, @3x) into the guide's `assets/`, grouped by
+role — flat for the shared hub images, per-client subfolders for the many step screenshots. Three
+hard rules:
+- **Keep the cropped render.** Use the `download_assets` `export` (the node as displayed — cropped),
+  **never** the `rawImages` source (the full, uncropped image). Two variants of one node → keep the cropped.
+- **Identical names, no renaming.** The filename + folder path is the same in `deliverables/`, on the
+  CDN, and in the wire `url`. The user uploads the family folder to the CDN as-is.
+- **CDN url on the wire, never local.** Every wire `url` is the full `https://<cdn>/…` path mirroring
+  the deliverables layout — never a local or relative path.
+
+If a hero has text baked in, emit `media` only (no duplicate `header`). Only the main thread can read
+Figma; pull the assets yourself.
+
+### 5. Verify (see `references/verify-output.md`)
 
 Never write an ungated document. In order: (a) run the hard validate gate
 (`check_wire_test.dart` — fails on off-roster types / structural errors); (b) compute the coverage
@@ -88,11 +116,12 @@ structural preview PNG (`render_wire_test.dart`); (d) secret-scan the extracted 
 accumulated a theme, also run the theme gates — compile + role-drift lint + round-trip render (see
 `references/verify-output.md` §6).
 
-### 5. Write
+### 6. Write the deliverable
 
-Only after the validate gate passes: write the wire `.json` to a repo location the user names, and
-show the coverage report, preview path, and any low-confidence / secret flags for sign-off. No
-Firebase push.
+Only after the validate gate passes: write the wire to `deliverables/<family>/<family>.json` and the
+exported images to `deliverables/<family>/assets/` (gitignored, CDN-mirroring). Show the coverage
+report, preview path, the asset `HAVE`/`MISSING` manifest, and any low-confidence / secret flags for
+sign-off. No Firebase push. See `references/deliverables-and-assets.md`.
 
 If a theme was accumulated, run the terminal compile once at the end and hand the user the base
 `NeoSduiTheme` + per-page `copyWith` overrides + the coverage report, resolving any conflict roles via
@@ -104,9 +133,10 @@ wire route/guide → theme selection (that is app-side).
 - `references/wire-contract.md` — the 14 block types, their fields, the string-or-runs shape, enums,
   action grammar, the forbidden-on-wire list, and a minimal document.
 - `references/accent-tones.md` — the accent-green → `tone:"accent"` signal (and never emit the hex).
-- `references/ingestion.md` — MCP call order, REST, screenshot degrade, token handling, seat limits.
+- `references/ingestion.md` — MCP call order, REST, screenshot degrade, token handling.
 - `references/verify-output.md` — the four wire gates, the theme gates (§6), and the write step, with the exact commands.
 - `references/theme-extract.md` — the look projection: token-first extraction, the role-ledger format, the terminal compile, and the hybrid conflict prompt.
+- `references/deliverables-and-assets.md` — the gitignored `deliverables/<family>/` output scheme, one-JSON-per-family + when to split, multi-frame collapse (tabs/components), and Figma asset export + role-based grouping.
 
 Package tools these call (in `packages/neo_sdui/`):
 - `test/tools/check_wire_test.dart` — `NEO_WIRE_JSON=<path> fvm flutter test test/tools/check_wire_test.dart` → structural + vocabulary gate.

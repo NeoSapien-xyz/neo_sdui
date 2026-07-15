@@ -1,0 +1,639 @@
+{
+  "version": 1,
+  "blocks": [
+    {
+      "type": "media",
+      "url": "https://cdn.neosapien.xyz/mcp/hero.png",
+      "ratio": 1.55
+    },
+    {
+      "type": "header",
+      "title": "Easy to setup",
+      "subtitle": "One-time setup. No code. Works immediately."
+    },
+    {
+      "type": "steps",
+      "layout": "row",
+      "items": [
+        {
+          "caption": "Pick your AI"
+        },
+        {
+          "caption": "Follow the quick guide"
+        },
+        {
+          "caption": "Ask it anything"
+        }
+      ]
+    },
+    {
+      "type": "header",
+      "title": "Pick your AI",
+      "subtitle": "Setup happens on your computer."
+    },
+    {
+      "type": "card",
+      "thumb": "https://cdn.neosapien.xyz/mcp/chatgpt.png",
+      "title": "ChatGPT",
+      "subtitle": "Web / Desktop App",
+      "actionLabel": "Open Guide →",
+      "action": "screen:chatgpt"
+    },
+    {
+      "type": "card",
+      "thumb": "https://cdn.neosapien.xyz/mcp/claude.png",
+      "title": "Claude",
+      "subtitle": "Web / Desktop App / Code",
+      "actionLabel": "Open Guide →",
+      "action": "screen:claude"
+    },
+    {
+      "type": "card",
+      "thumb": "https://cdn.neosapien.xyz/mcp/connectors.png",
+      "title": "Others",
+      "subtitle": "Open Connectors",
+      "actionLabel": "Open Guide →",
+      "action": "screen:other"
+    },
+    {
+      "type": "callout",
+      "title": "Note: Only works with AI tools that supports MCP such as Claude or ChatGPT Pro."
+    },
+    {
+      "type": "header",
+      "title": "Here's what it does for you",
+      "subtitle": "You ask, Neo 1 recalls, your AI does the work. Things you can do:"
+    },
+    {
+      "type": "group",
+      "children": [
+        {
+          "type": "header",
+          "tone": "accent",
+          "title": "Catch up on your day",
+          "subtitle": "“Summarise everything I said today.”"
+        },
+        {
+          "type": "header",
+          "tone": "accent",
+          "title": "Draft your replies",
+          "subtitle": "“Write the follow up email on what I owe Subodh”"
+        },
+        {
+          "type": "header",
+          "tone": "accent",
+          "title": "Prep for what's next",
+          "subtitle": "“Prep me for my meeting with Mohit, what did he ask last time?”"
+        },
+        {
+          "type": "header",
+          "tone": "accent",
+          "title": "Recall any detail",
+          "subtitle": "“What's the medicine I discussed for my father?”"
+        },
+        {
+          "type": "header",
+          "tone": "accent",
+          "title": "Turn talk into to-dos",
+          "subtitle": "“Make a task list from my last daily standup”"
+        },
+        {
+          "type": "header",
+          "tone": "accent",
+          "title": "Work across your tools",
+          "subtitle": "“Add those tasks to my Notion.” Your AI has both Neo 1 and your other apps."
+        },
+        {
+          "type": "spacer",
+          "variant": "rule"
+        },
+        {
+          "type": "header",
+          "tone": "accent",
+          "icon": "download",
+          "title": "Export data",
+          "subtitle": "“Export all memories from yesterday as a CSV”"
+        }
+      ]
+    },
+    {
+      "type": "callout",
+      "tone": "accent",
+      "icon": "sparkle",
+      "title": "Not getting results?",
+      "bullets": [
+        "Add “from NeoSapien” to your message."
+      ]
+    },
+    {
+      "type": "group",
+      "children": [
+        {
+          "type": "card",
+          "title": "Troubleshooting",
+          "action": "screen:troubleshooting"
+        },
+        {
+          "type": "card",
+          "title": "FAQs",
+          "action": "screen:faq"
+        }
+      ]
+    }
+  ],
+  "views": {
+    "chatgpt": {
+      "present": "screen",
+      "blocks": [
+        {
+          "type": "header",
+          "title": "ChatGPT MCP"
+        },
+        {
+          "type": "callout",
+          "tone": "accent",
+          "title": "Requires laptop for setup",
+          "bullets": [
+            "Works everywhere once connected."
+          ]
+        },
+        {
+          "type": "tabs",
+          "tabs": [
+            {
+              "label": "Web",
+              "blocks": [
+                {
+                  "type": "steps",
+                  "items": [
+                    {
+                      "caption": "Go to chatgpt.com"
+                    },
+                    {
+                      "caption": "Click your profile picture"
+                    },
+                    {
+                      "caption": "Select Settings"
+                    },
+                    {
+                      "caption": "Click the Connected apps tab"
+                    },
+                    {
+                      "caption": "Click the Add button"
+                    },
+                    {
+                      "caption": "Select Model Context Protocol (MCP)"
+                    },
+                    {
+                      "caption": "Add the server URL",
+                      "code": "https://api.neosapien.xyz/mcp"
+                    },
+                    {
+                      "caption": "Click Advanced settings if you need to add OAuth credentials"
+                    },
+                    {
+                      "caption": "Check the box: I understand and want to continue. Click Create"
+                    },
+                    {
+                      "caption": "Sign in with your NeoSapien account (may differ from ChatGPT account)"
+                    },
+                    {
+                      "caption": "Try your first prompt: “What do you know about me from Neosapien?”"
+                    },
+                    {
+                      "caption": "Congrats! NeoSapien is now connected to ChatGPT."
+                    }
+                  ]
+                },
+                {
+                  "type": "media",
+                  "url": "https://cdn.neosapien.xyz/mcp/chatgpt-web.png",
+                  "ratio": 1.3333
+                }
+              ]
+            },
+            {
+              "label": "Desktop App",
+              "blocks": [
+                {
+                  "type": "text",
+                  "body": "Once connected on the web, NeoSapien works in the ChatGPT desktop app automatically — open ChatGPT and try a prompt."
+                },
+                {
+                  "type": "media",
+                  "url": "https://cdn.neosapien.xyz/mcp/chatgpt-desktop.png",
+                  "ratio": 1.3333
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "title": "If NeoSapien MCP doesn't work or appear in the chat, do one of these:",
+          "bullets": [
+            "Add “from NeoSapien” to your message",
+            "Close the tab and reopen ChatGPT",
+            "Re-authenticate with the existing NeoSapien account",
+            "Remove the NeoSapien from connectors and add it again."
+          ]
+        },
+        {
+          "type": "card",
+          "title": "Troubleshooting",
+          "action": "screen:troubleshooting"
+        },
+        {
+          "type": "card",
+          "title": "FAQs",
+          "action": "screen:faq"
+        }
+      ]
+    },
+    "claude": {
+      "present": "screen",
+      "blocks": [
+        {
+          "type": "header",
+          "title": "Claude MCP"
+        },
+        {
+          "type": "callout",
+          "tone": "accent",
+          "title": "Requires laptop for setup",
+          "bullets": [
+            "Works everywhere once connected."
+          ]
+        },
+        {
+          "type": "tabs",
+          "tabs": [
+            {
+              "label": "Web",
+              "blocks": [
+                {
+                  "type": "steps",
+                  "items": [
+                    {
+                      "caption": "Go to claude.ai"
+                    },
+                    {
+                      "caption": "Click Customize in the left sidebar"
+                    },
+                    {
+                      "caption": "Select Connectors from the menu"
+                    },
+                    {
+                      "caption": "Click + then Add custom connector"
+                    },
+                    {
+                      "caption": "Add the server URL",
+                      "code": "https://api.neosapien.xyz/mcp"
+                    },
+                    {
+                      "caption": "Select NeoSapien from connectors list and tap “Connect” to sign in to NeoSapien account (OAuth)"
+                    },
+                    {
+                      "caption": "Sign in to NeoSapien when prompted (OAuth)"
+                    },
+                    {
+                      "caption": "Try your first prompt: “What do you know about me from Neosapien?”"
+                    },
+                    {
+                      "caption": "Congrats! NeoSapien is now connected to Claude."
+                    }
+                  ]
+                },
+                {
+                  "type": "media",
+                  "url": "https://cdn.neosapien.xyz/mcp/claude-web.png",
+                  "ratio": 1.3333
+                }
+              ]
+            },
+            {
+              "label": "Desktop App",
+              "blocks": [
+                {
+                  "type": "steps",
+                  "items": [
+                    {
+                      "caption": "Download the app from claude.ai/download"
+                    },
+                    {
+                      "caption": "Click Customize in the left sidebar"
+                    },
+                    {
+                      "caption": "Select Connectors from the menu"
+                    },
+                    {
+                      "caption": "Click + then Add custom connector"
+                    },
+                    {
+                      "caption": "Add the server URL",
+                      "code": "https://api.neosapien.xyz/mcp"
+                    },
+                    {
+                      "caption": "Select NeoSapien from connectors list and tap “Connect” to sign in to NeoSapien account (OAuth)"
+                    },
+                    {
+                      "caption": "Sign in to NeoSapien when prompted (OAuth)"
+                    },
+                    {
+                      "caption": "Try your first prompt: “What do you know about me from Neosapien?”"
+                    },
+                    {
+                      "caption": "Congrats! NeoSapien is now connected to Claude."
+                    }
+                  ]
+                },
+                {
+                  "type": "media",
+                  "url": "https://cdn.neosapien.xyz/mcp/claude-app.png",
+                  "ratio": 1.3333
+                }
+              ]
+            },
+            {
+              "label": "Code",
+              "blocks": [
+                {
+                  "type": "steps",
+                  "items": [
+                    {
+                      "caption": "Install Claude Code",
+                      "code": "npm install -g @anthropic-ai/claude-code"
+                    },
+                    {
+                      "caption": "In your terminal, run",
+                      "code": "/mcp"
+                    },
+                    {
+                      "caption": "NeoSapien appears as disconnected — select it to connect"
+                    },
+                    {
+                      "caption": "Sign in when prompted (OAuth), then verify the status with",
+                      "code": "claude mcp list"
+                    },
+                    {
+                      "caption": "Try your first prompt: “What do you know about me from Neosapien?”"
+                    },
+                    {
+                      "caption": "Congrats! NeoSapien is now connected to Claude Code."
+                    }
+                  ]
+                },
+                {
+                  "type": "media",
+                  "url": "https://cdn.neosapien.xyz/mcp/claude-code.png",
+                  "ratio": 1.3333
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "title": "If NeoSapien MCP doesn't work or appear in the chat, do one of these:",
+          "bullets": [
+            "Add “from NeoSapien” to your message",
+            "Close the tab and reopen Claude",
+            "Re-authenticate with the existing NeoSapien account",
+            "Remove the NeoSapien from connectors and add it again."
+          ]
+        },
+        {
+          "type": "card",
+          "title": "Troubleshooting",
+          "action": "screen:troubleshooting"
+        },
+        {
+          "type": "card",
+          "title": "FAQs",
+          "action": "screen:faq"
+        }
+      ]
+    },
+    "other": {
+      "present": "screen",
+      "blocks": [
+        {
+          "type": "header",
+          "title": "Connect Neo 1 with other Connector",
+          "subtitle": "Give any AI assistant direct access to your NeoSapien memories."
+        },
+        {
+          "type": "callout",
+          "tone": "accent",
+          "icon": "sparkle",
+          "title": "Requires laptop for setup",
+          "bullets": [
+            "Works everywhere once connected."
+          ]
+        },
+        {
+          "type": "steps",
+          "items": [
+            {
+              "caption": "Open your tool's MCP settings",
+              "image": "https://cdn.neosapien.xyz/mcp/other-0.png",
+              "ratio": 2.0
+            },
+            {
+              "caption": "Add the server URL",
+              "code": "https://api.neosapien.xyz/mcp",
+              "image": "https://cdn.neosapien.xyz/mcp/other-1.png",
+              "ratio": 1.33
+            },
+            {
+              "caption": "Sign in with the NeoSapien account",
+              "detail": "(This can be different from your ChatGPT account)",
+              "image": "https://cdn.neosapien.xyz/mcp/other-2.png",
+              "ratio": 1.33
+            },
+            {
+              "caption": "Congrats 🎉 NeoSapien MCP is now connected",
+              "image": "https://cdn.neosapien.xyz/mcp/other-3.png",
+              "ratio": 2.0
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "accent",
+          "icon": "sparkle",
+          "title": "If NeoSapien MCP doesn't work or appear in the chat, do one of these:",
+          "bullets": [
+            "Add “from NeoSapien” to your message",
+            "Close the tab and reopen ChatGPT",
+            "Re-authenticate with the existing NeoSapien account",
+            "Remove the NeoSapien from connectors and add it again."
+          ]
+        },
+        {
+          "type": "header",
+          "title": "Here's what it does for you",
+          "subtitle": "You ask, Neo 1 recalls, your AI does the work. Things you can do:"
+        },
+        {
+          "type": "header",
+          "tone": "accent",
+          "title": "Catch up on your day",
+          "subtitle": "“Summarise everything I said today.”"
+        },
+        {
+          "type": "header",
+          "tone": "accent",
+          "title": "Draft your replies",
+          "subtitle": "“Write the follow up email on what I owe Subodh”"
+        },
+        {
+          "type": "header",
+          "tone": "accent",
+          "title": "Prep for what's next",
+          "subtitle": "“Prep me for my meeting with Mohit, what did he ask last time?”"
+        },
+        {
+          "type": "header",
+          "tone": "accent",
+          "title": "Recall any detail",
+          "subtitle": "“What's the medicine I discussed for my father?”"
+        },
+        {
+          "type": "header",
+          "tone": "accent",
+          "title": "Turn talk into to-dos",
+          "subtitle": "“Make a task list from my last daily standup”"
+        },
+        {
+          "type": "header",
+          "tone": "accent",
+          "title": "Work across your tools",
+          "subtitle": "“Add those tasks to my Notion.” Your AI has both Neo 1 and your other apps."
+        },
+        {
+          "type": "header",
+          "tone": "accent",
+          "icon": "download",
+          "title": "Export data",
+          "subtitle": "“Export all memories from yesterday as a CSV”"
+        },
+        {
+          "type": "callout",
+          "tone": "accent",
+          "icon": "sparkle",
+          "title": "Not getting results?",
+          "bullets": [
+            "Add “from NeoSapien” to your message."
+          ]
+        },
+        {
+          "type": "card",
+          "title": "Troubleshooting",
+          "action": "screen:troubleshooting"
+        },
+        {
+          "type": "card",
+          "title": "FAQs",
+          "action": "screen:faq"
+        }
+      ]
+    },
+    "faq": {
+      "present": "screen",
+      "blocks": [
+        {
+          "type": "header",
+          "title": "FAQs"
+        },
+        {
+          "type": "faq",
+          "items": [
+            {
+              "question": "What is NeoSapien MCP?",
+              "answer": "MCP connects your AI assistant to your NeoSapien memories. Your AI can search, retrieve and reference everything you have recorded — without copy-pasting or switching apps."
+            },
+            {
+              "question": "Which AI tools are supported?",
+              "answer": "Any AI tool that supports MCP, such as Claude or ChatGPT Pro. Tools without MCP support won't work."
+            },
+            {
+              "question": "Do I need to set it up every time?",
+              "answer": "No. It's a one-time setup. Once connected, NeoSapien stays available in your AI tool."
+            },
+            {
+              "question": "Is my data safe?",
+              "answer": "Your memories are shared only with the AI tool you connect, over an authenticated (OAuth) sign-in. You can remove NeoSapien from your connectors at any time."
+            },
+            {
+              "question": "What if my AI says it cannot find memories?",
+              "answer": "Add “from NeoSapien” to your message. If it still doesn't work, re-authenticate or remove and re-add NeoSapien from your connectors."
+            },
+            {
+              "question": "How do I get my API key?",
+              "answer": "MCP uses OAuth sign-in, so there's no API key to paste — just sign in with your NeoSapien account when prompted."
+            },
+            {
+              "question": "Can I use the same account across multiple AI tools?",
+              "answer": "Yes. Sign in with the same NeoSapien account in each tool to reach the same memories everywhere."
+            }
+          ]
+        }
+      ]
+    },
+    "troubleshooting": {
+      "present": "screen",
+      "blocks": [
+        {
+          "type": "header",
+          "title": "Troubleshooting"
+        },
+        {
+          "type": "callout",
+          "title": "AI says it has no tools or cannot find MCP",
+          "bullets": [
+            "Restart your AI app after adding the NeoSapien MCP. The tool only loads on startup."
+          ]
+        },
+        {
+          "type": "callout",
+          "title": "Hammer icon not showing in Claude Desktop",
+          "bullets": [
+            "Check claude_desktop_config.json for JSON formatting errors. Ensure the file is in the correct directory."
+          ]
+        },
+        {
+          "type": "callout",
+          "title": "AI finds no memories",
+          "bullets": [
+            "Add 'from NeoSapien MCP' to your prompt. Without this trigger the AI may not query your memories. Restart the app if it persists."
+          ]
+        },
+        {
+          "type": "callout",
+          "title": "MCP server timeout",
+          "bullets": [
+            "Check your internet connection. The server at api.neosapien.xyz/mcp must be reachable."
+          ]
+        },
+        {
+          "type": "callout",
+          "title": "Config changes not taking effect",
+          "bullets": [
+            "Fully quit and relaunch the app, not just reload."
+          ]
+        },
+        {
+          "type": "text",
+          "body": "Still having issues?"
+        },
+        {
+          "type": "cta",
+          "label": "Contact Support",
+          "action": "https://neosapien.xyz/support",
+          "emphasis": "high"
+        }
+      ]
+    }
+  }
+}

@@ -1,8 +1,7 @@
 # Ingestion — reading a Figma page
 
-MCP-first, degrade to a screenshot. The Figma seat is the binding constraint (see
-"Seat reality"), so treat the screenshot path as the everyday workhorse, and the
-MCP/REST calls as a scarce high-fidelity pass.
+MCP-first: read the node with the Figma MCP calls below. Degrade to a screenshot only
+when the MCP is unavailable or a call fails.
 
 ## Paths, in order of preference
 
@@ -25,7 +24,7 @@ MCP/REST calls as a scarce high-fidelity pass.
    ```
    The URL's `node-id` uses `-`; the API wants `:` (e.g. `4146-14149` → `4146:14149`). Prefer REST/
    `get_design_context` text over vision for any `code`/URL block.
-3. **Pasted / exported screenshot (degrade).** When the MCP is unavailable or quota is spent, work
+3. **Pasted / exported screenshot (degrade).** When the MCP is unavailable or a call fails, work
    from a screenshot the user pastes/exports. The skill must still produce a validated document —
    but on this path there is **no independent inventory** and **no exact text**, so drop-detection is
    downgraded (report-only) and `code`/URL text is vision-inferred and flagged low-confidence.
@@ -43,15 +42,14 @@ path (`get_design_context` string literals or REST `characters`). On the screens
 vision-inferred — emit them but mark them **low-confidence** in the coverage report so the human
 verifies character-by-character. A page containing `code`/URL blocks should use an exact-text pass.
 
-## Seat reality (why the screenshot is the default)
-
-The authenticated Figma account may be a **View seat on a Starter tier**, capped at ~6 read calls per
-**month** across `get_metadata`/`get_screenshot`/`get_design_context`/`get_variable_defs`/shader/REST
-combined — the look-projection reads (`get_variable_defs`, `get_shader_fill`/`get_shader_effect`) count
-too, so on a View seat prefer the screenshot for the look and reserve token reads for a Dev/Full seat.
-One MCP page pass
-(~2–3 calls) is a third of the monthly budget; REST is 1 call/page (whole subtree). Budget one clean
-pass per page; iterate from the exported screenshot (0 API calls). Volume needs a Dev/Full seat.
+## If a call fails
 
 If a Figma call 403s, suspect the **wrong account** first (the Figma identity may be `@neosapien.ai`,
 not the `@neosapien.xyz` used elsewhere), then the node id.
+
+## Assets and multi-frame guides
+
+Reading is not the whole ingest. A guide-family spans several frames, and its images must be exported
+(not just referenced) so the user can upload them to the CDN. `download_assets` (the export call) and
+the frame-collapse / asset-grouping rules live in `deliverables-and-assets.md`. Only the main thread
+can read the Figma MCP — subagents cannot auth it, so pull every frame, screenshot, and asset yourself.
