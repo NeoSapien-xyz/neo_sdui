@@ -31,11 +31,6 @@ system's source of truth):
 3. **`get_design_context` / REST** — exact values when no variable is bound.
 4. **Screenshot** — last-resort visual read; mark these `inferred`.
 
-**Seat budget:** these are distinct Figma reads metered against the ~6/month cap
-(see `ingestion.md`). Token-first is the *fidelity* order, not a free one — on a
-View seat, read the look from the screenshot by default and reserve
-`get_variable_defs`/shader calls for when a Dev/Full seat makes them affordable.
-
 ## 2. Append to the role ledger
 
 The ledger is a JSON sidecar the user names (e.g. `.theme/ledger.json`). It
@@ -63,8 +58,11 @@ for a genuinely new theme. Shape:
   `spaceSm`/`Md`/`Lg`, `blockSpacing`, `backdropBlur`, `cardColor`, `cardPadding`,
   `cardShape`, `cardShadow`, `cardGradient`, `gridLine`, `gridSpacing`,
   `groupGradient`, `divider`, `contentPadding`, `motionDuration`/`motionCurve`/
-  `reduceMotion`, `accentGradient`. A named accent hue is `accents.<name>`; a
-  named icon is `icons.<name>`. The authoritative list is the single `kRoleSlots`
+  `reduceMotion`, `accentGradient`, `backgroundGradient` (the screen backdrop
+  gradient — the flat `background` color's gradient complement), `ctaGradient`
+  (the branded fill for an `emphasis:"high"` cta). A named accent hue is
+  `accents.<name>`; a named icon is `icons.<name>`. The authoritative list is
+  the single `kRoleSlots`
   registry in `theme_compile.dart` (the compile's source of truth — DTCG "token
   map" style); a roleKey **not** in it is emitted as a `// TODO(theme): unsupported
   role` comment, never as a broken `copyWith` arg. If you need a field that isn't

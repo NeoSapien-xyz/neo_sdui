@@ -76,6 +76,8 @@ class NeoSduiTheme {
     this.motionCurve = Curves.easeOut,
     this.reduceMotion = false,
     this.accentGradient,
+    this.backgroundGradient,
+    this.ctaGradient,
     this.accents = const {},
     this.icons = kDefaultIcons,
   });
@@ -165,6 +167,18 @@ class NeoSduiTheme {
   /// `accent`, never gradient stops (KTD9). Null -> accent text stays the flat
   /// `accent` color, byte-identical to the pre-gradient render.
   final Gradient? accentGradient;
+
+  /// Gradient painted behind the whole screen (the app backdrop). Client-owned
+  /// stops, like [accentGradient]. Null -> the backdrop stays the flat
+  /// [background] color, byte-identical to the pre-gradient render. The wire
+  /// never carries a backdrop gradient; only the theme does (KTD9).
+  final Gradient? backgroundGradient;
+
+  /// Gradient fill for a *featured* cta (`emphasis:"high"`) — the branded button
+  /// surface. Client-owned stops, like [accentGradient]/[cardGradient]. Null ->
+  /// a high-emphasis cta stays the flat `accent` fill, byte-identical to before.
+  /// The wire only ever names the emphasis; the stops live here (KTD9).
+  final Gradient? ctaGradient;
 
   /// Extra named accent roles beyond the primary `accent`/`critical`, keyed by
   /// the `tone` name the wire uses (e.g. `"brand"`). Lets one screen carry two
@@ -298,6 +312,8 @@ class NeoSduiTheme {
     Curve? motionCurve,
     bool? reduceMotion,
     Gradient? accentGradient,
+    Gradient? backgroundGradient,
+    Gradient? ctaGradient,
     Map<String, NeoAccent>? accents,
     Map<String, IconData>? icons,
   }) {
@@ -338,6 +354,8 @@ class NeoSduiTheme {
       motionCurve: motionCurve ?? this.motionCurve,
       reduceMotion: reduceMotion ?? this.reduceMotion,
       accentGradient: accentGradient ?? this.accentGradient,
+      backgroundGradient: backgroundGradient ?? this.backgroundGradient,
+      ctaGradient: ctaGradient ?? this.ctaGradient,
       accents: accents ?? this.accents,
       icons: icons ?? this.icons,
     );

@@ -24,6 +24,9 @@ Widget buildCta(BuildContext context, BlockNode node) {
         theme.radiusMd,
         fallback: 'rounded',
         color: theme.fill(emphasis),
+        // A featured cta (emphasis:high) fills with the branded ctaGradient when
+        // the theme sets one; null keeps the flat accent fill, byte-identical.
+        gradient: emphasis == 'high' ? theme.ctaGradient : null,
       ),
       child: Padding(
         padding: EdgeInsets.symmetric(vertical: 14, horizontal: theme.spaceLg),

@@ -61,8 +61,7 @@ class NeoSduiView extends StatelessWidget {
       theme: theme,
       dispatch: _dispatch,
       buildBlocks: _buildBlocks,
-      child: ColoredBox(
-        color: theme.background,
+      child: _backdrop(
         child: ListView.separated(
           padding: theme.contentPadding +
               EdgeInsets.symmetric(vertical: theme.blockSpacing),
@@ -71,6 +70,19 @@ class NeoSduiView extends StatelessWidget {
           itemBuilder: (_, i) => content[i],
         ),
       ),
+    );
+  }
+
+  /// Paints the screen backdrop: the flat [NeoSduiTheme.background] via a plain
+  /// ColoredBox, or [NeoSduiTheme.backgroundGradient] via a DecoratedBox when the
+  /// theme sets one. Flat is the default — byte-identical to the pre-gradient
+  /// render, so no goldens regenerate.
+  Widget _backdrop({required Widget child}) {
+    final gradient = theme.backgroundGradient;
+    if (gradient == null) return ColoredBox(color: theme.background, child: child);
+    return DecoratedBox(
+      decoration: BoxDecoration(gradient: gradient),
+      child: child,
     );
   }
 

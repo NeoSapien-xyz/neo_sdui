@@ -93,6 +93,8 @@ final Map<String, RoleSlot> kRoleSlots = Map.unmodifiable({
   'cardGradient': RoleSlot(ValueKind.gradient),
   'groupGradient': RoleSlot(ValueKind.gradient),
   'accentGradient': RoleSlot(ValueKind.gradient),
+  'backgroundGradient': RoleSlot(ValueKind.gradient),
+  'ctaGradient': RoleSlot(ValueKind.gradient),
   'radiusSm': RoleSlot(ValueKind.other),
   'radiusMd': RoleSlot(ValueKind.other),
   'radiusLg': RoleSlot(ValueKind.other),
