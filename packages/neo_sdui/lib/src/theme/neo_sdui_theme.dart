@@ -12,6 +12,11 @@ const Map<String, IconData> kDefaultIcons = {
   'warning': Icons.warning_amber_rounded,
 };
 
+/// The built-in accent tone names [NeoSduiTheme.accentFor] resolves even without
+/// a theme-declared `accents.<name>` entry. Exported so the role-drift lint reads
+/// one list instead of hand-duplicating it; keep in sync with `accentFor`'s switch.
+const Set<String> kBuiltinAccentTones = {'accent', 'critical'};
+
 /// One accent *role* the wire can name via `tone` — a flat [color] and an
 /// optional [gradient] painted over the glyphs when set (null → flat, like a
 /// null `accentGradient`). The primary accent is the theme's `accent`/
@@ -185,6 +190,7 @@ class NeoSduiTheme {
     if (tone == null) return null;
     final named = accents[tone];
     if (named != null) return named;
+    // The cases here are the [kBuiltinAccentTones] set — keep the two in sync.
     return switch (tone) {
       'accent' => NeoAccent(accent, accentGradient),
       'critical' => NeoAccent(danger),

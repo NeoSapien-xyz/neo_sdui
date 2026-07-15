@@ -26,6 +26,12 @@ void main() {
     final json =
         jsonDecode(File(ledgerPath!).readAsStringSync()) as Map<String, Object?>;
     final ledger = RoleLedger.fromJson(json);
+    if (ledger.malformedObservations > 0) {
+      // ignore: avoid_print
+      print('WARNING: dropped ${ledger.malformedObservations} malformed '
+          'observation(s) from the ledger — the accumulated theme may be '
+          'incomplete (corrupt/truncated write?), not just missing Figma data.');
+    }
     final reconciled = ledger.reconcile(basePage: basePage);
 
     final source = emitTheme(reconciled);

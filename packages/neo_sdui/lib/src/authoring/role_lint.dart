@@ -11,7 +11,7 @@
 library;
 
 import '../model/validate_vocabulary.dart' show WireIssueSeverity;
-import '../theme/neo_sdui_theme.dart' show kDefaultIcons;
+import '../theme/neo_sdui_theme.dart' show kDefaultIcons, kBuiltinAccentTones;
 import 'theme_ledger.dart';
 
 /// One drift problem. Collected, never thrown. Reuses [WireIssueSeverity] so the
@@ -28,8 +28,6 @@ class RoleDriftIssue {
   @override
   String toString() => '$role: $message [${isBlocking ? 'block' : 'warn'}]';
 }
-
-const Set<String> _builtinTones = {'accent', 'critical'};
 
 /// Check the compiled theme covers every wire role, and note unused theme slots.
 List<RoleDriftIssue> lintRoleDrift(Reconciled r) {
@@ -52,7 +50,7 @@ List<RoleDriftIssue> lintRoleDrift(Reconciled r) {
     switch (kind) {
       case 'tone':
         referencedAccents.add(name);
-        if (!_builtinTones.contains(name) && !namedAccents.contains(name)) {
+        if (!kBuiltinAccentTones.contains(name) && !namedAccents.contains(name)) {
           out.add(RoleDriftIssue(
               tag,
               "wire tone '$name' has no theme accent slot",

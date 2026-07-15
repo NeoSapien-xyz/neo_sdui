@@ -171,5 +171,54 @@ void main() {
       expect(ledger.observations, hasLength(1));
       expect(ledger.observations.single.roleKey, 'accent');
     });
+
+    test('fromJson counts dropped malformed observations', () {
+      final ledger = RoleLedger.fromJson({
+        'version': 1,
+        'observations': [
+          {
+            'roleKey': 'accent',
+            'value': '0xFF00F1A0',
+            'page': 'home',
+            'provenance': 'variable',
+            'kind': 'color',
+          },
+          {
+            'roleKey': 'surface',
+            'value': '0xFF202423',
+            'page': 'home',
+            'provenance': 'variable',
+            'kind': 'colour', // bad enum name
+          },
+          'not-a-map', // bad shape
+        ],
+        'roleUsage': <String, Object?>{},
+      });
+      // a corrupt/truncated write is visible, not swallowed as "no Figma data".
+      expect(ledger.observations, hasLength(1));
+      expect(ledger.malformedObservations, 2);
+    });
+
+    test('a clean load reports zero malformed observations', () {
+      final restored = RoleLedger.fromJson(jsonDecode(jsonEncode(
+          (RoleLedger()..observe(_c('accent', '0xFF00F1A0', 'home')))
+              .toJson())));
+      expect(restored.malformedObservations, 0);
+    });
+
+    test('fromJson tolerates malformed roleUsage shapes', () {
+      final ledger = RoleLedger.fromJson({
+        'version': 1,
+        'observations': <Object?>[],
+        'roleUsage': {
+          'home': ['tone:accent', 42, 'icon:sparkle'], // non-string tag dropped
+          7: ['tone:brand'], // non-string page dropped
+          'about': 'not-a-list', // non-list tags dropped
+        },
+      });
+      expect(ledger.roleUsage['home'], {'tone:accent', 'icon:sparkle'});
+      expect(ledger.roleUsage.containsKey('about'), isFalse);
+      expect(ledger.roleUsage, hasLength(1));
+    });
   });
 }

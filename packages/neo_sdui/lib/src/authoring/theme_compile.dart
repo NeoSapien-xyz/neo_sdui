@@ -43,7 +43,10 @@ Color? _color(String v) {
 /// paste-in source can never drift: add a theme field here **once** and both
 /// sides pick it up (an unknown roleKey is flagged, never silently half-handled).
 /// The map-typed slots (`accents.*`, `icons.*`) are keyed by prefix, not listed.
-final Map<String, RoleSlot> kRoleSlots = {
+/// Unmodifiable — this is a single source of truth, not a per-consumer scratch
+/// map (matches `kDefaultIcons` being `const`; the closures block `const` here,
+/// so it is a runtime-frozen literal instead).
+final Map<String, RoleSlot> kRoleSlots = Map.unmodifiable({
   // Role colours — painted live.
   'accent': RoleSlot(ValueKind.color, (t, v) => t.copyWith(accent: _color(v))),
   'onAccent':
@@ -100,7 +103,7 @@ final Map<String, RoleSlot> kRoleSlots = {
   'motionDuration': RoleSlot(ValueKind.other),
   'motionCurve': RoleSlot(ValueKind.other),
   'reduceMotion': RoleSlot(ValueKind.other),
-};
+});
 
 /// A roleKey the compile knows how to place: a registered scalar slot or a
 /// map-typed `accents.*` / `icons.*` entry. Everything else is unsupported.
@@ -112,18 +115,24 @@ bool _isKnownRole(String key) =>
 /// A live [NeoSduiTheme] from a reconciled ledger, for U4's render preview.
 ///
 /// Folds the reconciled base through [kRoleSlots], painting the colour/number
-/// roles the preview needs and leaving textStyle/gradient roles at `fallback()`
-/// (the structural preview renders fonts as the default test font anyway, so
-/// palette is what matters). The full-fidelity literals still ride the emitted
-/// paste-in source; this builder exists so the render never has to `eval` it
-/// (Dart has no runtime eval).
+/// roles and the `accents.*` hues the preview needs. `textStyle`/`gradient`
+/// roles and `icons.*` glyphs stay at `fallback()`: their ledger values are Dart
+/// literals (`TextStyle(...)`, `Icons.download`) with no runtime constructor from
+/// a string, so only the emitted paste-in source carries them — the structural
+/// preview is palette-fidelity, not full-fidelity, by design (Dart has no `eval`).
+/// A role whose ledger kind disagrees with its registry slot is left at fallback
+/// too, so the preview never paints a garbage value the emit would reject.
 NeoSduiTheme buildBaseTheme(Reconciled r) {
   var theme = NeoSduiTheme.fallback();
   final accents = <String, NeoAccent>{};
   r.base.forEach((key, role) {
-    final live = kRoleSlots[key]?.live;
+    final slot = kRoleSlots[key];
+    final live = slot?.live;
     if (live != null) {
-      theme = live(theme, role.value);
+      // Trust the registry's kind, not the ledger's self-declared one: a
+      // kind-mismatched value (e.g. a `number` for a `color` slot) is skipped
+      // rather than fed to the painter, matching emitTheme's skip.
+      if (role.kind == slot!.kind) theme = live(theme, role.value);
       return;
     }
     final accentName = stripRolePrefix(key, kAccentsPrefix);
@@ -145,7 +154,7 @@ String emitTheme(Reconciled r) {
     ..writeln("import 'package:neo_sdui/neo_sdui.dart';")
     ..writeln()
     ..writeln('final base = NeoSduiTheme.fallback().copyWith(');
-  _emitRoles(b, r.base);
+  final skipped = _emitRoles(b, r.base);
   b.writeln(');');
 
   final todo = _uncovered(r);
@@ -157,6 +166,11 @@ String emitTheme(Reconciled r) {
   if (unsupported.isNotEmpty) {
     b.writeln('// TODO(theme): unsupported role(s) ${unsupported.join(', ')} '
         '— not a NeoSduiTheme field; extend kRoleSlots or fix the ledger.');
+  }
+  if (skipped.isNotEmpty) {
+    b.writeln('// TODO(theme): unresolved ${(skipped..sort()).join(', ')} '
+        '— ledger kind/value did not match the registry slot; inheriting '
+        'NeoSduiTheme.fallback().');
   }
 
   final pages = r.overridesByPage.keys.toList()..sort();
@@ -209,7 +223,10 @@ String coverageReport(Reconciled r) {
 /// otherwise a page that diverges on one accent silently drops base's other
 /// accents, and an emitted `icons` block would replace `kDefaultIcons` while
 /// `role_lint` still assumes the defaults are present.
-void _emitRoles(StringBuffer b, Map<String, ResolvedRole> roles,
+/// Emits `roles` and returns the simple scalar keys it deliberately skipped
+/// (kind/value could not be vouched for) so the caller can flag them; `todo`
+/// roles are also skipped but reported separately via [_uncovered].
+List<String> _emitRoles(StringBuffer b, Map<String, ResolvedRole> roles,
     {bool isOverride = false}) {
   final accents = <String, ResolvedRole>{};
   final icons = <String, ResolvedRole>{};
@@ -226,11 +243,24 @@ void _emitRoles(StringBuffer b, Map<String, ResolvedRole> roles,
     }
   }
   simple.sort();
+  final skipped = <String>[];
   for (final key in simple) {
     final role = roles[key]!;
+    // `todo` means Figma could not answer: the field inherits fallback() and is
+    // listed under the `// TODO(theme): no data` line, so it is never an arg.
+    if (role.provenance == Provenance.todo) continue;
+    // Emit only a value the registry can vouch for: the ledger's kind must match
+    // the registry slot, and a color/number value must actually parse. Anything
+    // else would print invalid or type-mismatched Dart (e.g. `radiusMd: 16` into
+    // a BorderRadius field), so skip it and let the caller flag it instead.
+    final expr = _scalarExpr(kRoleSlots[key]!, role);
+    if (expr == null) {
+      skipped.add(key);
+      continue;
+    }
     final confirm =
         role.provenance == Provenance.inferred ? '  // confirm:' : '';
-    b.writeln('  $key: ${_expr(role)},$confirm');
+    b.writeln('  $key: $expr,$confirm');
   }
   if (accents.isNotEmpty) {
     b.writeln('  accents: {');
@@ -248,6 +278,7 @@ void _emitRoles(StringBuffer b, Map<String, ResolvedRole> roles,
     }
     b.writeln('  },');
   }
+  return skipped;
 }
 
 /// The Dart expression for a role value: colours/numbers are wrapped, everything
@@ -257,6 +288,25 @@ String _expr(ResolvedRole role) => switch (role.kind) {
       ValueKind.number => role.value,
       _ => role.value,
     };
+
+/// The Dart expression for a *known scalar* role, or null when the value can't be
+/// vouched for. A known role's kind is the registry's, not the ledger's: a
+/// kind mismatch returns null. A `color`/`number` whose value does not parse
+/// returns null (it would print invalid Dart). `textStyle`/`gradient`/`other`
+/// literals are emitted verbatim — the compile can't validate an arbitrary Dart
+/// literal, so those still lean on the mandatory `flutter analyze <theme.dart>`
+/// gate; the frequent color/number cases are caught here at the source.
+String? _scalarExpr(RoleSlot slot, ResolvedRole role) {
+  if (role.kind != slot.kind) return null;
+  switch (slot.kind) {
+    case ValueKind.color:
+      return parseColorHex(role.value) == null ? null : 'Color(${role.value})';
+    case ValueKind.number:
+      return double.tryParse(role.value) == null ? null : role.value;
+    default:
+      return role.value;
+  }
+}
 
 /// An `accents` map value is typed `NeoAccent`: wrap a bare colour, else the
 /// value is already a `NeoAccent(...)` literal.

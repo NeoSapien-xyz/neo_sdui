@@ -65,18 +65,25 @@ When the run accumulated a role ledger (`theme-extract.md`), the theme has its o
 rendering *wrong*, not by vanishing, so the wire gates can't catch it. Run these on the final ledger:
 
 ```bash
-# Compile + role-drift lint (fails if a wire role has no theme slot):
-NEO_THEME_LEDGER=<ledger.json> NEO_THEME_OUT=<theme.dart> \
+# Compile + role-drift lint (fails if a wire role has no theme slot).
+# If you pin a base with NEO_THEME_BASE_PAGE, pass the SAME value to the render below.
+NEO_THEME_LEDGER=<ledger.json> NEO_THEME_OUT=<theme.dart> [NEO_THEME_BASE_PAGE=<page>] \
   fvm flutter test test/tools/compile_theme_test.dart
 
-# Confirm the emitted theme actually compiles:
+# Confirm the emitted theme actually compiles (the in-code gates vouch for color/number
+# values and reject kind mismatches; this catches the verbatim textStyle/gradient literals):
 fvm flutter analyze <theme.dart>
 
-# Round-trip render an accumulated wire UNDER the compiled theme, to eyeball vs the Figma screenshot:
-NEO_WIRE_JSON=<wire.json> NEO_THEME_LEDGER=<ledger.json> \
+# Round-trip render an accumulated wire UNDER the compiled theme, to eyeball vs the Figma
+# screenshot. Pass the SAME NEO_THEME_BASE_PAGE you compiled with — otherwise the preview
+# reconciles a different (majority) base than the theme you hand off, defeating the check:
+NEO_WIRE_JSON=<wire.json> NEO_THEME_LEDGER=<ledger.json> [NEO_THEME_BASE_PAGE=<page>] \
   fvm flutter test --update-goldens test/tools/render_wire_test.dart   # writes .render/preview.png
 ```
 
 The compile prints the paste-in `NeoSduiTheme` (base + per-page `copyWith`) and a coverage report;
-surface every `// confirm:` (inferred) and `// TODO(theme):` (no data) for the human, and resolve the
-compile's **conflict roles** via the hybrid prompt in `theme-extract.md` before finalizing.
+surface every `// confirm:` (inferred) and `// TODO(theme):` (no data / unresolved / unsupported) for
+the human, and resolve the compile's **conflict roles** via the hybrid prompt in `theme-extract.md`
+before finalizing. Note: the preview is palette-fidelity only — `textStyle`/`gradient`/`icons.*` roles
+render at fallback (no runtime constructor from a literal), so trust the emitted `.dart` + `analyze` for
+type/font/gradient fidelity, the PNG for layout and palette.

@@ -87,6 +87,9 @@ class Observation {
         'kind': kind.name,
       };
 
+  /// Caller must pre-validate the map's shape — these raw casts and `byName`
+  /// lookups throw on a malformed entry. [RoleLedger.fromJson] is the only caller
+  /// and guards every field before calling this; a new caller must do the same.
   factory Observation.fromJson(Map<String, Object?> json) => Observation(
         roleKey: json['roleKey'] as String,
         value: json['value'] as String,
@@ -150,10 +153,17 @@ class RoleLedger {
   RoleLedger({
     List<Observation>? observations,
     Map<String, Set<String>>? roleUsage,
+    this.malformedObservations = 0,
   })  : observations = observations ?? <Observation>[],
         roleUsage = roleUsage ?? <String, Set<String>>{};
 
   final List<Observation> observations;
+
+  /// How many observations [fromJson] dropped as malformed on the last load — a
+  /// corrupt/truncated ledger write would otherwise silently masquerade as
+  /// "Figma had no data". The compile tool surfaces this when non-zero so
+  /// accumulator corruption is visible rather than swallowed.
+  final int malformedObservations;
 
   /// page → wire role tags that page used.
   final Map<String, Set<String>> roleUsage;
@@ -251,19 +261,25 @@ class RoleLedger {
 
   factory RoleLedger.fromJson(Map<String, Object?> json) {
     final obs = <Observation>[];
+    var dropped = 0;
     final rawObs = json['observations'];
     if (rawObs is List) {
       for (final e in rawObs) {
-        if (e is! Map) continue;
-        final m = Map<String, Object?>.from(e);
         // Skip a malformed observation rather than throwing — the ledger is read
         // from disk, so an unknown enum name or missing field must not abort the
-        // whole load (matches the defensive shape-guarding around it).
+        // whole load (matches the defensive shape-guarding around it). Count the
+        // drops so a truncated/corrupt write is visible, not silently swallowed.
+        if (e is! Map) {
+          dropped++;
+          continue;
+        }
+        final m = Map<String, Object?>.from(e);
         if (m['roleKey'] is! String ||
             m['value'] is! String ||
             m['page'] is! String ||
             !Provenance.values.asNameMap().containsKey(m['provenance']) ||
             !ValueKind.values.asNameMap().containsKey(m['kind'])) {
+          dropped++;
           continue;
         }
         obs.add(Observation.fromJson(m));
@@ -278,7 +294,8 @@ class RoleLedger {
         }
       });
     }
-    return RoleLedger(observations: obs, roleUsage: usage);
+    return RoleLedger(
+        observations: obs, roleUsage: usage, malformedObservations: dropped);
   }
 }
 

@@ -193,6 +193,59 @@ void main() {
     expect(buildBaseTheme(r).spaceLg, 40);
   });
 
+  test('a role whose ledger kind disagrees with its registry slot is skipped', () {
+    final r = (RoleLedger()
+          ..observe(_color('accent', '0xFF00F1A0', 'home'))
+          // radiusMd is a registry `other` slot; a number value would emit
+          // `radiusMd: 16` into a BorderRadius field — must be skipped instead.
+          ..observe(const Observation(
+              roleKey: 'radiusMd',
+              value: '16',
+              page: 'home',
+              provenance: Provenance.variable,
+              kind: ValueKind.number)))
+        .reconcile();
+    final src = emitTheme(r);
+    expect(src, isNot(contains('radiusMd:')));
+    expect(src, contains('// TODO(theme): unresolved radiusMd'));
+  });
+
+  test('a color role with an unparseable value is skipped, not emitted as bad Dart',
+      () {
+    final r =
+        (RoleLedger()..observe(_color('accent', 'nothex', 'home'))).reconcile();
+    final src = emitTheme(r);
+    expect(src, isNot(contains('Color(nothex)')));
+    expect(src, contains('// TODO(theme): unresolved accent'));
+  });
+
+  test('a todo-provenance role is never emitted as a copyWith arg', () {
+    final r = (RoleLedger()
+          ..observe(const Observation(
+              roleKey: 'accent',
+              value: '0xFF00F1A0',
+              page: 'home',
+              provenance: Provenance.todo,
+              kind: ValueKind.color)))
+        .reconcile();
+    final src = emitTheme(r);
+    expect(src, isNot(contains('accent: Color(0xFF00F1A0)')));
+    expect(src, contains('// TODO(theme): no data for accent'));
+  });
+
+  test('buildBaseTheme leaves a kind-mismatched role at fallback', () {
+    final r = (RoleLedger()
+          ..observe(const Observation(
+              roleKey: 'accent',
+              value: '16',
+              page: 'home',
+              provenance: Provenance.variable,
+              kind: ValueKind.number)))
+        .reconcile();
+    // accent slot is color; a number value must not be painted onto the theme.
+    expect(buildBaseTheme(r).accent, NeoSduiTheme.fallback().accent);
+  });
+
   test('a todo-provenance role is flagged on a standalone TODO(theme) line', () {
     final r = (RoleLedger()
           ..observe(const Observation(
