@@ -5,7 +5,7 @@ Shared domain vocabulary for this project — entities, named processes, and sta
 ## Server-driven UI
 
 ### Wire
-The flat data document the server (Remote Config) delivers and the client renders — a version, a list of blocks, and named views. Its defining invariant: the wire carries only *semantics* (what a thing is and its content), never *look* (no hex colors, pixel sizes, or font sizes). Anything visual is resolved on the client.
+The flat data document the server (Remote Config) delivers and the client renders — a version, a list of blocks, and named views. Its defining invariant — authoring tools call it the **Iron Rule** — is that the wire carries only *semantics* (what a thing is and its content), never *look* (no hex colors, pixel sizes, or font sizes). Anything visual is resolved on the client.
 
 ### Block
 One semantic unit on the wire (a header, a media, a card, a cta), identified by a `type` string and a bag of fields. A block never describes its own appearance; it names intent and lets the client's theme decide how it looks. Rendering is resilient — a block that fails to build degrades to a placeholder or is skipped, never crashing the view.
@@ -36,3 +36,8 @@ A named sub-screen carried in the wire alongside the top-level blocks, rendered 
 
 ### Role ledger
 The persistent cross-screen accumulator the `figwire` skill fills with the look it reads from each Figma page but is forbidden to put on the wire — role→value observations (color roles, type scale, radius/space scales, surfaces, gradients, named accents, icons), tagged by source page. It is the authoring-time counterpart of the wire: a single Figma read forks into the wire (semantics) and the ledger (look). Pages are fed part by part across runs, so the ledger accumulates and reconciles (auto-merging near-duplicate values), and a terminal compile step resolves it into one base NeoSduiTheme plus a `copyWith` override per divergent page. It exists so the theme is derived from the same read as the wire, never a second one, and so the two stay reconciled on a shared Role vocabulary.
+
+Reconciliation is a batch pass over the whole accumulated set, run at compile rather than incrementally at ingest, so the resolved theme is independent of the order pages were fed. The base is the look most pages share; a genuine cross-page difference either becomes a per-page override or, when the majority misranks intent, is overridden by explicitly designating one page's look as the base.
+
+### Role drift
+A mismatch between the look roles the wire names and the slots the compiled theme provides — a wire tone, icon, or named accent with no theme slot behind it (it would render as a plain, undecorated fallback), or a theme slot no wire ever references (dead look). The authoring-time role-drift check asserts the coupling in both directions: an unmatched wire role is a blocking issue, an unused theme slot an advisory. It exists because a theme fails by rendering *wrong*, not by vanishing, so the wire's own vocabulary gate cannot catch a role that silently resolves to nothing — the Role ledger records which roles each page's wire used precisely so this check has both sides to compare.

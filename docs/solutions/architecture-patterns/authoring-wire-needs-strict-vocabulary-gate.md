@@ -269,4 +269,8 @@ no separate binary, and CI stays green.
   — why `kCoreBlockTypes` can stay core-only: add-ons re-register existing types
   (last-wins) instead of minting new `type` strings, so the 14-type gate never
   needs to grow per add-on.
+- [`one-figma-read-forks-into-wire-and-accumulating-role-ledger.md`](one-figma-read-forks-into-wire-and-accumulating-role-ledger.md)
+  — the *other* projection of the same single Figma read. This doc governs the
+  wire fork (the strict vocabulary gate); that one governs the look fork (the role
+  ledger that compiles to a base theme + per-page overrides).
 ```
