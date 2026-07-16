@@ -30,17 +30,17 @@ class McpScreen extends StatelessWidget {
         document: document(),
         theme: mcpTheme,
         onAction: _onAction,
-        onPresentSheet: (ctx, view) => showModalBottomSheet<void>(
+        onPresentSheet: (ctx, _, child) => showModalBottomSheet<void>(
           context: ctx,
           backgroundColor: mcpTheme.background,
           isScrollControlled: true,
           builder: (_) => FractionallySizedBox(
             heightFactor: 0.85,
-            child: SafeArea(child: view),
+            child: SafeArea(child: child),
           ),
         ),
-        onPresentScreen: (ctx, view) => Navigator.of(ctx).push(
-          MaterialPageRoute<void>(builder: (_) => _McpSubScreen(view: view)),
+        onPresentScreen: (ctx, _, child) => Navigator.of(ctx).push(
+          MaterialPageRoute<void>(builder: (_) => _McpSubScreen(view: child)),
         ),
       );
 

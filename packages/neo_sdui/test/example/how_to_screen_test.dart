@@ -23,7 +23,7 @@ void main() {
                 document: HowToScreen.document(),
                 theme: howToTheme,
                 onAction: (_, _) {},
-                onPresentSheet: (_, view) => presented = view,
+                onPresentSheet: (_, _, child) => presented = child,
               ),
             ),
           ),

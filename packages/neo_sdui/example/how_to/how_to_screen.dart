@@ -26,13 +26,13 @@ class HowToScreen extends StatelessWidget {
           document: document(),
           theme: howToTheme,
           onAction: _onAction,
-          onPresentSheet: (ctx, view) => showModalBottomSheet<void>(
+          onPresentSheet: (ctx, _, child) => showModalBottomSheet<void>(
             context: ctx,
             backgroundColor: howToTheme.background,
             isScrollControlled: true,
             builder: (_) => FractionallySizedBox(
               heightFactor: 0.85,
-              child: SafeArea(child: view),
+              child: SafeArea(child: child),
             ),
           ),
         ),

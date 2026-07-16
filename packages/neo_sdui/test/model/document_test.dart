@@ -19,8 +19,9 @@ void main() {
           },
           'chatgpt': {
             'present': 'screen',
+            'title': 'ChatGPT MCP',
             'blocks': [
-              {'type': 'header', 'title': 'ChatGPT MCP'},
+              {'type': 'text', 'body': 'Steps here.'},
             ],
           },
         },
@@ -34,6 +35,9 @@ void main() {
       expect(doc.viewById('control')!.present, NeoViewPresent.sheet);
       expect(doc.viewById('chatgpt')!.present, NeoViewPresent.screen);
       expect(doc.viewById('control')!.blocks.single.type, 'text');
+      // A view's optional app-bar title parses; absent -> null.
+      expect(doc.viewById('chatgpt')!.title, 'ChatGPT MCP');
+      expect(doc.viewById('control')!.title, isNull);
     });
 
     test('missing/non-string type parses to the invalid sentinel', () {

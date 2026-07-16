@@ -12,8 +12,11 @@ import '../theme/neo_sdui_theme.dart';
 /// App resolves a non-view action (external url, route, close).
 typedef NeoActionHandler = void Function(BuildContext context, NeoAction action);
 
-/// App presents a sub-view widget (showModalBottomSheet / Navigator.push).
-typedef NeoViewPresenter = void Function(BuildContext context, Widget view);
+/// App presents a sub-view (showModalBottomSheet / Navigator.push). [view]
+/// carries the sub-view metadata (its [NeoView.title] for the app bar); [child]
+/// is the built widget to host.
+typedef NeoViewPresenter = void Function(
+    BuildContext context, NeoView view, Widget child);
 
 /// Renders one document (or sub-view) into a themed, scrollable block list.
 ///
@@ -61,13 +64,19 @@ class NeoSduiView extends StatelessWidget {
       theme: theme,
       dispatch: _dispatch,
       buildBlocks: _buildBlocks,
+      // Backdrop fills the whole view (behind any transparent app bar); the
+      // scroll content sits inside a SafeArea so a host that extends the body
+      // behind system chrome keeps content clear of it. No insets -> no-op, so
+      // goldens (zero-padding MediaQuery) are byte-identical.
       child: _backdrop(
-        child: ListView.separated(
-          padding: theme.contentPadding +
-              EdgeInsets.symmetric(vertical: theme.blockSpacing),
-          itemCount: content.length,
-          separatorBuilder: (_, _) => SizedBox(height: theme.blockSpacing),
-          itemBuilder: (_, i) => content[i],
+        child: SafeArea(
+          child: ListView.separated(
+            padding: theme.contentPadding +
+                EdgeInsets.symmetric(vertical: theme.blockSpacing),
+            itemCount: content.length,
+            separatorBuilder: (_, _) => SizedBox(height: theme.blockSpacing),
+            itemBuilder: (_, i) => content[i],
+          ),
         ),
       ),
     );
@@ -133,7 +142,7 @@ class NeoSduiView extends StatelessWidget {
         if (view == null) return;
         final child = _subView(view);
         (present == NeoViewPresent.sheet ? onPresentSheet : onPresentScreen)
-            ?.call(ctx, child);
+            ?.call(ctx, view, child);
       case ExternalUrl():
       case RouteAction():
       case CloseView():

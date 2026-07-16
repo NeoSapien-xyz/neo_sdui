@@ -11,18 +11,22 @@ enum NeoViewPresent {
       raw == 'screen' ? NeoViewPresent.screen : NeoViewPresent.sheet;
 }
 
-/// A named sub-view: blocks + how it opens. The app owns the Navigator.
+/// A named sub-view: blocks + how it opens + an optional [title] the host shows
+/// in the app bar (the pushed screen's "ChatGPT MCP" / "Claude MCP" heading).
+/// The app owns the Navigator.
 @immutable
 class NeoView {
-  const NeoView({required this.present, required this.blocks});
+  const NeoView({required this.present, required this.blocks, this.title});
 
   final NeoViewPresent present;
   final List<BlockNode> blocks;
+  final String? title;
 
   factory NeoView.fromJson(Map<String, Object?> json) {
     final rawBlocks = json['blocks'];
     return NeoView(
       present: NeoViewPresent.fromWire(json['present']),
+      title: json['title'] is String ? json['title'] as String : null,
       blocks: rawBlocks is List
           ? [
               for (final b in rawBlocks)
