@@ -70,6 +70,10 @@ final Map<String, RoleSlot> kRoleSlots = Map.unmodifiable({
       RoleSlot(ValueKind.color, (t, v) => t.copyWith(gridLine: _color(v))),
   'divider':
       RoleSlot(ValueKind.color, (t, v) => t.copyWith(divider: _color(v))),
+  'stepCardColor': RoleSlot(
+      ValueKind.color, (t, v) => t.copyWith(stepCardColor: _color(v))),
+  'stepCardBorderColor': RoleSlot(
+      ValueKind.color, (t, v) => t.copyWith(stepCardBorderColor: _color(v))),
   // Scales — painted live.
   'spaceSm': RoleSlot(
       ValueKind.number, (t, v) => t.copyWith(spaceSm: double.tryParse(v))),

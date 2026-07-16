@@ -4,6 +4,8 @@ import '../model/block_node.dart';
 import '../theme/neo_sdui_scope.dart';
 import '_grid.dart';
 import '_shape.dart';
+import 'card.dart';
+import 'header.dart';
 
 /// Layout primitives: arrange child blocks, carry no pixels (KTD10). Spacing and
 /// surfaces come from the theme, not the wire.
@@ -36,9 +38,46 @@ Widget buildGroup(BuildContext context, BlockNode node) {
   final scope = NeoSduiScope.of(context);
   final theme = scope.theme;
   final shape = node.stringOr('shape');
-  final Widget content = Padding(
-    padding: EdgeInsets.all(theme.spaceMd),
-    child: _stack(scope.buildBlocks(node.nodeList('children')), theme.blockSpacing),
+  // A menu card: one shared surface holding flat `card` rows (the
+  // Troubleshooting/FAQs nav). No inter-row gap and no per-row surface —
+  // [CardListed] tells each child card to render as a compact row. Triggered by
+  // `variant:"list"` OR, robustly, whenever every child is a `card` (a group of
+  // cards is a menu) — so it renders tight even if the wire omits the variant.
+  final childNodes = node.nodeList('children');
+  final allCards =
+      childNodes.isNotEmpty && childNodes.every((c) => c.type == 'card');
+  if (node.stringOr('variant') == 'list' || allCards) {
+    final kids = scope.buildBlocks(childNodes);
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: theme.surface,
+        borderRadius: theme.radiusLg,
+        border: theme.stepCardBorderColor == null
+            ? null
+            : Border.all(color: theme.stepCardBorderColor!),
+        boxShadow: theme.cardShadow,
+      ),
+      child: ClipRRect(
+        borderRadius: theme.radiusLg,
+        child: CardListed(
+          listed: true,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: kids,
+          ),
+        ),
+      ),
+    );
+  }
+  // A group is a card: its child headers read as item-scale sub-headings (the
+  // use-case rows), not section titles. The wire still names only `header`.
+  final Widget content = HeadingScale(
+    compact: true,
+    child: Padding(
+      padding: EdgeInsets.all(theme.spaceMd),
+      child:
+          _stack(scope.buildBlocks(node.nodeList('children')), theme.blockSpacing),
+    ),
   );
   // A featured group paints the theme's grid behind its children, clipped to the
   // group's own shape. Null gridLine -> flat, so the wire only names the emphasis

@@ -7,7 +7,21 @@ import '../model/block_node.dart';
 import '../theme/neo_sdui_scope.dart';
 import '../theme/neo_sdui_theme.dart';
 import '_gradient_text.dart';
+import '_icon.dart';
 import '_shape.dart';
+
+/// Marks a subtree where cards are rows of a shared list container (a `group`
+/// with `variant:"list"` — the Troubleshooting/FAQs nav). A listed card drops
+/// its own surface/shadow and renders as a compact `icon + label + caret` row,
+/// so the group's one card holds them all. The wire still names only `card`.
+class CardListed extends InheritedWidget {
+  const CardListed({required this.listed, required super.child, super.key});
+  final bool listed;
+  static bool of(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<CardListed>()?.listed ?? false;
+  @override
+  bool updateShouldNotify(CardListed old) => listed != old.listed;
+}
 
 /// card: title + optional subtitle + optional thumbnail + optional action, drawn
 /// on the theme's card surface (shape/shadow/fill/padding — all client-owned,
@@ -38,6 +52,11 @@ Widget buildCard(BuildContext context, BlockNode node) {
   final shape = node.stringOr('shape');
   final titleStyle =
       theme.body.copyWith(color: theme.onSurface, fontWeight: FontWeight.w500);
+
+  // Inside a `variant:"list"` group: a flat icon + label + caret row, no surface.
+  if (CardListed.of(context)) {
+    return _listedCard(context, scope, theme, node, titleStyle);
+  }
 
   final details = Row(
     crossAxisAlignment: CrossAxisAlignment.start,
@@ -137,6 +156,45 @@ Widget buildCard(BuildContext context, BlockNode node) {
   return GestureDetector(
     onTap: () => scope.dispatch(context, NeoAction.parse(action)),
     child: surface,
+  );
+}
+
+/// A listed card: a compact `icon + label + caret` nav row with no surface of
+/// its own (the enclosing `variant:"list"` group draws the shared card). Leading
+/// `icon` is a theme glyph role; the caret is a muted chevron. Tappable when the
+/// wire sets an `action`.
+Widget _listedCard(BuildContext context, NeoSduiScope scope, NeoSduiTheme theme,
+    BlockNode node, TextStyle titleStyle) {
+  final action = node.stringOr('action');
+  final subtitle = node.stringOr('subtitle');
+  final icon =
+      leadingIcon(theme, node.stringOr('icon'), node.stringOr('tone'), size: 20);
+  final row = Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+    child: Row(
+      children: [
+        if (icon != null) ...[icon, const SizedBox(width: 12)],
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(node.stringOr('title', '')!, style: titleStyle),
+              if (subtitle != null) Text(subtitle, style: theme.caption),
+            ],
+          ),
+        ),
+        if (action != null) ...[
+          const SizedBox(width: 8),
+          Text('›', style: titleStyle.copyWith(color: theme.textMuted)),
+        ],
+      ],
+    ),
+  );
+  if (action == null) return row;
+  return GestureDetector(
+    onTap: () => scope.dispatch(context, NeoAction.parse(action)),
+    behavior: HitTestBehavior.opaque,
+    child: row,
   );
 }
 

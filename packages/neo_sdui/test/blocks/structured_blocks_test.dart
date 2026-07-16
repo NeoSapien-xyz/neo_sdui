@@ -226,6 +226,40 @@ void main() {
     expect(find.text('x'), findsOneWidget);
   });
 
+  testWidgets('an accent callout sits on plain surface with a gradient bullet run',
+      (tester) async {
+    const grad = LinearGradient(colors: [Color(0xFF00F1A0), Color(0xFF008B5C)]);
+    final theme = NeoSduiTheme.fallback()
+        .copyWith(accentGradient: grad, stepCardBorderColor: const Color(0x08FFFFFF));
+    await _pumpThemed(
+      tester,
+      {
+        'type': 'callout',
+        'tone': 'accent',
+        'icon': 'sparkle',
+        'title': 'Not getting results?',
+        'bullets': [
+          ['Add ', {'text': 'from NeoSapien', 'tone': 'accent'}, ' to your message.'],
+        ],
+      },
+      theme,
+    );
+    // The box is the plain surface, NOT the accent tint (no green box).
+    final boxes = tester
+        .widgetList<DecoratedBox>(find.byType(DecoratedBox))
+        .map((d) => d.decoration)
+        .whereType<BoxDecoration>()
+        .where((d) => d.color == theme.surface)
+        .toList();
+    expect(boxes, isNotEmpty);
+    expect(
+      boxes.every((d) => d.color != theme.toneSurface('accent')),
+      isTrue,
+    );
+    // The accent phrase in the bullet rides a gradient ShaderMask (run support).
+    expect(find.byType(ShaderMask), findsWidgets);
+  });
+
   testWidgets('header draws a leading icon named on the wire', (tester) async {
     await _pump(tester,
         {'type': 'header', 'tone': 'accent', 'icon': 'download', 'title': 'Export data'});
@@ -410,6 +444,125 @@ void main() {
     expect(find.text('3'), findsOneWidget);
   });
 
+  testWidgets('steps layout:row boxes each cell when the theme sets a step card',
+      (tester) async {
+    const fill = Color(0x05FFFFFF);
+    const border = Color(0x08FFFFFF);
+    await _pumpThemed(
+      tester,
+      {
+        'type': 'steps',
+        'layout': 'row',
+        'items': [
+          {'caption': 'Pick your AI'},
+          {'caption': 'Follow the quick guide'},
+          {'caption': 'Ask it anything'},
+        ],
+      },
+      NeoSduiTheme.fallback()
+          .copyWith(stepCardColor: fill, stepCardBorderColor: border),
+    );
+    // Equal-height boxes -> the row is wrapped in IntrinsicHeight.
+    expect(find.byType(IntrinsicHeight), findsOneWidget);
+    // Each of the 3 cells is a card filled with stepCardColor + a hairline
+    // border (badges are Containers too, but carry no fill -> filtered out).
+    final cards = tester
+        .widgetList<Container>(find.byType(Container))
+        .map((c) => c.decoration)
+        .whereType<BoxDecoration>()
+        .where((d) => d.color == fill)
+        .toList();
+    expect(cards, hasLength(3));
+    expect(cards.first.border, Border.all(color: border));
+  });
+
+  testWidgets('vertical steps box each item as a card when the theme sets a step card',
+      (tester) async {
+    const surface = Color(0xFF123456);
+    const border = Color(0x08FFFFFF);
+    await _pumpThemed(
+      tester,
+      {
+        'type': 'steps',
+        'items': [
+          {'caption': 'Open settings', 'detail': 'on your laptop'},
+          {'caption': 'Sign in'},
+        ],
+      },
+      NeoSduiTheme.fallback().copyWith(
+        surface: surface,
+        stepCardColor: const Color(0x05FFFFFF),
+        stepCardBorderColor: border,
+      ),
+    );
+    // Each item is a `surface`-filled card with a hairline border (the how_to
+    // List Item) — distinct from the row strip's faint stepCardColor fill.
+    final cards = tester
+        .widgetList<Container>(find.byType(Container))
+        .map((c) => c.decoration)
+        .whereType<BoxDecoration>()
+        .where((d) => d.color == surface)
+        .toList();
+    expect(cards, hasLength(2));
+    expect(cards.first.border, Border.all(color: border));
+    // The muted "Step n:" label replaces the inline number badge.
+    expect(find.text('Step 1:'), findsOneWidget);
+    expect(find.text('Step 2:'), findsOneWidget);
+    expect(find.text('Open settings'), findsOneWidget);
+  });
+
+  testWidgets('a carded step underlines a URL in its caption', (tester) async {
+    await _pumpThemed(
+      tester,
+      {
+        'type': 'steps',
+        'items': [
+          {'caption': 'Open chatgpt.com in your laptop browser'},
+        ],
+      },
+      NeoSduiTheme.fallback().copyWith(stepCardColor: const Color(0x05FFFFFF)),
+    );
+    // "Step 1:" label + the caption text render.
+    expect(find.text('Step 1:'), findsOneWidget);
+    expect(
+      find.textContaining('chatgpt.com', findRichText: true),
+      findsOneWidget,
+    );
+    // The URL substring is drawn underlined.
+    bool underlined(InlineSpan s) {
+      if (s is TextSpan) {
+        if (s.style?.decoration == TextDecoration.underline) return true;
+        return (s.children ?? const <InlineSpan>[]).any(underlined);
+      }
+      return false;
+    }
+
+    final anyUnderline = tester
+        .widgetList<RichText>(find.byType(RichText))
+        .any((rt) => underlined(rt.text));
+    expect(anyUnderline, isTrue);
+  });
+
+  testWidgets('a header nested in a group drops from section to item scale',
+      (tester) async {
+    final theme = NeoSduiTheme.fallback().copyWith(
+      title: const TextStyle(fontSize: 30, color: Color(0xFFFFFFFF)),
+      body: const TextStyle(fontSize: 15, color: Color(0xFFFFFFFF)),
+    );
+    // Top-level header keeps the section title scale.
+    await _pumpThemed(tester, {'type': 'header', 'title': 'Section'}, theme);
+    expect(tester.widget<Text>(find.text('Section')).style?.fontSize, 30);
+    // The same header inside a group card reads as a sub-heading (body scale) —
+    // the "Here's what it does" use-case rows.
+    await _pumpThemed(tester, {
+      'type': 'group',
+      'children': [
+        {'type': 'header', 'title': 'Item'},
+      ],
+    }, theme);
+    expect(tester.widget<Text>(find.text('Item')).style?.fontSize, 15);
+  });
+
   testWidgets('a spacer variant:rule draws a themed hairline', (tester) async {
     const line = Color(0xFF334033);
     await _pumpThemed(tester, {'type': 'spacer', 'variant': 'rule'},
@@ -439,6 +592,52 @@ void main() {
     expect(find.text('›'), findsNothing);
     await tester.tap(find.text('ChatGPT'));
     expect(got, isA<RouteAction>());
+  });
+
+  testWidgets('a group variant:list draws one card of flat icon+label+caret rows',
+      (tester) async {
+    NeoAction? tapped;
+    await _pump(
+      tester,
+      {
+        'type': 'group',
+        'variant': 'list',
+        'children': [
+          {
+            'type': 'card',
+            'title': 'Troubleshooting',
+            'icon': 'help',
+            'action': 'route:troubleshooting',
+          },
+          {'type': 'card', 'title': 'FAQs', 'icon': 'chat', 'action': 'route:faq'},
+        ],
+      },
+      onAction: (_, a) => tapped = a,
+    );
+    // Both rows: label + leading glyph + caret, all inside the one list card.
+    expect(find.text('Troubleshooting'), findsOneWidget);
+    expect(find.text('FAQs'), findsOneWidget);
+    expect(find.text('›'), findsNWidgets(2));
+    expect(find.byType(Icon), findsNWidgets(2));
+    // A listed row is flat + tappable (the group owns the surface).
+    await tester.tap(find.text('FAQs'));
+    expect(tapped, isA<RouteAction>());
+  });
+
+  testWidgets('a group of only cards lists automatically (no variant needed)',
+      (tester) async {
+    await _pump(tester, {
+      'type': 'group',
+      'children': [
+        {'type': 'card', 'title': 'Troubleshooting', 'icon': 'help', 'action': 'route:t'},
+        {'type': 'card', 'title': 'FAQs', 'icon': 'chat', 'action': 'route:f'},
+      ],
+    });
+    // Same flat rows even though the wire omits variant:"list".
+    expect(find.text('Troubleshooting'), findsOneWidget);
+    expect(find.text('FAQs'), findsOneWidget);
+    expect(find.byType(Icon), findsNWidgets(2));
+    expect(find.text('›'), findsNWidgets(2));
   });
 
   testWidgets('a step renders nested blocks (a grid card wrapping a code block)',

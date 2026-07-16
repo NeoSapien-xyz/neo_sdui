@@ -24,8 +24,13 @@ Widget buildSteps(BuildContext context, BlockNode node) {
   final numberTone = node.stringOr('tone') ?? 'accent';
   // Horizontal strip: equal-width cells (numbered badge over caption) in a Row.
   if (node.stringOr('layout') == 'row') {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    final carded = theme.stepCardColor != null;
+    final row = Row(
+      // Carded cells stretch to the tallest so the boxes align — a step whose
+      // caption wraps to two lines doesn't leave its neighbours short. Bare
+      // cells keep top-alignment (the how_to look), unchanged.
+      crossAxisAlignment:
+          carded ? CrossAxisAlignment.stretch : CrossAxisAlignment.start,
       children: [
         for (var i = 0; i < items.length; i++) ...[
           if (i > 0) SizedBox(width: theme.spaceMd),
@@ -33,6 +38,7 @@ Widget buildSteps(BuildContext context, BlockNode node) {
         ],
       ],
     );
+    return carded ? IntrinsicHeight(child: row) : row;
   }
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
@@ -55,7 +61,7 @@ Widget _cell(NeoSduiTheme theme, int n, Map<String, Object?> item, String tone) 
       ? neoText(theme, cap, theme.body)
       : Text('—', key: const Key('step-error'), style: theme.body);
   final detail = item['detail'];
-  return Column(
+  final content = Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       _badge(theme, n, tone),
@@ -67,29 +73,51 @@ Widget _cell(NeoSduiTheme theme, int n, Map<String, Object?> item, String tone) 
       ],
     ],
   );
+  // Boxed cell when the theme sets a step-card fill; otherwise bare (the how_to
+  // checklist), byte-identical to before.
+  final bg = theme.stepCardColor;
+  if (bg == null) return content;
+  return Container(
+    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+    decoration: BoxDecoration(
+      color: bg,
+      border: theme.stepCardBorderColor == null
+          ? null
+          : Border.all(color: theme.stepCardBorderColor!),
+      borderRadius: theme.radiusMd,
+    ),
+    child: content,
+  );
 }
 
-/// The circular number badge for a horizontal step: the tone-colored digit in a
-/// 24px ring. The ring/digit color are theme roles (via `toneColor`), never the
-/// wire.
-Widget _badge(NeoSduiTheme theme, int n, String tone) => Container(
-      width: 24,
-      height: 24,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(color: theme.toneColor(tone).withValues(alpha: 0.4)),
-      ),
-      child: neoText(
-        theme,
-        '$n',
-        theme.caption.copyWith(fontWeight: FontWeight.w600),
-        tone: tone,
-      ),
-    );
+/// The number badge for a horizontal step: the tone-colored digit on a filled
+/// 20px disc (the tone at 10% alpha — the figma step circle). Fill + digit color
+/// are theme roles (via `toneColor`), never the wire.
+Widget _badge(NeoSduiTheme theme, int n, String tone) {
+  final c = theme.toneColor(tone);
+  return Container(
+    width: 20,
+    height: 20,
+    alignment: Alignment.center,
+    decoration: BoxDecoration(
+      shape: BoxShape.circle,
+      color: c.withValues(alpha: 0.1),
+    ),
+    // Flat tone color (not the accent gradient) — the figma digit is a solid
+    // hue, so this reads the role color directly rather than routing through
+    // neoText's gradient path.
+    child: Text('$n', style: theme.caption.copyWith(color: c, fontSize: 11)),
+  );
+}
 
 Widget _item(NeoSduiScope scope, int n, Map<String, Object?> item, String numberTone) {
   final theme = scope.theme;
+  // The how_to "List Item": an image-topped card whose details panel carries a
+  // muted "Step n:" label + caption (and any detail/code/nested blocks). Gated
+  // on the same `stepCardColor` role the row strip uses, so a theme that opts
+  // into step cards gets them in both layouts; a theme without it keeps the bare
+  // checklist below, byte-identical.
+  if (theme.stepCardColor != null) return _cardedItem(scope, n, item, numberTone);
   final index = theme.body.copyWith(fontWeight: FontWeight.w600);
   Widget body;
   try {
@@ -150,6 +178,112 @@ Widget _item(NeoSduiScope scope, int n, Map<String, Object?> item, String number
   );
 }
 
+/// The carded vertical step — the how_to "List Item": a full-bleed image flush
+/// to the card top (rounded by the card's own clip, no inner radius), then a
+/// details panel with a muted "Step n:" label over the caption (and any
+/// detail/code/nested blocks). All look is theme roles: `surface` fill,
+/// `radiusLg`, `stepCardBorderColor` hairline, `cardShadow`. Guards a malformed
+/// caption like the bare `_item`, so a bad item keeps its label + placeholder.
+Widget _cardedItem(NeoSduiScope scope, int n, Map<String, Object?> item, String numberTone) {
+  final theme = scope.theme;
+  final cap = item['caption'];
+  // Caption is white (not the muted body color), medium weight; a bare-string
+  // caption also gets its URLs underlined (the figma link look).
+  final capStyle =
+      theme.body.copyWith(color: theme.textPrimary, fontWeight: FontWeight.w500);
+  final caption = cap is String
+      ? _linkedText(cap, capStyle)
+      : (cap is List
+          ? neoText(theme, cap, capStyle)
+          : Text('—', key: const Key('step-error'), style: capStyle));
+  final detail = item['detail'];
+  final code = item['code'];
+  final blocks = scope.buildBlocks(_stepBlocks(item));
+  final body = Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      _stepLabel(theme, n),
+      const SizedBox(height: 4),
+      caption,
+      if (detail is String) ...[
+        const SizedBox(height: 4),
+        Text(detail, style: theme.caption),
+      ],
+      if (code is String) ...[
+        SizedBox(height: theme.spaceSm),
+        codeChip(code),
+      ],
+      if (blocks.isNotEmpty) ...[
+        SizedBox(height: theme.spaceSm),
+        for (var i = 0; i < blocks.length; i++) ...[
+          if (i > 0) SizedBox(height: theme.blockSpacing),
+          blocks[i],
+        ],
+      ],
+    ],
+  );
+  final image = _stepImage(theme, item, clip: false);
+  return Container(
+    clipBehavior: Clip.antiAlias,
+    decoration: BoxDecoration(
+      color: theme.surface,
+      borderRadius: theme.radiusLg,
+      border: theme.stepCardBorderColor == null
+          ? null
+          : Border.all(color: theme.stepCardBorderColor!),
+      boxShadow: theme.cardShadow,
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        ?image,
+        Padding(padding: const EdgeInsets.all(18), child: body),
+      ],
+    ),
+  );
+}
+
+/// The "Step n:" label: a white->grey vertical gradient (the figma detail head),
+/// painted with a ShaderMask over the bold body slot.
+Widget _stepLabel(NeoSduiTheme theme, int n) {
+  final style = theme.body
+      .copyWith(fontWeight: FontWeight.w500, color: const Color(0xFFFFFFFF));
+  return ShaderMask(
+    blendMode: BlendMode.srcIn,
+    shaderCallback: (b) => const LinearGradient(
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+      colors: [Color(0xFFFFFFFF), Color(0xFF999999)],
+    ).createShader(b),
+    child: Text('Step $n:', style: style),
+  );
+}
+
+/// A step caption's URLs / bare domains drawn underlined (the figma link look) on
+/// top of the caption's own [style]; caption with no url passes through as plain
+/// text. Scheme URLs (`https://…`) and bare domains (`chatgpt.com`, `claude.ai`,
+/// `api.neosapien.xyz/mcp`) both match.
+final RegExp _urlRe = RegExp(
+  r'(https?://\S+|(?:[a-z0-9-]+\.)+(?:com|ai|xyz|io|org|net|dev)(?:/\S*)?)',
+  caseSensitive: false,
+);
+Widget _linkedText(String text, TextStyle style) {
+  final matches = _urlRe.allMatches(text).toList();
+  if (matches.isEmpty) return Text(text, style: style);
+  final spans = <InlineSpan>[];
+  var last = 0;
+  for (final m in matches) {
+    if (m.start > last) spans.add(TextSpan(text: text.substring(last, m.start)));
+    spans.add(TextSpan(
+      text: m.group(0),
+      style: const TextStyle(decoration: TextDecoration.underline),
+    ));
+    last = m.end;
+  }
+  if (last < text.length) spans.add(TextSpan(text: text.substring(last)));
+  return Text.rich(TextSpan(style: style, children: spans));
+}
+
 /// A step item's optional nested `blocks` -> `BlockNode`s for the resilient
 /// renderer (mirrors `BlockNode.nodeList`, but reads a raw item map since step
 /// items aren't `BlockNode`s). Absent/malformed -> empty, so a plain step is
@@ -167,25 +301,25 @@ List<BlockNode> _stepBlocks(Map<String, Object?> item) {
 /// default), rounded to the theme radius. Missing/broken -> nothing, so a step
 /// with an as-yet-unpublished asset still renders its caption. The wire carries
 /// only the url + ratio role; all look is the theme's.
-Widget? _stepImage(NeoSduiTheme theme, Map<String, Object?> item) {
+Widget? _stepImage(NeoSduiTheme theme, Map<String, Object?> item, {bool clip = true}) {
   final url = item['image'];
   if (url is! String || url.isEmpty) return null;
   final r = item['ratio'];
   final ratio = (r is num && r > 0 && r.isFinite) ? r.toDouble() : _defaultImageRatio;
-  return ClipRRect(
-    borderRadius: theme.radiusMd,
-    child: Image.network(
-      url,
-      fit: BoxFit.cover,
-      // Collapse — not an empty ratio box — while the asset is pending or failed,
-      // so a not-yet-published image leaves no gap; reserve the ratio box only
-      // once a frame arrives. AspectRatio lives on the child, never wrapping the
-      // Image, so an error shrinks the whole thing away.
-      errorBuilder: (_, _, _) => const SizedBox.shrink(),
-      frameBuilder: (_, child, frame, wasSync) =>
-          (frame == null && !wasSync)
-              ? const SizedBox.shrink()
-              : AspectRatio(aspectRatio: ratio, child: child),
-    ),
+  final img = Image.network(
+    url,
+    fit: BoxFit.cover,
+    // Collapse — not an empty ratio box — while the asset is pending or failed,
+    // so a not-yet-published image leaves no gap; reserve the ratio box only
+    // once a frame arrives. AspectRatio lives on the child, never wrapping the
+    // Image, so an error shrinks the whole thing away.
+    errorBuilder: (_, _, _) => const SizedBox.shrink(),
+    frameBuilder: (_, child, frame, wasSync) =>
+        (frame == null && !wasSync)
+            ? const SizedBox.shrink()
+            : AspectRatio(aspectRatio: ratio, child: child),
   );
+  // Bare step: round the image itself. Carded step: the card clips the flush
+  // image to its own radius, so no inner ClipRRect (double-rounding).
+  return clip ? ClipRRect(borderRadius: theme.radiusMd, child: img) : img;
 }

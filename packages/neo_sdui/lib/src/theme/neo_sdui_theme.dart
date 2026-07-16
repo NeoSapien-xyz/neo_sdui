@@ -10,6 +10,8 @@ const Map<String, IconData> kDefaultIcons = {
   'info': Icons.info_outline,
   'check': Icons.check_circle,
   'warning': Icons.warning_amber_rounded,
+  'help': Icons.help_outline,
+  'chat': Icons.chat_bubble_outline,
 };
 
 /// The built-in accent tone names [NeoSduiTheme.accentFor] resolves even without
@@ -71,6 +73,8 @@ class NeoSduiTheme {
     this.gridSpacing = 24,
     this.groupGradient,
     this.divider,
+    this.stepCardColor,
+    this.stepCardBorderColor,
     this.backdropBlur = 0,
     this.motionDuration = const Duration(milliseconds: 200),
     this.motionCurve = Curves.easeOut,
@@ -149,6 +153,13 @@ class NeoSduiTheme {
   /// Null → a faint line derived from `onSurface`. Client-owned, like every
   /// other pixel; the wire only names the variant, never the color.
   final Color? divider;
+
+  /// Fill + hairline for a row-layout `steps` cell (the compact 1·2·3 strip).
+  /// Both null → cells render bare (the how_to vertical checklist look),
+  /// byte-identical to before; a guide that wants each step boxed sets them.
+  /// Client-owned; the wire only names the `steps` block + `layout:"row"`.
+  final Color? stepCardColor;
+  final Color? stepCardBorderColor;
 
   final double backdropBlur;
 
@@ -307,6 +318,8 @@ class NeoSduiTheme {
     double? gridSpacing,
     Gradient? groupGradient,
     Color? divider,
+    Color? stepCardColor,
+    Color? stepCardBorderColor,
     double? backdropBlur,
     Duration? motionDuration,
     Curve? motionCurve,
@@ -349,6 +362,8 @@ class NeoSduiTheme {
       gridSpacing: gridSpacing ?? this.gridSpacing,
       groupGradient: groupGradient ?? this.groupGradient,
       divider: divider ?? this.divider,
+      stepCardColor: stepCardColor ?? this.stepCardColor,
+      stepCardBorderColor: stepCardBorderColor ?? this.stepCardBorderColor,
       backdropBlur: backdropBlur ?? this.backdropBlur,
       motionDuration: motionDuration ?? this.motionDuration,
       motionCurve: motionCurve ?? this.motionCurve,
