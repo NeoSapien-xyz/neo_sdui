@@ -13,7 +13,7 @@ Gitignored. One folder per **guide-family** (`mcp`, `how_to`, …):
 deliverables/               ← gitignored (CDN staging, never committed)
   mcp/
     mcp.json                ← the ONE wire doc for the whole family
-    assets/                 ← mirrors cdn.neosapien.xyz/mcp/ exactly (recursive upload)
+    assets/                 ← uploaded to cdn.neosapien.xyz/neo/mcp/assets/ (S3 key public/neo/mcp/assets/)
       hero.png
       icons/  chatgpt.png  claude.png  connectors.png
       chatgpt/  web-1.png  desktop-1.png  …
@@ -71,8 +71,14 @@ the **cropped** every time. `curl` the chosen URL into the guide's `assets/` at 
 
 **Naming & URLs — identical across all three; the CDN url on the wire, never a local path.**
 - The asset's **filename and folder path are identical** in `deliverables/<family>/`, on the CDN, and in the wire `url` — **never rename** between them.
-- The wire `url` is **always the full CDN URL** (`https://<cdn-host>/<path that mirrors the deliverables folder>`) — **never** a local or relative path.
-- The user uploads the `deliverables/<family>/` folder to the CDN **as-is**, so every wire URL resolves 1:1. Mirror the path exactly; do not invent, flatten, or drop segments.
+- The wire `url` is **always the full CDN URL** — **never** a local or relative path. The base is
+  `https://cdn.neosapien.xyz/neo/<family>/assets/…` (verified: host `cdn.neosapien.xyz`, then the
+  **`neo/` app-namespace segment**, then the family, then `assets/`). The S3 object key is
+  `public/neo/<family>/assets/…`; the CDN drops `public/` but **keeps `neo/`**. So the local folder
+  `deliverables/<family>/assets/foo.png` → URL `cdn.neosapien.xyz/neo/<family>/assets/foo.png`.
+- The deliverables folder does **not** mirror the URL host-root 1:1 — the CDN prepends `neo/` before
+  the family. Drop it and every asset 403s. Only the filename + sub-path under `assets/` are identical.
+- Sanity-check before handoff: `curl -s -o /dev/null -w '%{http_code}'` one real wire URL; expect 200.
 
 **Group by role:**
 
