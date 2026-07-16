@@ -15,9 +15,10 @@ dependencies:
     sdk: flutter
   neo_sdui:
     path: ../neo_sdui
-  # ponytail: add `flutter_highlight: ^0.7.0` when replacing the placeholder in
-  # syntax_code.dart with a real HighlightView. Deferred until wire content needs
-  # coloring (see docs/plans/2026-07-12-001-feat-neo-sdui-code-block-plan.md).
+  # Real syntax highlighting for the `code` block (HighlightView in
+  # src/syntax_code.dart). Pinned to the classic 0.7.x API (hyphenated theme
+  # imports, no ensureInitialized).
+  flutter_highlight: ^0.7.0
 
 dev_dependencies:
   flutter_test:

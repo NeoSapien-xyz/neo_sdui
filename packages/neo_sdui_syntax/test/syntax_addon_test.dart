@@ -44,7 +44,10 @@ void main() {
       await _pump(tester, addonCode,
           _code('{ "mcpServers": {} }', language: 'json', label: 'Config'));
       expect(find.text('Config'), findsOneWidget);
-      expect(find.text('{ "mcpServers": {} }'), findsOneWidget);
+      // HighlightView paints the content as colored spans in one RichText, so
+      // match its concatenated plain text rather than a bare Text widget.
+      expect(find.text('{ "mcpServers": {} }', findRichText: true),
+          findsOneWidget);
       expect(find.byKey(const Key('syntax-language')), findsOneWidget);
       expect(find.text('json'), findsOneWidget);
       expect(find.byKey(const Key('code-copy')), findsOneWidget);

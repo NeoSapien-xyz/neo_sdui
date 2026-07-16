@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_highlight/flutter_highlight.dart';
+import 'package:flutter_highlight/themes/atom-one-dark.dart';
 import 'package:neo_sdui/neo_sdui.dart';
 
 /// The add-on's `code` builder: same semantics as the core floor (`content`
@@ -88,15 +90,27 @@ class _SyntaxCodeState extends State<_SyntaxCode> {
   }
 }
 
-/// Placeholder highlighter: renders the content in the theme's mono slot.
-///
-// ponytail: this is the one seam that changes when highlighting goes real —
-// replace the mono `Text` with `flutter_highlight`'s
-// `HighlightView(content, language: language ?? 'plaintext', theme: <map>)`,
-// derive the theme map from the role palette (accent/textPrimary/textMuted),
-// and keep everything above (surface, badge, copy chip) as-is.
+/// Real highlighter: `flutter_highlight`'s HighlightView over the atom-one-dark
+/// token palette (bright-on-dark, matching the `surface` code envelope). The
+/// wire's `language` picks the grammar; absent, default to `bash` — every guide
+/// code block today is a shell command. The highlight theme's own root bg is
+/// dropped (transparent) so the content sits on the block's `surface`, and the
+/// base glyph style is the theme's `mono` slot. Look stays theme-owned; the
+/// wire carries only `content` + `language`.
 Widget _highlight(NeoSduiTheme theme, String content, String? language) =>
-    Text(content, style: theme.mono.copyWith(color: theme.textPrimary));
+    HighlightView(
+      content,
+      language: language ?? 'bash',
+      theme: {
+        ...atomOneDarkTheme,
+        'root': TextStyle(
+          backgroundColor: const Color(0x00000000),
+          color: theme.textPrimary,
+        ),
+      },
+      padding: EdgeInsets.zero,
+      textStyle: theme.mono.copyWith(color: theme.textPrimary),
+    );
 
 /// A small accent chip naming the language — the visible proof the add-on read
 /// a wire field the core floor ignored.
