@@ -16,3 +16,9 @@ workspace:
 
 dev_dependencies:
   melos: ^8.2.0
+  # Only so `flutter analyze deliverables/**/theme.dart` can type-check a figwire
+  # emit that binds fonts via GoogleFonts.* (the ledger's `imports`). Without it
+  # the analyzer degrades to `Undefined name 'GoogleFonts'` and stops checking the
+  # call's ARGUMENTS — which is how `fontFamilyFallback:` (not a param of the
+  # generated methods) reached a device build. neo_sdui itself stays flutter+meta.
+  google_fonts: ^6.3.3

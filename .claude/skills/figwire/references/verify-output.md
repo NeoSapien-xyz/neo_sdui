@@ -39,6 +39,17 @@ right. `fontSize: 22` recorded as `measured` off the wrong node passes.
 
 **3. The theme compiles.** `fvm flutter analyze <theme.dart>` — `textStyle`/`gradient` roles ride the
 emit as verbatim literals, so this is the only thing type-checking them.
+**Every package the ledger's `imports` names must be in the ROOT `pubspec.yaml`'s `dev_dependencies`**
+(that is what `deliverables/` resolves against; `google_fonts` is there for exactly this and nothing
+else — neo_sdui itself stays flutter+meta). Miss one and the gate does not fail loudly, it **degrades**:
+the analyzer reports `Undefined name 'GoogleFonts'` and, not knowing the function, silently stops
+checking the call's **arguments**. A bad param sails through. Worse, those `uri_does_not_exist` errors
+read as expected noise — "google_fonts isn't a dep here, of course" — so a human dismisses the whole
+run and the real error goes with it. That shipped `GoogleFonts.ibmPlexMono(fontFamilyFallback: …)` — not
+a param of the generated methods — to a device build, where it failed as `No named parameter with the
+name 'fontFamilyFallback'`. Same shape as the 26 stripped `// confirm:` markers (gate 2): **a gate whose
+noise is indistinguishable from its signal gets dismissed wholesale.** If you see `Undefined name` here,
+the gate is OFF — fix the dep, do not read past it.
 *Blind to every value* — any wrong number is still valid Dart. Never count `analyze` as look verification.
 
 **4. Wire validate.** `NEO_WIRE_JSON=$WIRE fvm flutter test test/tools/check_wire_test.dart`
