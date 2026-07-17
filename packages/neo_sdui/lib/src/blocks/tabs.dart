@@ -130,6 +130,26 @@ Widget _tabContent(
   );
 }
 
+/// The selected tab's content, faded + risen in on every selection change (the
+/// strip stays put; only this swaps). Both render forms route through here so
+/// they can never diverge on the swap — the pinned form used to rebuild content
+/// with no transition at all, so the top-level Web/Desktop/Code slider changed
+/// pages instantly. [sel] is pre-clamped by the caller; keying on it drives the
+/// [SwapFade].
+Widget _swapContent(
+  NeoSduiTheme theme,
+  List<Widget> Function(List<BlockNode>) buildBlocks,
+  List<BlockNode> header,
+  List<_Tab> tabs,
+  int sel,
+) =>
+    SwapFade(
+      child: KeyedSubtree(
+        key: ValueKey(sel),
+        child: _tabContent(theme, buildBlocks, header, tabs[sel]),
+      ),
+    );
+
 // ── Pinned form ──────────────────────────────────────────────────────────────
 
 /// The top-level slivers for a `tabs` block: a pinned, floating strip header +
@@ -160,11 +180,12 @@ List<Widget> tabsPinnedSlivers(
           // `blockSpacing` below before the next block.
           padding: theme.contentPadding +
               EdgeInsets.only(top: theme.spaceMd, bottom: theme.blockSpacing),
-          child: _tabContent(
+          child: _swapContent(
             theme,
             buildBlocks,
             header,
-            tabs[sel.clamp(0, tabs.length - 1)],
+            tabs,
+            sel.clamp(0, tabs.length - 1),
           ),
         ),
       ),
@@ -260,23 +281,13 @@ class _TabsState extends State<_Tabs> {
     final strip =
         _strip(theme, widget.tabs, selected, (i) => setState(() => _selected = i));
 
-    // Content keyed on selection so a tap cross-fades it in.
+    // Content faded + risen in on each tap — same swap as the pinned form.
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         strip,
         SizedBox(height: theme.spaceMd),
-        SwapFade(
-          child: KeyedSubtree(
-            key: ValueKey(selected),
-            child: _tabContent(
-              theme,
-              scope.buildBlocks,
-              widget.header,
-              widget.tabs[selected],
-            ),
-          ),
-        ),
+        _swapContent(theme, scope.buildBlocks, widget.header, widget.tabs, selected),
       ],
     );
   }
