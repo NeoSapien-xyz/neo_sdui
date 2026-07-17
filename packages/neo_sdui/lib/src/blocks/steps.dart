@@ -554,27 +554,24 @@ class _CommandCardState extends State<_CommandCard> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // Terminal screenshot on top (the figma "Claude Code welcome"
-                // panel); collapses cleanly until the asset is published.
+                // panel): reserved box + shimmer + fade like every guide image;
+                // collapses cleanly until the asset is published.
                 if (widget.imageUrl != null) ...[
-                  ClipRRect(
-                    borderRadius: theme.radiusMd,
-                    child: Image.network(
-                      widget.imageUrl!,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) => const SizedBox.shrink(),
-                      frameBuilder: (_, child, frame, wasSync) =>
-                          (frame == null && !wasSync)
-                              ? const SizedBox.shrink()
-                              : AspectRatio(aspectRatio: ratio, child: child),
-                    ),
-                  ),
+                  neoNetworkImage(theme, widget.imageUrl!,
+                      ratio: ratio, radius: theme.radiusMd),
                   SizedBox(height: theme.spaceMd),
                 ],
                 Text(
                   widget.command,
                   key: const Key('command-card'),
                   textAlign: TextAlign.center,
-                  style: theme.mono.copyWith(color: theme.textPrimary),
+                  // The hero command rides the theme's `commandStyle` role (a
+                  // notch larger than the inline `mono` — the figma promo wraps
+                  // to ~3 centred lines); the block only recolors it to the
+                  // primary text role, it never sizes it. NEVER hard-break the
+                  // string here: the button copies it verbatim, so the wrap must
+                  // stay natural (a baked "\n" would corrupt the shell command).
+                  style: theme.resolvedCommandStyle.copyWith(color: theme.textPrimary),
                 ),
                 SizedBox(height: theme.spaceMd),
                 _copyButton(theme),
@@ -600,34 +597,38 @@ class _CommandCardState extends State<_CommandCard> {
     );
   }
 
-  /// The "Copy Command" button — a neumorphic control pressed proud of the card
-  /// (light top-left, dark bottom-right), the same inset-shadow idiom the tab
-  /// pill uses. Fill + hairline are theme roles; the wire names nothing here.
-  Widget _copyButton(NeoSduiTheme theme) => PressScale(
-        onTap: _copy,
-        scale: 0.9,
-        child: neumorphic(
-          radius: theme.radiusSm,
-          // A raised dark control: lighter top (tabTrack) -> darker bottom
-          // (surface), the figma copy-command button's #383D3B->#171A19 fill.
+  /// The "Copy Command" button — a FLAT raised-dark gradient pill with a
+  /// hairline border, NOT a neumorphic control: the figma emboss lives on the
+  /// promo *card* (painted above), and the button itself carries no inset
+  /// shadow. Fill lightens at the top (`tabTrack`) down to the card's dark foot
+  /// (the `cardGradient` dark stop, ~#171A19) — both derived from theme roles,
+  /// no hex on the wire. The wire names nothing here.
+  Widget _copyButton(NeoSduiTheme theme) {
+    final grad = theme.cardGradient;
+    final foot =
+        grad is LinearGradient ? grad.colors.last : theme.surface;
+    return PressScale(
+      onTap: _copy,
+      scale: 0.9,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: theme.radiusSm,
           gradient: LinearGradient(
-            colors: [theme.tabTrack, theme.surface],
+            colors: [theme.tabTrack, foot],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
           border: theme.stepCardBorderColor == null
               ? null
               : Border.all(color: theme.stepCardBorderColor!),
-          insets: [
-            const Inset(kInsetDark, Offset(-3, -3), 6),
-            Inset(theme.onSurface.withValues(alpha: 0.06), const Offset(2, 2), 4),
-          ],
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            child: Center(child: _copyLabel(theme)),
-          ),
         ),
-      );
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          child: Center(child: _copyLabel(theme)),
+        ),
+      ),
+    );
+  }
 
   /// The "Copy Command" label — the accent gradient reoriented *vertical* (the
   /// figma 180° top-down gradient, distinct from the horizontal accent gradient

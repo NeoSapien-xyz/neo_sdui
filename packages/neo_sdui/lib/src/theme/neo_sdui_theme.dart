@@ -71,6 +71,7 @@ class NeoSduiTheme {
       fontSize: 13,
       height: 1.4,
     ),
+    this.commandStyle,
     this.radiusSm = const BorderRadius.all(Radius.circular(8)),
     this.radiusMd = const BorderRadius.all(Radius.circular(12)),
     this.radiusLg = const BorderRadius.all(Radius.circular(16)),
@@ -127,6 +128,16 @@ class NeoSduiTheme {
   /// Color is baked to a default; the block overrides it for the textPrimary
   /// role, same as the other type-scale slots.
   final TextStyle mono;
+
+  /// Monospace style for the *hero* command card (the figma promo `claude mcp
+  /// add`): a notch larger than the inline [mono] so the full command wraps to
+  /// the figma's ~3 centred lines. A distinct role, not a `fontSize` baked over
+  /// [mono] — the size stays reachable from the theme. Null → falls back to
+  /// [mono] (see [resolvedCommandStyle]).
+  final TextStyle? commandStyle;
+
+  /// The hero command style, defaulting to [mono] when no theme sets one.
+  TextStyle get resolvedCommandStyle => commandStyle ?? mono;
 
   // Scales.
   final BorderRadius radiusSm;
@@ -371,6 +382,7 @@ class NeoSduiTheme {
     TextStyle? body,
     TextStyle? caption,
     TextStyle? mono,
+    TextStyle? commandStyle,
     BorderRadius? radiusSm,
     BorderRadius? radiusMd,
     BorderRadius? radiusLg,
@@ -420,6 +432,7 @@ class NeoSduiTheme {
       body: body ?? this.body,
       caption: caption ?? this.caption,
       mono: mono ?? this.mono,
+      commandStyle: commandStyle ?? this.commandStyle,
       radiusSm: radiusSm ?? this.radiusSm,
       radiusMd: radiusMd ?? this.radiusMd,
       radiusLg: radiusLg ?? this.radiusLg,
