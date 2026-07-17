@@ -50,6 +50,13 @@ Widget buildColumn(BuildContext context, BlockNode node) {
 
 /// group: children stacked inside a themed surface. A *featured* group
 /// (`emphasis:"high"`) also paints the theme's grid texture behind its children.
+///
+/// Three render modes layer on top: (1) a *menu card* — `variant:"list"`, or a
+/// group whose children are all `card`s — draws one shared surface and tells each
+/// child via [CardListed] to render as a compact flat row; (2) otherwise every
+/// child header is pushed to item-scale via [HeadingScale] (use-case sub-titles,
+/// not section titles); (3) `variant:"tight"` pulls the inter-child gap in to
+/// `spaceSm`. Each is layout/look the wire only names by role.
 Widget buildGroup(BuildContext context, BlockNode node) {
   final scope = NeoSduiScope.of(context);
   final theme = scope.theme;

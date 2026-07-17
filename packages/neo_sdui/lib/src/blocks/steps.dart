@@ -128,8 +128,26 @@ Widget _item(NeoSduiScope scope, int n, Map<String, Object?> item, String number
   // on the same `stepCardColor` role the row strip uses, so a theme that opts
   // into step cards gets them in both layouts; a theme without it keeps the bare
   // checklist below, byte-identical.
-  if (theme.stepCardColor != null) return _cardedItem(scope, n, item, numberTone);
   final index = theme.body.copyWith(fontWeight: FontWeight.w600);
+  if (theme.stepCardColor != null) {
+    // R8 for the carded path too: its helpers each degrade on their own, but a
+    // wrapping catch keeps one malformed carded item from taking out the whole
+    // steps block — symmetric with the bare path's try/catch below.
+    try {
+      return _cardedItem(scope, n, item, numberTone);
+    } catch (_) {
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          neoText(theme, '$n', index, tone: numberTone),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text('—', key: const Key('step-error'), style: theme.body),
+          ),
+        ],
+      );
+    }
+  }
   Widget body;
   try {
     final cap = item['caption'];

@@ -26,13 +26,16 @@ class CardListed extends InheritedWidget {
 
 /// card: title + optional subtitle + optional thumbnail + optional action, drawn
 /// on the theme's card surface (shape/shadow/fill/padding — all client-owned,
-/// none on the wire). One block, three arrangements chosen by field presence:
+/// none on the wire). Four arrangements — three chosen by field presence, one by
+/// ambient render context:
 ///
 ///  - `variant:"tile"` + `thumb`  -> image-top card (how_to): full-width
 ///    thumbnail (contained, shape-clipped) above a title + caret row.
 ///  - `thumb` alone                -> compact row (MCP client-picker): small
 ///    leading thumbnail + title/subtitle + caret.
 ///  - neither                      -> title/subtitle + caret (footer nav).
+///  - inside a `variant:"list"` group (`CardListed.of(context)`) -> a flat
+///    icon + label + caret row with no surface, regardless of field presence.
 Widget buildCard(BuildContext context, BlockNode node) {
   final scope = NeoSduiScope.of(context);
   final theme = scope.theme;
