@@ -100,6 +100,7 @@ final Map<String, RoleSlot> kRoleSlots = Map.unmodifiable({
   'caption': RoleSlot(ValueKind.textStyle),
   'mono': RoleSlot(ValueKind.textStyle),
   'commandStyle': RoleSlot(ValueKind.textStyle),
+  'calloutBody': RoleSlot(ValueKind.textStyle),
   'cardGradient': RoleSlot(ValueKind.gradient),
   'groupGradient': RoleSlot(ValueKind.gradient),
   'accentGradient': RoleSlot(ValueKind.gradient),

@@ -107,7 +107,7 @@ Widget _bullet(NeoSduiTheme theme, Object? value,
   final color = emphasized
       ? theme.textPrimary
       : theme.textPrimary.withValues(alpha: 0.7);
-  final text = neoText(theme, value, theme.caption.copyWith(color: color));
+  final text = neoText(theme, value, theme.resolvedCalloutBody.copyWith(color: color));
   if (!dotted) return text;
   return Row(
     crossAxisAlignment: CrossAxisAlignment.start,

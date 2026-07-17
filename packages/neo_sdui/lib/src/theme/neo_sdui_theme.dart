@@ -72,6 +72,7 @@ class NeoSduiTheme {
       height: 1.4,
     ),
     this.commandStyle,
+    this.calloutBody,
     this.radiusSm = const BorderRadius.all(Radius.circular(8)),
     this.radiusMd = const BorderRadius.all(Radius.circular(12)),
     this.radiusLg = const BorderRadius.all(Radius.circular(16)),
@@ -138,6 +139,15 @@ class NeoSduiTheme {
 
   /// The hero command style, defaulting to [mono] when no theme sets one.
   TextStyle get resolvedCommandStyle => commandStyle ?? mono;
+
+  /// The callout card's supporting line. A notch under [body] so a callout
+  /// title (which rides [body]) still reads larger than its own body line — a
+  /// distinct role, not a `fontSize` baked over [body], so the size stays
+  /// theme-owned. Null → falls back to [body] (see [resolvedCalloutBody]).
+  final TextStyle? calloutBody;
+
+  /// The callout body style, defaulting to [body] when no theme sets one.
+  TextStyle get resolvedCalloutBody => calloutBody ?? body;
 
   // Scales.
   final BorderRadius radiusSm;
@@ -383,6 +393,7 @@ class NeoSduiTheme {
     TextStyle? caption,
     TextStyle? mono,
     TextStyle? commandStyle,
+    TextStyle? calloutBody,
     BorderRadius? radiusSm,
     BorderRadius? radiusMd,
     BorderRadius? radiusLg,
@@ -433,6 +444,7 @@ class NeoSduiTheme {
       caption: caption ?? this.caption,
       mono: mono ?? this.mono,
       commandStyle: commandStyle ?? this.commandStyle,
+      calloutBody: calloutBody ?? this.calloutBody,
       radiusSm: radiusSm ?? this.radiusSm,
       radiusMd: radiusMd ?? this.radiusMd,
       radiusLg: radiusLg ?? this.radiusLg,
