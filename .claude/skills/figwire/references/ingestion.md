@@ -1,33 +1,57 @@
 # Ingestion — reading a Figma page
 
-MCP-first: read the node with the Figma MCP calls below. Degrade to a screenshot only
-when the MCP is unavailable or a call fails.
+## The ingest matrix — the two projections need different first calls
 
-## Paths, in order of preference
+figwire emits two projections of one read, and they do **not** share an ingest. That is not a
+compromise; it is the point.
 
-1. **Figma MCP (primary).** For the target page node:
-   - `get_metadata` — the structural node inventory (id / name / type / x / y / w / h). This is the
-     **coverage denominator** (see `verify-output.md`): the independent "seen" set. Get it first.
-   - `get_screenshot` — the visual truth for classification and accent detection.
-   - `get_design_context` — consult for **exact text strings** (it returns React/Tailwind code; read
-     the string literals out of it, ignore the component decisions).
-   - `get_variable_defs` — bound color/number/type **variables** and styles: the source of truth for
-     the *look projection* (the theme), not the wire. Prefer over reading pixels. Look-only — see
-     `theme-extract.md`.
-   - `get_shader_fill` / `get_shader_effect` — gradient fills for the theme's
-     `cardGradient`/`groupGradient`/`accentGradient`. Look projection only, never the wire.
-2. **REST `/nodes` (optional, exact text).** When a `FIGMA_TOKEN` is configured, one call returns the
-   whole page subtree with exact `characters`:
-   ```bash
-   curl -s -H "X-Figma-Token: $FIGMA_TOKEN" \
-     "https://api.figma.com/v1/files/<FILE_KEY>/nodes?ids=<NODE_ID>"
-   ```
-   The URL's `node-id` uses `-`; the API wants `:` (e.g. `4146-14149` → `4146:14149`). Prefer REST/
-   `get_design_context` text over vision for any `code`/URL block.
-3. **Pasted / exported screenshot (degrade).** When the MCP is unavailable or a call fails, work
-   from a screenshot the user pastes/exports. The skill must still produce a validated document —
-   but on this path there is **no independent inventory** and **no exact text**, so drop-detection is
-   downgraded (report-only) and `code`/URL text is vision-inferred and flagged low-confidence.
+| projection | first call | why | last resort |
+|---|---|---|---|
+| **wire** (semantics) | `get_metadata` | the **independent** coverage denominator (`verify-output.md`) — `get_design_context` is the same pass that emits, so it cannot audit itself | screenshot: no independent inventory, so drop-detection downgrades to report-only |
+| **theme** (look) | `get_design_context` (+ `get_variable_defs` for the roles that are actually token-bound) | the **only** calls that carry type / fill / effect at all — `get_metadata` returns `id / name / type / x / y / w / h`: no fills, no typography, no effects | screenshot: every role it feeds is `provenance:"inferred"`, which **fails the compile** (`theme-extract.md`) |
+
+**Reading `get_metadata` and then writing a look value is the defect this matrix exists to
+prevent.** It shipped a theme with 26 of 29 roles eyeballed off a screenshot — on the happy path,
+MCP fully available, because only 3 roles were variable-bound and the rest fell through to the degrade.
+
+Also on the theme path: `get_shader_fill` / `get_shader_effect` for the gradient fills behind
+`cardGradient` / `groupGradient` / `accentGradient`. `get_screenshot` is visual truth for
+classification and accent detection — never for a number.
+
+**REST `/nodes` (optional, exact text).** When a `FIGMA_TOKEN` is configured, one call returns the
+whole page subtree with exact `characters`:
+
+```bash
+curl -s -H "X-Figma-Token: $FIGMA_TOKEN" \
+  "https://api.figma.com/v1/files/<FILE_KEY>/nodes?ids=<NODE_ID>"
+```
+
+The URL's `node-id` uses `-`; the API wants `:` (e.g. `4146-14149` → `4146:14149`). Prefer REST /
+`get_design_context` text over vision for any `code`/URL block.
+
+## Reading a look value — the source decides the unit
+
+**Honor the codegen's response hints in priority order**, earlier overriding later: Code Connect
+snippet → component documentation link → design annotation → design token → raw hex / absolute
+position. That last rung is where you lean on the screenshot, and it is the *last* rung.
+
+- **letterSpacing is a unit trap — name the source, the unit follows.** MCP codegen and REST state
+  it in **px** (`tracking-[-0.72px]`), 1:1 with Flutter; a hand-off doc or the Figma UI states a
+  **percent** → `px = (percent / 100) * fontSize` (`-4%` @ 18px → `-0.72`). Uniform tracking is
+  **not** evidence of a fabrication: this design really does track −4% almost everywhere
+  (24/−0.96, 14/−0.56, 13/−0.52, 12/−0.48), and a detector built on that theory fired on the two
+  roles that were character-exact. Read each role; do not infer one from another, and do not
+  "correct" a scale into variety the design does not have.
+- **Gradients: always emit explicit `begin` / `end`.** Flutter's `LinearGradient` defaults to
+  **horizontal** (`gradient.dart:382`, `begin: centerLeft`); Figma's default handle is **vertical**.
+  The defaults disagree, so an omitted `begin`/`end` silently rotates the design 90°.
+
+Deeper conversions — line height, color alpha compositing, gradient handles → `Alignment`, blur σ vs
+`BoxShadow.blurRadius`, corners — are in the sibling **user** skill `neofig`
+(`~/.claude/skills/neofig/references/figma-mapping.md` §1-§5), **if present** — figwire is a project
+skill and may ship without it, so the facts above stand alone. Ignore that file's §6 rate-limit
+paragraph ("6 read calls per MONTH"): stale and false, and obeying it re-causes the screenshot
+guessing this page forbids.
 
 ## Token handling (security)
 

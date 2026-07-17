@@ -246,6 +246,72 @@ void main() {
     expect(buildBaseTheme(r).accent, NeoSduiTheme.fallback().accent);
   });
 
+  test('the guess gate blocks an inferred role and names it', () {
+    final r = (RoleLedger()
+          ..observe(_color('accent', '0xFF00F1A0', 'home'))
+          ..observe(_color('surface', '0xFF202423', 'home', Provenance.inferred))
+          ..observe(_color('accent', '0xFFFFC107', 'odd', Provenance.inferred)))
+        .reconcile();
+    final gate = inferredRoleGate(r, allow: false);
+
+    // A guessed value sits in a real slot, parses, and compiles — provenance is
+    // the only thing that knows it was read off a screenshot.
+    expect(gate, isNotNull);
+    expect(gate, contains('surface')); // base
+    expect(gate, contains('odd:accent')); // the override, page-qualified
+    expect(gate, contains('get_design_context'));
+    expect(gate, isNot(contains('accent,'))); // the `variable` base is clean
+  });
+
+  test('the guess gate passes a variable-only ledger, and when waived', () {
+    final clean = (RoleLedger()..observe(_color('accent', '0xFF00F1A0', 'home')))
+        .reconcile();
+    expect(inferredRoleGate(clean, allow: false), isNull);
+
+    final guessed =
+        (RoleLedger()..observe(_color('accent', '0xFF00F1A0', 'home',
+                Provenance.inferred)))
+            .reconcile();
+    expect(inferredRoleGate(guessed, allow: true), isNull);
+    // …but the honesty marker survives the waiver.
+    expect(emitTheme(guessed), contains('// confirm:'));
+  });
+
+  test('ledger-declared imports emit after the fixed pair, deduped and sorted',
+      () {
+    final r = (RoleLedger(imports: [
+      'package:neo_app/theme/card_grain_overlay.dart',
+      'package:google_fonts/google_fonts.dart',
+      'package:flutter/material.dart',
+      'package:google_fonts/google_fonts.dart', // duplicate
+      'package:flutter/widgets.dart', // already fixed
+    ])..observe(_color('accent', '0xFF00F1A0', 'home')))
+        .reconcile();
+    final lines = emitTheme(r)
+        .split('\n')
+        .where((l) => l.startsWith('import '))
+        .toList();
+
+    // Without these the ledger's own literals (GoogleFonts.workSans, Icons.*,
+    // an app-owned overlay) do not compile and the look degrades silently.
+    expect(lines, [
+      "import 'package:flutter/widgets.dart';",
+      "import 'package:neo_sdui/neo_sdui.dart';",
+      "import 'package:flutter/material.dart';",
+      "import 'package:google_fonts/google_fonts.dart';",
+      "import 'package:neo_app/theme/card_grain_overlay.dart';",
+    ]);
+  });
+
+  test('a ledger round-trips its imports through JSON', () {
+    final ledger = RoleLedger(imports: ['package:google_fonts/google_fonts.dart'])
+      ..observe(_color('accent', '0xFF00F1A0', 'home'));
+    final back = RoleLedger.fromJson(ledger.toJson());
+    expect(back.imports, ['package:google_fonts/google_fonts.dart']);
+    // a non-String entry is dropped, not thrown on — the ledger is read off disk
+    expect(RoleLedger.fromJson({'imports': ['ok', 7]}).imports, ['ok']);
+  });
+
   test('a todo-provenance role is flagged on a standalone TODO(theme) line', () {
     final r = (RoleLedger()
           ..observe(const Observation(

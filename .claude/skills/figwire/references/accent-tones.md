@@ -1,7 +1,8 @@
-# Accent detection — the one visual signal that maps to a wire name
+# Accent detection — reading a color to choose a role *name*
 
-The wire carries no color. The single exception is `tone:"accent"`: when a text is
-**visually the brand accent green**, tag it `accent` and the theme paints the gradient.
+The wire carries no color — it carries the *name* of an accent role the theme declares
+(`tone:"<name>"` → `theme.accents['<name>']`; `accent`/`critical`/`warning` are built in). When a
+text is **visually the brand accent green**, tag it `accent` and the theme paints the gradient.
 You decide the *tag* from the color; you never emit the color.
 
 ## The accent signal
@@ -25,8 +26,10 @@ tag them.
 
 ## Rules
 
-- **Only the green maps to `accent`.** Other colors (white, grey, the danger red) are the theme's
-  default roles — emit no `tone`, or `tone:"critical"` for the danger/error red only.
+- **Only the green maps to `accent`.** Plain white/grey text is the theme's default role — emit no
+  `tone`. A *deliberate* other hue names its own role: the danger red is `tone:"critical"`, the
+  caution yellow is `tone:"warning"`, a second brand hue is a ledger-declared `accents.<name>` you
+  then name on the wire. Choosing the role is the whole job; the hex stays off the wire either way.
 - **Never emit the hex.** `{"text": "NeoSapien", "tone": "accent"}` — not `#00F1A0`, not a gradient,
   not `color`. If you catch yourself writing a hex, a font, or a gradient stop, stop: that violates
   the wire invariant (see `wire-contract.md`).

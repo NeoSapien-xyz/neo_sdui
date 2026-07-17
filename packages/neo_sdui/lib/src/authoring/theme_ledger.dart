@@ -19,11 +19,25 @@ library;
 
 import 'package:meta/meta.dart';
 
-/// Where a ledger value came from. Drives the compile's inline confidence flags:
-/// `variable`/`inferred` emit the value (the latter with a `// confirm:` marker),
-/// `todo` means Figma could not answer and the compile emits a fallback value
-/// plus `// TODO(theme):`.
-enum Provenance { variable, inferred, todo }
+/// Where a ledger value came from. Drives the compile's inline confidence flags
+/// and the guess gate (`theme_compile.dart`'s [inferredRoleGate]).
+///
+/// - `variable` — bound to a Figma variable (`get_variable_defs`). Emitted plain.
+/// - `measured` — read off the node's own properties (`get_design_context`'s type
+///   / fills / effects). Exact, just not token-bound. Emitted plain.
+/// - `inferred` — **guessed**: eyeballed off a screenshot, or interpolated into a
+///   scale nobody read. Emits `// confirm:` and fails the gate.
+/// - `todo` — Figma could not answer; the compile emits a fallback value plus
+///   `// TODO(theme):`.
+///
+/// `measured` exists because `variable` is not reachable for most roles: a
+/// starter-tier Figma file caps variables (this design has exactly two), so a
+/// taxonomy of *bound-or-guessed* forced every honestly-read value into
+/// `inferred`. That made the gate unsatisfiable — the waiver became mandatory,
+/// so it gated nothing — and buried the handful of real guesses under 26 false
+/// ones, which is precisely why every `// confirm:` got stripped as noise. The
+/// line that matters is **read vs. invented**, not *bound vs. unbound*.
+enum Provenance { variable, measured, inferred, todo }
 
 /// The shape of a ledger value, so [reconcile] clusters near-duplicates
 /// kind-aware: `color` values cluster by RGB distance, everything else by exact
@@ -53,8 +67,9 @@ int? parseColorHex(String hex) =>
 /// observations of one value are folded together.
 int _provenanceRank(Provenance p) => switch (p) {
       Provenance.variable => 0,
-      Provenance.inferred => 1,
-      Provenance.todo => 2,
+      Provenance.measured => 1,
+      Provenance.inferred => 2,
+      Provenance.todo => 3,
     };
 
 /// One observation: a role's value as seen on one page, with where it came from.
@@ -127,6 +142,7 @@ class Reconciled {
     required this.overridesByPage,
     required this.conflictRoles,
     required this.usedRoles,
+    this.imports = const [],
   });
 
   /// roleKey → base value (the majority look).
@@ -145,6 +161,12 @@ class Reconciled {
   /// Every wire role tag named across all pages (`tone:brand`, `emphasis:high`,
   /// `icon:sparkle`) — what `role_lint.dart` resolves against the theme.
   final Set<String> usedRoles;
+
+  /// Pass-through from the ledger, not a reconciliation result: the extra import
+  /// URIs the emitted source needs (see [RoleLedger.imports]). It rides here so
+  /// `emitTheme` reads it off the same record as the roles — nothing for a caller
+  /// to remember to pass alongside.
+  final List<String> imports;
 }
 
 /// The accumulator. Mutable: pages append across runs. Persist with [toJson] and
@@ -153,11 +175,25 @@ class RoleLedger {
   RoleLedger({
     List<Observation>? observations,
     Map<String, Set<String>>? roleUsage,
+    List<String>? imports,
     this.malformedObservations = 0,
   })  : observations = observations ?? <Observation>[],
-        roleUsage = roleUsage ?? <String, Set<String>>{};
+        roleUsage = roleUsage ?? <String, Set<String>>{},
+        imports = imports ?? <String>[];
 
   final List<Observation> observations;
+
+  /// Import URIs the emitted theme needs *beyond* `flutter/widgets.dart` and
+  /// `neo_sdui.dart` — whatever the ledger's own Dart literals name:
+  /// `package:google_fonts/google_fonts.dart` for a `GoogleFonts.workSans(...)`
+  /// title, `package:flutter/material.dart` for an `Icons.*` glyph, an app path
+  /// for a grain overlay. Un-imported, those literals do not compile, and the
+  /// look degrades to the system font / no icon — silently, because the ledger
+  /// still *reads* right. The author writes the literal and names its import;
+  /// the compile only makes the import available (deliberately no name→package
+  /// table — that would guess, and guessing is the bug this ledger exists to
+  /// stop).
+  final List<String> imports;
 
   /// How many observations [fromJson] dropped as malformed on the last load — a
   /// corrupt/truncated ledger write would otherwise silently masquerade as
@@ -248,11 +284,13 @@ class RoleLedger {
       overridesByPage: overridesByPage,
       conflictRoles: conflictRoles..sort(),
       usedRoles: usedRoles,
+      imports: imports,
     );
   }
 
   Map<String, Object?> toJson() => {
         'version': 1,
+        'imports': imports,
         'observations': [for (final o in observations) o.toJson()],
         'roleUsage': {
           for (final e in roleUsage.entries) e.key: e.value.toList()..sort(),
@@ -294,8 +332,19 @@ class RoleLedger {
         }
       });
     }
+    // Non-String entries are dropped like a malformed observation — an import
+    // list is a header, not a value, so a bad entry must not abort the load.
+    final rawImports = json['imports'];
+    final imports = <String>[
+      if (rawImports is List)
+        for (final i in rawImports)
+          if (i is String) i,
+    ];
     return RoleLedger(
-        observations: obs, roleUsage: usage, malformedObservations: dropped);
+        observations: obs,
+        roleUsage: usage,
+        imports: imports,
+        malformedObservations: dropped);
   }
 }
 

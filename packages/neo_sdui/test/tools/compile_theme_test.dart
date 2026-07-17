@@ -11,16 +11,22 @@ import 'package:neo_sdui/neo_sdui.dart';
 ///   flutter test test/tools/compile_theme_test.dart
 ///
 /// It reconciles the ledger (batch, order-independent), prints the paste-in
-/// `NeoSduiTheme` source and the coverage report, and runs the role-drift lint
-/// (`role_lint.dart`) — FAILING if a wire role names a slot the compiled theme
-/// does not resolve. Optionally writes the source to `NEO_THEME_OUT`. Set
-/// `NEO_THEME_BASE_PAGE` to pin that page's look as the base (else majority wins
-/// — the R8 escape hatch). Unset `NEO_THEME_LEDGER` (the default — e.g. plain
-/// `flutter test`), the test is skipped so the suite stays green.
+/// `NeoSduiTheme` source and the coverage report, and runs two gates:
+/// - the **guess gate** — FAILING if any role is `provenance:"inferred"`, i.e.
+///   guessed off a screenshot instead of read from the design. Waive with
+///   `NEO_THEME_ALLOW_INFERRED=1` (it ships the guesses; it is not a fix).
+/// - the **role-drift lint** (`role_lint.dart`) — FAILING if a wire role names a
+///   slot the compiled theme does not resolve.
+///
+/// Optionally writes the source to `NEO_THEME_OUT`. Set `NEO_THEME_BASE_PAGE` to
+/// pin that page's look as the base (else majority wins — the R8 escape hatch).
+/// Unset `NEO_THEME_LEDGER` (the default — e.g. plain `flutter test`), the test
+/// is skipped so the suite stays green.
 void main() {
   final ledgerPath = Platform.environment['NEO_THEME_LEDGER'];
   final outPath = Platform.environment['NEO_THEME_OUT'];
   final basePage = Platform.environment['NEO_THEME_BASE_PAGE'];
+  final allowInferred = Platform.environment['NEO_THEME_ALLOW_INFERRED'] == '1';
 
   test('ledger compiles to a role-drift-clean theme', () {
     final json =
@@ -51,6 +57,12 @@ void main() {
       // ignore: avoid_print
       print('ROLE $i');
     }
+    // The guess gate runs after every diagnostic has printed, and before the
+    // drift lint: a theme built from screenshot reads is wrong in a way no
+    // amount of clean drift redeems.
+    final guessed = inferredRoleGate(reconciled, allow: allowInferred);
+    expect(guessed, isNull, reason: guessed);
+
     final blocking = drift.where((i) => i.isBlocking).map((i) => i.toString());
     expect(
       blocking,
