@@ -80,6 +80,26 @@ void main() {
     expect(first.style!.color, _gradTheme.textPrimary);
   });
 
+  testWidgets('an inline mono run rides the mono slot and stays flat', (tester) async {
+    // The figma Claude-Code caption: `claude mcp list` inline in grey IBM Plex
+    // Mono, mid-sentence — not a boxed code chip, not accent text.
+    await _pump(tester, {
+      'type': 'text',
+      'body': [
+        'Run ',
+        {'text': 'claude mcp list', 'mono': true},
+        ' to verify.',
+      ],
+    }, _gradTheme);
+    expect(find.byType(ShaderMask), findsNothing); // flat, no gradient mask
+    final text = tester.widget<Text>(find.byType(Text).first);
+    final spans = (text.textSpan! as TextSpan).children!.cast<TextSpan>();
+    final mono = spans.firstWhere((s) => s.text == 'claude mcp list');
+    // Mono slot, not the body scale (mono is 13, body is 14 in the fallback).
+    expect(mono.style!.fontSize, _gradTheme.mono.fontSize);
+    expect(mono.style!.fontFamilyFallback, _gradTheme.mono.fontFamilyFallback);
+  });
+
   testWidgets('plain non-accent text gets no gradient even under a gradient theme',
       (tester) async {
     await _pump(tester, {'type': 'text', 'body': 'plain copy'}, _gradTheme);

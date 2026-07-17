@@ -33,16 +33,40 @@ Widget neoText(
   bool stretch = false,
 }) {
   final runs = _parseRuns(value);
-  NeoAccent? accentOf(_Run r) => theme.accentFor(r.tone ?? tone);
+  // A mono run rides the theme's `mono` slot, never accent/gradient text, so it's
+  // excluded from accent resolution.
+  NeoAccent? accentOf(_Run r) => r.mono ? null : theme.accentFor(r.tone ?? tone);
+  final anyMono = runs.any((r) => r.mono);
 
-  // No accent anywhere -> plain. A single run collapses to a plain Text so the
+  // No accent and no mono -> plain. A single run collapses to a plain Text so the
   // common case stays golden-stable.
-  if (!runs.any((r) => accentOf(r) != null)) {
+  if (!anyMono && !runs.any((r) => accentOf(r) != null)) {
     if (runs.length <= 1) {
       return Text(runs.isEmpty ? '' : runs.first.text, style: style);
     }
     return Text.rich(TextSpan(
         children: [for (final r in runs) TextSpan(text: r.text, style: style)]));
+  }
+
+  // Any mono run -> a per-run styled line: a mono run rides the `mono` slot (flat,
+  // recolored only by an explicit tone — the figma grey inline `claude mcp list`);
+  // the rest keep their accent/plain role. Mono is never gradient-shaded.
+  if (anyMono) {
+    return Text.rich(TextSpan(children: [
+      for (final r in runs)
+        if (r.mono)
+          TextSpan(text: r.text, style: _monoStyle(theme, r.tone ?? tone))
+        else if (accentOf(r)?.gradient != null)
+          WidgetSpan(
+            alignment: PlaceholderAlignment.baseline,
+            baseline: TextBaseline.alphabetic,
+            child: _shaded(accentOf(r)!.gradient!, r.text, style),
+          )
+        else if (accentOf(r) != null)
+          TextSpan(text: r.text, style: style.copyWith(color: accentOf(r)!.color))
+        else
+          TextSpan(text: r.text, style: style),
+    ]));
   }
 
   // Single run: shade with its gradient, else color it (no ShaderMask), so the
@@ -100,13 +124,26 @@ Widget _shaded(Gradient gradient, String text, TextStyle style,
   );
 }
 
+/// The style for an inline `mono` run: the theme's `mono` slot, recolored only
+/// when the run names an explicit tone (else the mono role's own color — the
+/// figma grey inline command).
+TextStyle _monoStyle(NeoSduiTheme theme, String? tone) {
+  final a = theme.accentFor(tone);
+  return a == null ? theme.mono : theme.mono.copyWith(color: a.color);
+}
+
 class _Run {
-  const _Run(this.text, this.tone);
+  const _Run(this.text, this.tone, {this.mono = false});
   final String text;
 
   /// The run's own tone name (e.g. `"accent"`, `"brand"`), or null to inherit
   /// the block-level tone. The theme resolves the name to a [NeoAccent].
   final String? tone;
+
+  /// The run renders in the theme's `mono` slot — an inline command inside a
+  /// caption (the figma grey IBM Plex Mono `/mcp` / `claude mcp list`). Never
+  /// gradient-shaded; the wire flags it with `"mono": true` on the run.
+  final bool mono;
 }
 
 /// A wire text value -> runs. `String` -> one plain run; a `List` -> each entry
@@ -123,7 +160,8 @@ List<_Run> _parseRuns(Object? value) {
           _Run(e, null)
         else if (e is Map)
           _Run(e['text'] is String ? e['text'] as String : '',
-              e['tone'] is String ? e['tone'] as String : null),
+              e['tone'] is String ? e['tone'] as String : null,
+              mono: e['mono'] == true),
     ];
   }
   return const [];
