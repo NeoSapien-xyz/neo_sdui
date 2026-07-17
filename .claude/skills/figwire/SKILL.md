@@ -52,9 +52,13 @@ stop — you are breaking the contract the whole package depends on.
 
 ## Propagation + host — figwire doesn't push it; it still owns knowing what happens to it
 
-- **Wire** changes reach the device only on an RC republish, and RC caches **1 day** in release — an
-  unchanged screen right after a push is a cache, not a defect. **Package/app** changes (a theme
-  paste, a block edit) land on a rebuild instead. Name which lever a fix needs when you hand it over.
+- **Wire** changes reach the device on an RC republish, and the app wires **realtime** Remote Config
+  (`onConfigUpdated` → `activate()`), whose fetch **bypasses `minimumFetchInterval`** — so a
+  foregrounded app picks a republish up near-instantly. **An unchanged screen after a push is a
+  defect, not a cache.** Do not hand back "it's probably RC caching": that excuse was invented once,
+  from a `Duration(days: 1)` twenty lines above the listener that overrides it, and it costs a real
+  bug every time it is believed. **Package/app** changes (a theme paste, a block edit) land on a
+  rebuild instead. Name which lever a fix needs when you hand it over.
 - A pushed sub-view's app-bar title is `views.<id>.title` (`NeoView.title`, `lib/src/model/view.dart:23`).
 - Chrome is the app's, not the wire's: the transparent+frosted precedent is
   `neo/lib/view/screens/profile/how_to_screen.dart:44-58` — cite it, don't re-derive it. No sibling

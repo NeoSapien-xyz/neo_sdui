@@ -105,7 +105,8 @@ Trust it for block presence, type, order, nesting and palette. Nothing else. Pas
 - **~9% of the last run's defects are irreducible design taste** — "doesn't look neumorphic", "the
   noise is absent", "the spacing is unprecedented", "looks bad overall". No gate catches these; a human
   looking at a phone is the instrument. Do not promise a check that makes design review disappear —
-  make the review **cheap** (short loop, real device, no stale-RC wait).
+  make the review **cheap**: an RC republish reaches a foregrounded app near-instantly (`SKILL.md`),
+  so the loop is already short. Hand over something to look at rather than a reason to wait.
 - **Block rendering code.** The theme can carry `stepCardColor`; it cannot carry "the pill presses into
   the groove". That is `neo_sdui` block code and app host code — not figwire's to gate, and the handoff
   must say so rather than let "theme handed off" imply the look is covered.
