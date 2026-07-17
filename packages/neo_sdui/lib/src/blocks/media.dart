@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 
 import '../model/block_node.dart';
 import '../theme/neo_sdui_scope.dart';
+import '_media_frame.dart';
 import '_shape.dart';
 
 /// how_to's default thumbnail ratio when the wire omits one (AE4).
@@ -26,7 +27,7 @@ Widget buildMedia(BuildContext context, BlockNode node) {
           return Stack(
             fit: StackFit.expand,
             children: [
-              if (frame == null) _placeholder(theme.shimmerBase, theme.shimmerHighlight),
+              if (frame == null) neoImageShimmer(theme),
               AnimatedOpacity(
                 opacity: frame == null ? 0 : 1,
                 duration: theme.motionDuration,
@@ -36,19 +37,8 @@ Widget buildMedia(BuildContext context, BlockNode node) {
             ],
           );
         },
-        errorBuilder: (context, _, _) => _error(theme.shimmerBase),
+        errorBuilder: (context, _, _) => neoImageError(theme),
       ),
     ),
   );
 }
-
-// ponytail: static sheen skeleton; animate if real load times get long.
-Widget _placeholder(Color base, Color highlight) => DecoratedBox(
-      key: const Key('media-shimmer'),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(colors: [base, highlight, base]),
-      ),
-    );
-
-Widget _error(Color base) =>
-    ColoredBox(key: const Key('media-error'), color: base);

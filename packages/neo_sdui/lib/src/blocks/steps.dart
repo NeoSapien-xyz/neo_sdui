@@ -10,6 +10,7 @@ import '../theme/neo_sdui_scope.dart';
 import '../theme/neo_sdui_theme.dart';
 import '_gradient_text.dart';
 import '_grid.dart';
+import '_media_frame.dart';
 import '_motion.dart';
 import '_neumorphic.dart';
 import 'code.dart';
@@ -439,27 +440,19 @@ Widget? _stepImage(NeoSduiTheme theme, Map<String, Object?> item, {bool clip = t
   if (url is! String || url.isEmpty) return null;
   final r = item['ratio'];
   final ratio = (r is num && r > 0 && r.isFinite) ? r.toDouble() : _defaultImageRatio;
-  final img = Image.network(
+  // Reserve the ratio box + shimmer + fade in (no expand-on-arrival). Crop from
+  // the top: a screenshot's meaningful content sits up top, so a taller-than-
+  // declared asset keeps its head (e.g. the "connected" card's dead space below)
+  // instead of centering on it. Bare step rounds the image itself; a carded step
+  // lets the card clip the flush image to its own radius (no double-rounding). A
+  // failed/unpublished asset collapses, so the caption still stands alone.
+  return neoNetworkImage(
+    theme,
     url,
-    fit: BoxFit.cover,
-    // Crop from the top, not the center: a screenshot's meaningful content sits
-    // up top, so when the asset is taller than its declared `ratio` box the crop
-    // keeps the top (e.g. the "connected" card, whose asset has dead space below)
-    // instead of centering on it.
+    ratio: ratio,
     alignment: Alignment.topCenter,
-    // Collapse — not an empty ratio box — while the asset is pending or failed,
-    // so a not-yet-published image leaves no gap; reserve the ratio box only
-    // once a frame arrives. AspectRatio lives on the child, never wrapping the
-    // Image, so an error shrinks the whole thing away.
-    errorBuilder: (_, _, _) => const SizedBox.shrink(),
-    frameBuilder: (_, child, frame, wasSync) =>
-        (frame == null && !wasSync)
-            ? const SizedBox.shrink()
-            : AspectRatio(aspectRatio: ratio, child: child),
+    radius: clip ? theme.radiusMd : null,
   );
-  // Bare step: round the image itself. Carded step: the card clips the flush
-  // image to its own radius, so no inner ClipRRect (double-rounding).
-  return clip ? ClipRRect(borderRadius: theme.radiusMd, child: img) : img;
 }
 
 /// The hero command card — the figma "Promo Card" for the guide's key step

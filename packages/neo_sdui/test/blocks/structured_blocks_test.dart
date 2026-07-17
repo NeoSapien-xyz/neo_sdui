@@ -182,7 +182,8 @@ void main() {
     expect(find.byKey(const Key('code-copy')), findsOneWidget); // the Copy chip
   });
 
-  testWidgets('a step renders its optional full-width image above the row',
+  testWidgets(
+      'a step reserves its image box behind a shimmer, collapsing only on failure',
       (tester) async {
     await _pump(tester, {
       'type': 'steps',
@@ -194,13 +195,26 @@ void main() {
         },
       ],
     });
-    tester.takeException(); // deterministic network-image error
+    // Pending: the ratio box is reserved up front behind a shimmer, so the card
+    // never grows when the frame finally lands (the "image pops in and expands
+    // the card" jump).
     expect(find.text('Open your tool\'s MCP settings'), findsOneWidget);
     expect(find.byType(Image), findsOneWidget); // the step image
-    // A failed/pending asset collapses (no empty ratio box) so the caption still
-    // stands alone until the CDN image is published.
-    expect(find.byType(AspectRatio), findsNothing);
+    expect(find.byKey(const Key('media-shimmer')), findsOneWidget);
+    expect(
+      tester
+          .widgetList<AspectRatio>(find.byType(AspectRatio))
+          .map((a) => a.aspectRatio),
+      contains(1.6),
+    );
     expect(find.text('1'), findsOneWidget); // numbering intact
+
+    // Genuine failure (deterministic in tests) -> collapse: no empty ratio box,
+    // so an unpublished asset leaves the caption standing alone.
+    await tester.pumpAndSettle();
+    tester.takeException();
+    expect(find.byKey(const Key('media-shimmer')), findsNothing);
+    expect(find.byType(AspectRatio), findsNothing);
   });
 
   testWidgets('callout draws a leading icon named on the wire', (tester) async {
