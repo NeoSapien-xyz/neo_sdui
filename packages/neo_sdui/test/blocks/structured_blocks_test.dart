@@ -505,9 +505,10 @@ void main() {
         .toList();
     expect(cards, hasLength(2));
     expect(cards.first.border, Border.all(color: border));
-    // The muted "Step n:" label replaces the inline number badge.
+    // The muted "Step n:" label replaces the inline number badge — 0-indexed to
+    // match the figma numbering ("Step 0:", "Step 1:", …).
+    expect(find.text('Step 0:'), findsOneWidget);
     expect(find.text('Step 1:'), findsOneWidget);
-    expect(find.text('Step 2:'), findsOneWidget);
     expect(find.text('Open settings'), findsOneWidget);
   });
 
@@ -522,8 +523,8 @@ void main() {
       },
       NeoSduiTheme.fallback().copyWith(stepCardColor: const Color(0x05FFFFFF)),
     );
-    // "Step 1:" label + the caption text render.
-    expect(find.text('Step 1:'), findsOneWidget);
+    // "Step 0:" label (0-indexed) + the caption text render.
+    expect(find.text('Step 0:'), findsOneWidget);
     expect(
       find.textContaining('chatgpt.com', findRichText: true),
       findsOneWidget,
@@ -543,6 +544,108 @@ void main() {
     expect(anyUnderline, isTrue);
   });
 
+  testWidgets('a carded step with a screenshot echoes its command inline, no copy chip',
+      (tester) async {
+    await _pumpThemed(
+      tester,
+      {
+        'type': 'steps',
+        'items': [
+          {
+            'caption': 'Ensure Claude Code CLI is installed:',
+            'code': 'npm install -g @anthropic-ai/claude-code',
+            'image': 'https://cdn.neosapien.xyz/mcp/code-0.png',
+            'ratio': 2.8,
+          },
+        ],
+      },
+      NeoSduiTheme.fallback().copyWith(stepCardColor: const Color(0x05FFFFFF)),
+    );
+    // The command rides inline in the caption's rich text (no boxed copy chip,
+    // no hero command card).
+    expect(
+      find.textContaining('npm install -g @anthropic-ai/claude-code',
+          findRichText: true),
+      findsOneWidget,
+    );
+    expect(find.byKey(const Key('code-copy')), findsNothing);
+    expect(find.byKey(const Key('command-card')), findsNothing);
+  });
+
+  testWidgets('an emphasis:high command step is a copyable hero card',
+      (tester) async {
+    await _pumpThemed(
+      tester,
+      {
+        'type': 'steps',
+        'items': [
+          {
+            'caption': 'Open terminal, run Claude and then run this command:',
+            'code': 'claude mcp add --transport http neosapien',
+            'emphasis': 'high',
+          },
+        ],
+      },
+      NeoSduiTheme.fallback().copyWith(stepCardColor: const Color(0x05FFFFFF)),
+    );
+    // The command is the hero card (centered mono + "Copy Command"), never the
+    // old inline copy chip.
+    expect(find.byKey(const Key('command-card')), findsOneWidget);
+    expect(find.byKey(const Key('code-copy')), findsNothing);
+    expect(find.text('Copy Command'), findsOneWidget);
+    // ...and the command also echoes inline in the caption — so it renders
+    // twice: once in the hero card, once in the step sentence (the figma shows
+    // both).
+    expect(
+      find.textContaining('claude mcp add --transport http neosapien',
+          findRichText: true),
+      findsNWidgets(2),
+    );
+  });
+
+  testWidgets('a group heading with no tone reads as primary, not muted body',
+      (tester) async {
+    const muted = Color(0xFF868686);
+    const primary = Color(0xFFFFFFFF);
+    await _pumpThemed(
+      tester,
+      {
+        'type': 'group',
+        'children': [
+          {'type': 'header', 'title': 'Still having issues?'},
+        ],
+      },
+      NeoSduiTheme.fallback().copyWith(
+        body: const TextStyle(fontSize: 15, color: muted),
+        textPrimary: primary,
+      ),
+    );
+    // A sub-heading is still a heading — primary, not the dim body color.
+    expect(
+      tester.widget<Text>(find.text('Still having issues?')).style?.color,
+      primary,
+    );
+  });
+
+  testWidgets('a warning-toned heading paints the theme warning color',
+      (tester) async {
+    const warn = Color(0xFFFFC107);
+    await _pumpThemed(
+      tester,
+      {
+        'type': 'group',
+        'children': [
+          {'type': 'header', 'tone': 'warning', 'title': 'MCP server timeout'},
+        ],
+      },
+      NeoSduiTheme.fallback().copyWith(warning: warn),
+    );
+    expect(
+      tester.widget<Text>(find.text('MCP server timeout')).style?.color,
+      warn,
+    );
+  });
+
   testWidgets('a header nested in a group drops from section to item scale',
       (tester) async {
     final theme = NeoSduiTheme.fallback().copyWith(
@@ -552,23 +655,30 @@ void main() {
     // Top-level header keeps the section title scale.
     await _pumpThemed(tester, {'type': 'header', 'title': 'Section'}, theme);
     expect(tester.widget<Text>(find.text('Section')).style?.fontSize, 30);
-    // The same header inside a group card reads as a sub-heading (body scale) —
-    // the "Here's what it does" use-case rows.
+    // The same header inside a group card drops to the item label scale — the
+    // theme's `body` role, at heading weight. The scale is the *theme's* 15, not
+    // a size baked in the block: this asserted 14 while the theme said 15, which
+    // is how a fabricated figma constant survived every test in the suite.
     await _pumpThemed(tester, {
       'type': 'group',
       'children': [
         {'type': 'header', 'title': 'Item'},
       ],
     }, theme);
-    expect(tester.widget<Text>(find.text('Item')).style?.fontSize, 15);
+    final item = tester.widget<Text>(find.text('Item')).style;
+    expect(item?.fontSize, 15);
+    expect(item?.fontWeight, FontWeight.w500);
   });
 
-  testWidgets('a spacer variant:rule draws a themed hairline', (tester) async {
+  testWidgets('a spacer variant:rule draws a themed dashed hairline',
+      (tester) async {
     const line = Color(0xFF334033);
     await _pumpThemed(tester, {'type': 'spacer', 'variant': 'rule'},
         NeoSduiTheme.fallback().copyWith(divider: line));
-    final rule = tester.widget<Container>(find.byType(Container));
-    expect(rule.color, line);
+    final rule = tester.widget<CustomPaint>(find.byWidgetPredicate((w) =>
+        w is CustomPaint &&
+        w.painter.runtimeType.toString() == '_DashedLinePainter'));
+    expect((rule.painter as dynamic).color, line);
   });
 
   testWidgets('a plain spacer draws no line', (tester) async {

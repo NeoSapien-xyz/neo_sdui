@@ -7,6 +7,7 @@ import 'package:flutter/widgets.dart';
 const Map<String, IconData> kDefaultIcons = {
   'sparkle': Icons.auto_awesome,
   'download': Icons.download,
+  'export': Icons.ios_share,
   'info': Icons.info_outline,
   'check': Icons.check_circle,
   'warning': Icons.warning_amber_rounded,
@@ -17,7 +18,7 @@ const Map<String, IconData> kDefaultIcons = {
 /// The built-in accent tone names [NeoSduiTheme.accentFor] resolves even without
 /// a theme-declared `accents.<name>` entry. Exported so the role-drift lint reads
 /// one list instead of hand-duplicating it; keep in sync with `accentFor`'s switch.
-const Set<String> kBuiltinAccentTones = {'accent', 'critical'};
+const Set<String> kBuiltinAccentTones = {'accent', 'critical', 'warning'};
 
 /// One accent *role* the wire can name via `tone` — a flat [color] and an
 /// optional [gradient] painted over the glyphs when set (null → flat, like a
@@ -71,17 +72,22 @@ class NeoSduiTheme {
     this.cardGradient,
     this.gridLine,
     this.gridSpacing = 24,
+    this.grainOverlay,
     this.groupGradient,
     this.divider,
     this.stepCardColor,
     this.stepCardBorderColor,
     this.backdropBlur = 0,
     this.motionDuration = const Duration(milliseconds: 200),
-    this.motionCurve = Curves.easeOut,
+    this.motionCurve = Curves.easeOutCubic,
+    this.swapDuration = const Duration(milliseconds: 340),
+    this.entranceDuration = const Duration(milliseconds: 500),
+    this.entranceCurve = const Cubic(0.16, 1, 0.3, 1),
     this.reduceMotion = false,
     this.accentGradient,
     this.backgroundGradient,
     this.ctaGradient,
+    this.titleGradient,
     this.accents = const {},
     this.icons = kDefaultIcons,
   });
@@ -142,6 +148,15 @@ class NeoSduiTheme {
   final Color? gridLine;
   final double gridSpacing;
 
+  /// Grain/noise overlay painted over a *featured* branded surface (the hero
+  /// command card), stacked *on top of* the [gridLine] texture. Client-owned:
+  /// the app supplies its own grain widget (e.g. a per-pixel fragment-shader
+  /// overlay — the same grain the BLE / feature-promo cards use), so the package
+  /// never ships a shader or a noise bitmap. Null → no grain, byte-identical to
+  /// before. Built via a builder (not a bare widget) so one theme can paint the
+  /// grain into more than one card without reparenting a single instance.
+  final WidgetBuilder? grainOverlay;
+
   /// Gradient fill for a *featured* group (`emphasis:"high"`) — the section
   /// container behind the [gridLine] texture (the hero card, the use-case
   /// surface). Like [cardGradient] but for the `group` block. Null → the
@@ -168,8 +183,27 @@ class NeoSduiTheme {
       cardShape ?? RoundedSuperellipseBorder(borderRadius: radiusLg);
 
   // Motion is client-owned: bounded animations only, killable per app (KTD9).
+
+  /// Press feedback and cross-fades — the shortest tier.
   final Duration motionDuration;
+
+  /// Easing for the shortest tier. Defaults to [Curves.easeOutCubic] (a softer
+  /// settle than a plain `easeOut`); an app that set no `motionCurve` picks up
+  /// this default.
   final Curve motionCurve;
+
+  /// A swap in place: the selected tab's content, an accordion opening. Sits
+  /// between [motionDuration] and [entranceDuration] — long enough to read as a
+  /// transition, short enough not to gate a tap.
+  final Duration swapDuration;
+
+  /// A block's arrival on a freshly built view — the longest tier, and the only
+  /// one that staggers. [entranceCurve] is decelerative to the point of floaty
+  /// (it leaves 80% of its distance in the first third), so a stagger reads as
+  /// one settling wave rather than a queue of separate slides.
+  final Duration entranceDuration;
+  final Curve entranceCurve;
+
   final bool reduceMotion;
 
   /// Gradient the `accent` text role paints with — step numbers, accent-toned
@@ -190,6 +224,13 @@ class NeoSduiTheme {
   /// a high-emphasis cta stays the flat `accent` fill, byte-identical to before.
   /// The wire only ever names the emphasis; the stops live here (KTD9).
   final Gradient? ctaGradient;
+
+  /// Vertical emboss painted over plain (non-accent) section-`header` titles and
+  /// the carded step's "Step n:" label — the figma white->grey heading fade.
+  /// Client-owned stops, like [accentGradient]. Null -> section titles stay the
+  /// flat [title] color and the step label falls back to its baked white->grey,
+  /// byte-identical to before. The wire never carries it (KTD9).
+  final Gradient? titleGradient;
 
   /// Extra named accent roles beyond the primary `accent`/`critical`, keyed by
   /// the `tone` name the wire uses (e.g. `"brand"`). Lets one screen carry two
@@ -219,6 +260,7 @@ class NeoSduiTheme {
     return switch (tone) {
       'accent' => NeoAccent(accent, accentGradient),
       'critical' => NeoAccent(danger),
+      'warning' => NeoAccent(warning),
       _ => null,
     };
   }
@@ -262,6 +304,13 @@ class NeoSduiTheme {
   Color get shimmerBase => surface;
   Color get shimmerHighlight =>
       Color.alphaBlend(onSurface.withValues(alpha: 0.08), surface);
+
+  /// The segmented-control groove (the tab strip): a lightened surface the
+  /// selected pill — a darker [shimmerHighlight] — presses into, for the figma
+  /// neumorphic look. Derived, so a re-skin moves it with `surface`; the inset
+  /// shadows that sell the depth are the tab block's own rendering.
+  Color get tabTrack =>
+      Color.alphaBlend(onSurface.withValues(alpha: 0.13), surface);
 
   /// Neutral dark default for tests/example. Real apps pass their own palette.
   factory NeoSduiTheme.fallback() {
@@ -316,6 +365,7 @@ class NeoSduiTheme {
     Gradient? cardGradient,
     Color? gridLine,
     double? gridSpacing,
+    WidgetBuilder? grainOverlay,
     Gradient? groupGradient,
     Color? divider,
     Color? stepCardColor,
@@ -323,10 +373,14 @@ class NeoSduiTheme {
     double? backdropBlur,
     Duration? motionDuration,
     Curve? motionCurve,
+    Duration? swapDuration,
+    Duration? entranceDuration,
+    Curve? entranceCurve,
     bool? reduceMotion,
     Gradient? accentGradient,
     Gradient? backgroundGradient,
     Gradient? ctaGradient,
+    Gradient? titleGradient,
     Map<String, NeoAccent>? accents,
     Map<String, IconData>? icons,
   }) {
@@ -360,6 +414,7 @@ class NeoSduiTheme {
       cardGradient: cardGradient ?? this.cardGradient,
       gridLine: gridLine ?? this.gridLine,
       gridSpacing: gridSpacing ?? this.gridSpacing,
+      grainOverlay: grainOverlay ?? this.grainOverlay,
       groupGradient: groupGradient ?? this.groupGradient,
       divider: divider ?? this.divider,
       stepCardColor: stepCardColor ?? this.stepCardColor,
@@ -367,10 +422,14 @@ class NeoSduiTheme {
       backdropBlur: backdropBlur ?? this.backdropBlur,
       motionDuration: motionDuration ?? this.motionDuration,
       motionCurve: motionCurve ?? this.motionCurve,
+      swapDuration: swapDuration ?? this.swapDuration,
+      entranceDuration: entranceDuration ?? this.entranceDuration,
+      entranceCurve: entranceCurve ?? this.entranceCurve,
       reduceMotion: reduceMotion ?? this.reduceMotion,
       accentGradient: accentGradient ?? this.accentGradient,
       backgroundGradient: backgroundGradient ?? this.backgroundGradient,
       ctaGradient: ctaGradient ?? this.ctaGradient,
+      titleGradient: titleGradient ?? this.titleGradient,
       accents: accents ?? this.accents,
       icons: icons ?? this.icons,
     );

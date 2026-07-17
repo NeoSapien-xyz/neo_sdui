@@ -8,6 +8,7 @@ import '../theme/neo_sdui_scope.dart';
 import '../theme/neo_sdui_theme.dart';
 import '_gradient_text.dart';
 import '_icon.dart';
+import '_motion.dart';
 import '_shape.dart';
 
 /// Marks a subtree where cards are rows of a shared list container (a `group`
@@ -48,6 +49,12 @@ Widget buildCard(BuildContext context, BlockNode node) {
   // flat, so the wire names emphasis and the theme owns whether it's a gradient.
   final featuredGradient =
       node.stringOr('emphasis') == 'high' ? theme.cardGradient : null;
+  // The icon-row picker card (a `thumb` card that isn't a `tile`) is figma's
+  // neumorphic card: the theme's card gradient + hairline border + soft glow,
+  // not the flat surface every other card keeps.
+  final pickerCard = thumb != null && node.stringOr('variant') != 'tile';
+  final surfaceGradient =
+      featuredGradient ?? (pickerCard ? theme.cardGradient : null);
   // Wire `shape` role (opt-in); the card defaults to the theme's squircle.
   final shape = node.stringOr('shape');
   final titleStyle =
@@ -115,6 +122,11 @@ Widget buildCard(BuildContext context, BlockNode node) {
       ],
     );
   } else if (thumb != null) {
+    // Figma picker card: 40px icon, gap 10, title over a muted subtitle at the
+    // *same* scale (the shared `titleStyle` — the picker's subtitle is a second
+    // line of the title, not a caption), a flat-accent "Open Guide" — everything
+    // vertically centered in the row (a Row centers by default), not top-aligned
+    // like the shared `details`.
     content = Padding(
       padding: theme.cardPadding,
       child: Row(
@@ -124,8 +136,8 @@ Widget buildCard(BuildContext context, BlockNode node) {
             theme.radiusMd,
             fallback: 'rounded',
             child: SizedBox(
-              width: 48,
-              height: 48,
+              width: 40,
+              height: 40,
               child: Image.network(
                 thumb,
                 fit: BoxFit.cover,
@@ -133,8 +145,28 @@ Widget buildCard(BuildContext context, BlockNode node) {
               ),
             ),
           ),
-          const SizedBox(width: 12),
-          Expanded(child: details),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(node.stringOr('title', '')!, style: titleStyle),
+                if (subtitle != null) ...[
+                  const SizedBox(height: 8),
+                  Text(subtitle, style: titleStyle.copyWith(color: theme.textMuted)),
+                ],
+              ],
+            ),
+          ),
+          if (actionLabel != null) ...[
+            const SizedBox(width: 8),
+            // Flat accent, not the accent gradient — the same affordance label
+            // the `details` row paints, on the theme's caption role.
+            Text(actionLabel,
+                style: theme.caption.copyWith(
+                    fontWeight: FontWeight.w500, color: theme.accent)),
+          ],
         ],
       ),
     );
@@ -151,9 +183,9 @@ Widget buildCard(BuildContext context, BlockNode node) {
     'rounded' => RoundedRectangleBorder(borderRadius: theme.radiusLg),
     _ => theme.resolvedCardShape,
   };
-  final surface = _surface(theme, cardShape, content, gradient: featuredGradient);
+  final surface = _surface(theme, cardShape, content, gradient: surfaceGradient);
   if (action == null) return surface;
-  return GestureDetector(
+  return PressScale(
     onTap: () => scope.dispatch(context, NeoAction.parse(action)),
     child: surface,
   );
@@ -191,9 +223,11 @@ Widget _listedCard(BuildContext context, NeoSduiScope scope, NeoSduiTheme theme,
     ),
   );
   if (action == null) return row;
-  return GestureDetector(
+  return PressScale(
     onTap: () => scope.dispatch(context, NeoAction.parse(action)),
-    behavior: HitTestBehavior.opaque,
+    // A row inside a shared card dips shallower than a card of its own — it has
+    // no edge to move against, so a card's depth would read as a wobble.
+    scale: 0.994,
     child: row,
   );
 }
@@ -205,21 +239,36 @@ Widget _listedCard(BuildContext context, NeoSduiScope scope, NeoSduiTheme theme,
 /// role (already resolved into [shape]/[gradient] by the caller).
 Widget _surface(NeoSduiTheme theme, ShapeBorder shape, Widget child,
     {Gradient? gradient}) {
+  // A gradient (neumorphic) card also takes figma's hairline border; a flat card
+  // keeps its borderless shape, byte-identical to before.
+  final shaped = gradient != null && theme.stepCardBorderColor != null
+      ? _withSide(shape, BorderSide(color: theme.stepCardBorderColor!))
+      : shape;
   final Widget box = DecoratedBox(
     decoration: ShapeDecoration(
       color: gradient == null ? theme.resolvedCardColor : null,
       gradient: gradient,
-      shape: shape,
+      shape: shaped,
       shadows: theme.cardShadow,
     ),
     child: child,
   );
   if (theme.backdropBlur <= 0) return box;
   return ClipPath(
-    clipper: ShapeBorderClipper(shape: shape),
+    clipper: ShapeBorderClipper(shape: shaped),
     child: BackdropFilter(
       filter: ImageFilter.blur(sigmaX: theme.backdropBlur, sigmaY: theme.backdropBlur),
       child: box,
     ),
   );
 }
+
+/// The card shape with a hairline [side] added — used for the neumorphic
+/// (gradient) card's figma border. Only the two rounded families the card uses.
+ShapeBorder _withSide(ShapeBorder shape, BorderSide side) => switch (shape) {
+      RoundedSuperellipseBorder b =>
+        RoundedSuperellipseBorder(borderRadius: b.borderRadius, side: side),
+      RoundedRectangleBorder b =>
+        RoundedRectangleBorder(borderRadius: b.borderRadius, side: side),
+      _ => shape,
+    };

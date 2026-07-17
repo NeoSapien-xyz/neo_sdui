@@ -20,11 +20,17 @@ import '../theme/neo_sdui_theme.dart';
 /// A whole line sharing one gradient paints with a single [ShaderMask] (so it
 /// wraps across lines normally); gradient runs *inside* a mixed line each ride in
 /// a baseline-aligned [WidgetSpan], so two hues can coexist on one line.
+/// [stretch] lays a whole-line gradient over the full available width (the text
+/// left-aligned inside it) instead of the tight glyph box — so a short line
+/// samples only the left of the gradient and ends brighter, matching figma's
+/// full-width `flex-1` gradient element (the use-case row titles). Inline
+/// (mixed-run) gradients ignore it; they stay atomic per run.
 Widget neoText(
   NeoSduiTheme theme,
   Object? value,
   TextStyle style, {
   String? tone,
+  bool stretch = false,
 }) {
   final runs = _parseRuns(value);
   NeoAccent? accentOf(_Run r) => theme.accentFor(r.tone ?? tone);
@@ -44,7 +50,7 @@ Widget neoText(
   if (runs.length == 1) {
     final a = accentOf(runs.first)!;
     return a.gradient != null
-        ? _shaded(a.gradient!, runs.first.text, style)
+        ? _shaded(a.gradient!, runs.first.text, style, stretch: stretch)
         : Text(runs.first.text, style: style.copyWith(color: a.color));
   }
 
@@ -52,7 +58,8 @@ Widget neoText(
   final accents = [for (final r in runs) accentOf(r)];
   if (accents.every((a) => a?.gradient != null) &&
       {for (final a in accents) a!.gradient}.length == 1) {
-    return _shaded(accents.first!.gradient!, runs.map((r) => r.text).join(), style);
+    return _shaded(accents.first!.gradient!, runs.map((r) => r.text).join(), style,
+        stretch: stretch);
   }
 
   // Mixed: each run by its own role — gradient run -> a shaded WidgetSpan; a
@@ -77,12 +84,21 @@ Widget neoText(
 
 /// A `Text` painted through [gradient]: the gradient fills the glyph shapes
 /// (`srcIn` over opaque white text — the canonical gradient-text idiom; the
-/// child's own color is irrelevant, only its coverage).
-Widget _shaded(Gradient gradient, String text, TextStyle style) => ShaderMask(
-      blendMode: BlendMode.srcIn,
-      shaderCallback: (bounds) => gradient.createShader(bounds),
-      child: Text(text, style: style.copyWith(color: const Color(0xFFFFFFFF))),
-    );
+/// child's own color is irrelevant, only its coverage). With [stretch] the text
+/// is left-aligned in a full-width box so the ShaderMask bounds span the whole
+/// row (figma's `flex-1` gradient element), not the tight glyph box.
+Widget _shaded(Gradient gradient, String text, TextStyle style,
+    {bool stretch = false}) {
+  Widget child = Text(text,
+      style: style.copyWith(color: const Color(0xFFFFFFFF)),
+      textAlign: stretch ? TextAlign.start : null);
+  if (stretch) child = SizedBox(width: double.infinity, child: child);
+  return ShaderMask(
+    blendMode: BlendMode.srcIn,
+    shaderCallback: (bounds) => gradient.createShader(bounds),
+    child: child,
+  );
+}
 
 class _Run {
   const _Run(this.text, this.tone);

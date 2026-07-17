@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 
 import '../model/block_node.dart';
 import '../theme/neo_sdui_scope.dart';
+import '_motion.dart';
 
 /// code: monospace content with a tap-to-copy affordance — the zero-dependency
 /// core floor for exact strings the user must reproduce (shell commands, server
@@ -103,9 +104,11 @@ class _CopyChip extends StatelessWidget {
     final theme = NeoSduiScope.of(context).theme;
     final label =
         theme.caption.copyWith(color: theme.accent, fontWeight: FontWeight.w600);
-    return GestureDetector(
+    return PressScale(
       onTap: onTap,
-      behavior: HitTestBehavior.opaque,
+      // A small control dips hard — the same absolute travel that reads as a
+      // nudge on a full card would be invisible at chip size.
+      scale: 0.9,
       child: DecoratedBox(
         decoration: BoxDecoration(
           color: theme.toneSurface('accent'),

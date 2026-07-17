@@ -6,13 +6,13 @@ import '_gradient_text.dart';
 
 /// text: body copy. `emphasis: low` renders muted; else primary. `tone:"accent"`
 /// (or an inline `{text, tone:"accent"}` run) paints the theme's accent gradient.
-/// `body` may be a string or a list of runs.
+/// `variant:"footnote"` drops to the caption (fine-print) scale, muted — the
+/// figma "Note: …" disclaimer, a dimmed line, not a card. `body` may be a string
+/// or a list of runs.
 Widget buildText(BuildContext context, BlockNode node) {
   final theme = NeoSduiScope.of(context).theme;
-  return neoText(
-    theme,
-    node.fields['body'],
-    theme.bodyEmphasis(node.stringOr('emphasis')),
-    tone: node.stringOr('tone'),
-  );
+  final style = node.stringOr('variant') == 'footnote'
+      ? theme.caption.copyWith(color: theme.textMuted)
+      : theme.bodyEmphasis(node.stringOr('emphasis'));
+  return neoText(theme, node.fields['body'], style, tone: node.stringOr('tone'));
 }

@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 
 import '../model/block_node.dart';
 import '../theme/neo_sdui_scope.dart';
+import '../theme/neo_sdui_theme.dart';
 import '_gradient_text.dart';
 import '_icon.dart';
 import '_shape.dart';
@@ -59,7 +60,10 @@ Widget buildCallout(BuildContext context, BlockNode node) {
           if (hasTitle) ...[
             if (icon != null)
               Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
+                // Icon at the top, aligned with the title's first line (the figma
+                // "start" alignment) — a wrapping title keeps the glyph up top,
+                // not floated to its vertical centre.
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   icon,
                   SizedBox(width: theme.spaceSm),
@@ -70,13 +74,47 @@ Widget buildCallout(BuildContext context, BlockNode node) {
               titleWidget,
             const SizedBox(height: 4),
           ],
-          for (final b in bullets)
+          // Bullets read as a list (the figma "do one of these" callout): the
+          // first line is emphasized (full white — the primary fix), the rest at
+          // 70% white. 2+ bullets get a leading dot in their own shade; a lone
+          // supporting line stays dotless.
+          for (var i = 0; i < bullets.length; i++)
             Padding(
               padding: const EdgeInsets.only(bottom: 4),
-              child: neoText(theme, b, theme.caption),
+              child: _bullet(
+                theme,
+                bullets[i],
+                dotted: bullets.length > 1,
+                emphasized: i == 0,
+              ),
             ),
         ],
       ),
     ),
+  );
+}
+
+/// One callout bullet: [value] (string-or-runs) in white when [emphasized] (the
+/// first, primary line), else 70% white, with a leading dot in the same shade
+/// when [dotted]. Inline `tone` runs (a green "from NeoSapien") still resolve
+/// through neoText on top of this base color.
+Widget _bullet(NeoSduiTheme theme, Object? value,
+    {required bool dotted, required bool emphasized}) {
+  final color = emphasized
+      ? theme.textPrimary
+      : theme.textPrimary.withValues(alpha: 0.7);
+  final text = neoText(theme, value, theme.caption.copyWith(color: color));
+  if (!dotted) return text;
+  return Row(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Container(
+        margin: const EdgeInsets.only(top: 6, right: 8),
+        width: 3,
+        height: 3,
+        decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+      ),
+      Expanded(child: text),
+    ],
   );
 }

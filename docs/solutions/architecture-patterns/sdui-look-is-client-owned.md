@@ -1,7 +1,7 @@
 ---
 title: "Server-driven UI: the wire carries semantics, the client owns the look"
 date: 2026-07-11
-last_updated: 2026-07-15
+last_updated: 2026-07-17
 category: architecture-patterns
 module: neo_sdui
 problem_type: architecture_pattern
@@ -235,6 +235,9 @@ on the wire is the rejected path (see `docs/ideation/neo-sdui-pixel-authority-an
 
 ## Related
 
+- `motion-is-look-client-owned-tokens-package-idiom.md` — the concrete build-out
+  of the motion section above (PressScale, SwapFade, staggered entrance), plus
+  the three-deploy-gate taxonomy and the `_neumorphic.dart` primitive.
 - Plan: `docs/plans/2026-07-11-001-feat-neo-sdui-unified-guide-engine-plan.md`
   (KTD11 role palette + derived look; R22/R23 no per-guide wire presets).
 - Ideation: `docs/ideation/neo-sdui-pixel-authority-and-wire-economy.md`

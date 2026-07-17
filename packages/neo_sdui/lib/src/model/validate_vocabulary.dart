@@ -109,6 +109,10 @@ void _checkBlock(Object? block, String path, List<WireVocabIssue> out) {
         if (t is Map) _checkChildList(t['blocks'], '$path.tabs[$i].blocks', out);
       }
     }
+    // The shared `header` rides above every tab and is built like any child
+    // list — recurse it, else an off-roster block inside `tabs.header` renders
+    // nothing yet passes the gate (the silent-drop this whole check prevents).
+    _checkChildList(block['header'], '$path.header', out);
   } else if (type == 'steps') {
     // A step item is a leaf content map EXCEPT its optional `blocks` list, which
     // the renderer builds like any child blocks — recurse those so an off-roster

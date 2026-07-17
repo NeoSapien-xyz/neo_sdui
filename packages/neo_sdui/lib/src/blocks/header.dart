@@ -24,24 +24,51 @@ class HeadingScale extends InheritedWidget {
 /// accent|critical` tints the title — `accent` paints the theme's accent
 /// gradient when one is set; default keeps the theme's baked title color.
 /// `title` may be a string or a list of runs. Nested in a `group`, the title
-/// drops to item scale (a sub-heading) via [HeadingScale].
+/// drops to item scale (a sub-heading) via [HeadingScale]. `align:"center"`
+/// centers the heading across the card (the troubleshooting "Still having
+/// issues?" footer) — a layout role, never a look value.
 Widget buildHeader(BuildContext context, BlockNode node) {
   final theme = NeoSduiScope.of(context).theme;
   final tone = node.stringOr('tone');
   final subtitle = node.stringOr('subtitle');
+  final centered = node.stringOr('align') == 'center';
   // Section title (top-level) vs item title (inside a group card).
   final compact = HeadingScale.of(context);
-  final base = compact ? theme.body.copyWith(fontWeight: FontWeight.w500) : theme.title;
+  // A compact (in-card) heading still reads as a heading — primary (white), not
+  // the muted body color; a `tone` overrides. A section title keeps theme.title.
+  // The two scales are the theme's two roles (title vs body): the item title is
+  // *body at heading weight*, never a size baked here — a block that pins a
+  // fontSize/letterSpacing puts that value out of the theme's reach forever.
+  final base = compact
+      ? theme.body
+          .copyWith(fontWeight: FontWeight.w500, color: theme.textPrimary)
+      : theme.title;
   final accent = theme.accentFor(tone);
   final titleStyle = accent == null ? base : base.copyWith(color: accent.color);
-  final title = neoText(theme, node.fields['title'], titleStyle, tone: tone);
+  // A compact accent title takes the gradient across the full row width (figma's
+  // flex-1 element), so a short label ends brighter instead of at the full stop.
+  Widget title =
+      neoText(theme, node.fields['title'], titleStyle, tone: tone, stretch: compact);
+  // A plain section title takes the theme's white->grey heading emboss (the
+  // figma title fade, the same gradient the "Step n:" label uses). Accent titles
+  // keep their accent gradient; in-card sub-headings stay flat.
+  final titleGradient = theme.titleGradient;
+  if (tone == null && !compact && titleGradient != null) {
+    title = ShaderMask(
+      blendMode: BlendMode.srcIn,
+      shaderCallback: titleGradient.createShader,
+      child: title,
+    );
+  }
   final icon = leadingIcon(theme, node.stringOr('icon'), tone,
       size: base.fontSize ?? 20);
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
+  final column = Column(
+    crossAxisAlignment:
+        centered ? CrossAxisAlignment.center : CrossAxisAlignment.start,
     children: [
       if (icon != null)
         Row(
+          mainAxisSize: centered ? MainAxisSize.min : MainAxisSize.max,
           // An item heading (in a group) centers its glyph with the single-line
           // title — the "Export data" use-case row; a section heading keeps the
           // glyph top-aligned for a title that may wrap.
@@ -50,15 +77,26 @@ Widget buildHeader(BuildContext context, BlockNode node) {
           children: [
             icon,
             SizedBox(width: theme.spaceSm),
-            Expanded(child: title),
+            if (centered) title else Expanded(child: title),
           ],
         )
       else
         title,
       if (subtitle != null) ...[
         const SizedBox(height: 4),
-        Text(subtitle, style: compact ? theme.caption : theme.subtitle),
+        Text(
+          subtitle,
+          // Figma's item subtitle is Work Sans Medium (w500), not the flat
+          // caption weight — the "Summarise everything I said today." rows.
+          style: compact
+              ? theme.caption.copyWith(fontWeight: FontWeight.w500)
+              : theme.subtitle,
+          textAlign: centered ? TextAlign.center : null,
+        ),
       ],
     ],
   );
+  // A centered heading stretches full width so it centers within the card;
+  // otherwise it hugs its content at the leading edge (unchanged).
+  return centered ? SizedBox(width: double.infinity, child: column) : column;
 }

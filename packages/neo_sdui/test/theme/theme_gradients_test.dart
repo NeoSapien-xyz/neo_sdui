@@ -68,14 +68,18 @@ Iterable<Gradient?> _gradients(WidgetTester t) =>
 Gradient? _backdropGradient(WidgetTester t) =>
     _gradientOf(t.widget<DecoratedBox>(find.byType(DecoratedBox).first).decoration);
 
-/// The gradient on the **cta surface** specifically — the DecoratedBox under
-/// the cta's own GestureDetector, so a gradient that landed elsewhere can't
-/// pass this off as the cta's fill.
-Gradient? _ctaGradient(WidgetTester t) => _gradientOf(t
-    .widget<DecoratedBox>(find
-        .descendant(of: find.byType(GestureDetector), matching: find.byType(DecoratedBox))
-        .first)
-    .decoration);
+/// The gradient on the **cta surface** specifically — the first gradient-bearing
+/// DecoratedBox under the cta's own GestureDetector (a featured cta nests its
+/// gradient fill inside the neumorphic box, beneath the drop-shadow box), so a
+/// gradient that landed elsewhere can't pass this off as the cta's fill.
+Gradient? _ctaGradient(WidgetTester t) {
+  for (final d in t.widgetList<DecoratedBox>(find.descendant(
+      of: find.byType(GestureDetector), matching: find.byType(DecoratedBox)))) {
+    final g = _gradientOf(d.decoration);
+    if (g != null) return g;
+  }
+  return null;
+}
 
 void main() {
   testWidgets('backgroundGradient paints the backdrop (outermost DecoratedBox)',
@@ -108,8 +112,8 @@ void main() {
     expect(_ctaGradient(tester), _ctaGrad);
   });
 
-  testWidgets('ctaGradient also fills a squircle high-emphasis cta '
-      '(ShapeDecoration path)', (tester) async {
+  testWidgets('ctaGradient fills a featured cta even with a shape role '
+      '(the neumorphic emboss is rounded)', (tester) async {
     final theme = NeoSduiTheme.fallback().copyWith(ctaGradient: _ctaGrad);
     await _pump(tester, theme, block: {
       'type': 'cta',
@@ -118,7 +122,8 @@ void main() {
       'emphasis': 'high',
       'shape': 'squircle',
     });
-    // squircle routes through ShapeDecoration, which _gradientOf also reads.
+    // A featured cta takes the neo green button's rounded neumorphic emboss —
+    // the `shape` role is ignored; the ctaGradient still fills it.
     expect(_ctaGradient(tester), _ctaGrad);
   });
 

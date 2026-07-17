@@ -26,10 +26,26 @@ Widget buildRow(BuildContext context, BlockNode node) {
   );
 }
 
-/// column: children stacked vertically with themed gaps.
+/// column: children stacked vertically with themed gaps. `variant:"tight"` uses
+/// the item gap (spaceMd) instead of the block gap — the figma picker-card group
+/// (gap-12) vs the default section rhythm (blockSpacing).
 Widget buildColumn(BuildContext context, BlockNode node) {
   final scope = NeoSduiScope.of(context);
-  return _stack(scope.buildBlocks(node.nodeList('children')), scope.theme.blockSpacing);
+  final gap = node.stringOr('variant') == 'tight'
+      ? scope.theme.spaceMd
+      : scope.theme.blockSpacing;
+  final kids = scope.buildBlocks(node.nodeList('children'));
+  // Stretch children to full width so a stacked `card` (a Row with an Expanded)
+  // gets bounded width, exactly as it does as a top-level view block.
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      for (var i = 0; i < kids.length; i++) ...[
+        if (i > 0) SizedBox(height: gap),
+        kids[i],
+      ],
+    ],
+  );
 }
 
 /// group: children stacked inside a themed surface. A *featured* group
@@ -71,12 +87,33 @@ Widget buildGroup(BuildContext context, BlockNode node) {
   }
   // A group is a card: its child headers read as item-scale sub-headings (the
   // use-case rows), not section titles. The wire still names only `header`.
+  // Rows take the group's horizontal inset; a `spacer:"rule"` divider bleeds to
+  // the card edge (figma: full-width dashed rule, rows padded) — so the inset is
+  // applied per child, not as one outer Padding.
+  final kids = scope.buildBlocks(childNodes);
+  final hInset = EdgeInsets.symmetric(horizontal: theme.spaceMd);
+  // `variant:"tight"` pulls the item gap in to spaceSm — the figma troubleshooting
+  // card (a title over a body, gap-8), vs the default use-case row rhythm.
+  final gap =
+      node.stringOr('variant') == 'tight' ? theme.spaceSm : theme.blockSpacing;
+  bool isRule(BlockNode n) =>
+      n.type == 'spacer' && n.stringOr('variant') == 'rule';
   final Widget content = HeadingScale(
     compact: true,
     child: Padding(
-      padding: EdgeInsets.all(theme.spaceMd),
-      child:
-          _stack(scope.buildBlocks(node.nodeList('children')), theme.blockSpacing),
+      padding: EdgeInsets.symmetric(vertical: theme.spaceMd),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (var i = 0; i < kids.length; i++) ...[
+            if (i > 0) SizedBox(height: gap),
+            if (isRule(childNodes[i]))
+              kids[i]
+            else
+              Padding(padding: hInset, child: kids[i]),
+          ],
+        ],
+      ),
     ),
   );
   // A featured group paints the theme's grid behind its children, clipped to the
@@ -128,23 +165,41 @@ Widget buildSpacer(BuildContext context, BlockNode node) {
   final size = node.intOr('size', 1)!.clamp(0, 100);
   final height = theme.blockSpacing * size;
   if (node.stringOr('variant') != 'rule') return SizedBox(height: height);
+  // The rule is just the hairline: the surrounding stack/list already spaces it
+  // from its neighbours, so reserving another `blockSpacing` band around the line
+  // stacked a triple gap around the divider (the export-data over-spacing). The
+  // bare line lets the normal inter-block gap sit symmetrically above and below.
+  // Dashed + full-bleed (the group renders it outside the row inset) — figma's
+  // full-width dashed divider; the color is the theme's, never wired.
   return SizedBox(
-    height: height,
-    child: Center(
-      child: Container(
-        height: 1,
-        color: theme.divider ?? theme.onSurface.withValues(alpha: 0.12),
-      ),
+    width: double.infinity,
+    height: 1,
+    child: CustomPaint(
+      painter: _DashedLinePainter(
+          theme.divider ?? theme.onSurface.withValues(alpha: 0.12)),
     ),
   );
 }
 
-Widget _stack(List<Widget> kids, double gap) => Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        for (var i = 0; i < kids.length; i++) ...[
-          if (i > 0) SizedBox(height: gap),
-          kids[i],
-        ],
-      ],
-    );
+/// A 1px horizontal dashed hairline (figma's `border-dashed` rule). Kept here
+/// with [buildSpacer] — its only caller — rather than a shared file.
+class _DashedLinePainter extends CustomPainter {
+  const _DashedLinePainter(this.color);
+  final Color color;
+  static const double _dash = 3, _gap = 2.5;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = size.height;
+    final y = size.height / 2;
+    for (double x = 0; x < size.width; x += _dash + _gap) {
+      canvas.drawLine(Offset(x, y),
+          Offset((x + _dash).clamp(0, size.width), y), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_DashedLinePainter old) => old.color != color;
+}

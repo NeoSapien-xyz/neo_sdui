@@ -157,6 +157,11 @@ void main() {
       _doc([{'type': 'cta', 'label': 'Go', 'action': 'https://neo.xyz'}]),
       onAction: (_, a) => got = a,
     );
+    // Settle the entrance first. A block rises into place via a paint-only
+    // transform, and a sliver hit tests its children against their *layout*
+    // box — so mid-entrance the block's hit area lags its pixels. It lines back
+    // up at rest, which is the only state a user can tap in.
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Go'));
     expect(got, isA<ExternalUrl>());
     expect((got as ExternalUrl).url.host, 'neo.xyz');
