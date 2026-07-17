@@ -30,7 +30,11 @@ class HeadingScale extends InheritedWidget {
 Widget buildHeader(BuildContext context, BlockNode node) {
   final theme = NeoSduiScope.of(context).theme;
   final tone = node.stringOr('tone');
-  final subtitle = node.stringOr('subtitle');
+  // A string subtitle stays a plain `Text` (golden-stable, keeps its textAlign);
+  // a run list routes through `neoText` so a `strong` run can read white against
+  // the muted rest (the "Add those tasks to my Notion." use-case clause).
+  final subtitleValue = node.fields['subtitle'];
+  final hasSubtitle = subtitleValue is String || subtitleValue is List;
   final centered = node.stringOr('align') == 'center';
   // Section title (top-level) vs item title (inside a group card).
   final compact = HeadingScale.of(context);
@@ -43,20 +47,35 @@ Widget buildHeader(BuildContext context, BlockNode node) {
       ? theme.body
           .copyWith(fontWeight: FontWeight.w500, color: theme.textPrimary)
       : theme.title;
+  final subtitleStyle = compact
+      ? theme.caption.copyWith(fontWeight: FontWeight.w500)
+      : theme.subtitle;
   final accent = theme.accentFor(tone);
   final titleStyle = accent == null ? base : base.copyWith(color: accent.color);
   // A compact accent title takes the gradient across the full row width (figma's
   // flex-1 element), so a short label ends brighter instead of at the full stop.
   Widget title =
       neoText(theme, node.fields['title'], titleStyle, tone: tone, stretch: compact);
-  // A plain section title takes the theme's white->grey heading emboss (the
-  // figma title fade, the same gradient the "Step n:" label uses). Accent titles
-  // keep their accent gradient; in-card sub-headings stay flat.
+  // A plain section title takes the heading emboss — but the *mirror* of the
+  // "Step n:" label: dark (grey) at the top fading to white at the foot, not the
+  // label's white->grey. Same `titleGradient` role, same stops, reversed
+  // orientation (begin<->end): the look value stays in the theme; only the
+  // heading-vs-label direction is decided here. Applying it un-reversed fades the
+  // title's foot to grey, which reads as an inverted gradient. Accent titles keep
+  // their accent gradient; in-card sub-headings stay flat.
   final titleGradient = theme.titleGradient;
-  if (tone == null && !compact && titleGradient != null) {
+  if (tone == null && !compact && titleGradient is LinearGradient) {
+    final emboss = LinearGradient(
+      colors: titleGradient.colors,
+      stops: titleGradient.stops,
+      begin: titleGradient.end,
+      end: titleGradient.begin,
+      tileMode: titleGradient.tileMode,
+      transform: titleGradient.transform,
+    );
     title = ShaderMask(
       blendMode: BlendMode.srcIn,
-      shaderCallback: titleGradient.createShader,
+      shaderCallback: emboss.createShader,
       child: title,
     );
   }
@@ -82,17 +101,18 @@ Widget buildHeader(BuildContext context, BlockNode node) {
         )
       else
         title,
-      if (subtitle != null) ...[
+      if (hasSubtitle) ...[
         const SizedBox(height: 4),
-        Text(
-          subtitle,
-          // Figma's item subtitle is Work Sans Medium (w500), not the flat
-          // caption weight — the "Summarise everything I said today." rows.
-          style: compact
-              ? theme.caption.copyWith(fontWeight: FontWeight.w500)
-              : theme.subtitle,
-          textAlign: centered ? TextAlign.center : null,
-        ),
+        // Figma's item subtitle is Work Sans Medium (w500), not the flat caption
+        // weight — the "Summarise everything I said today." rows.
+        if (subtitleValue is List)
+          neoText(theme, subtitleValue, subtitleStyle)
+        else
+          Text(
+            subtitleValue as String,
+            style: subtitleStyle,
+            textAlign: centered ? TextAlign.center : null,
+          ),
       ],
     ],
   );
