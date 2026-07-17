@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart' show Icons;
 import 'package:flutter/widgets.dart';
 
-/// Default named-icon glyphs. The wire names a role ("sparkle"); this resolves
+/// Default named-icon glyphs. The wire names a role ("download"); this resolves
 /// it to a glyph. A client swaps its own set (its AppIcons); an unmapped name
-/// draws nothing — graceful, like a null [NeoSduiTheme.accentGradient].
+/// falls back to a package-drawn glyph ([kDrawnIcons]) or draws nothing —
+/// graceful, like a null [NeoSduiTheme.accentGradient].
 const Map<String, IconData> kDefaultIcons = {
-  'sparkle': Icons.auto_awesome,
   'download': Icons.download,
   'export': Icons.ios_share,
   'info': Icons.info_outline,
@@ -15,10 +15,24 @@ const Map<String, IconData> kDefaultIcons = {
   'chat': Icons.chat_bubble_outline,
 };
 
+/// Wire icon names the package paints itself (a `CustomPaint` glyph in
+/// `_icon.dart`) rather than resolving to a font [IconData] — the figma brand
+/// marks a Material glyph can't match. `sparkle` is the two-pointed NeoSapien
+/// star. A theme's `icons.<name>` entry still wins (an app override beats the
+/// drawn default); absent that, [leadingIcon] paints these. Exported so the
+/// role-drift lint counts them as resolvable, same as [kDefaultIcons].
+const Set<String> kDrawnIcons = {'sparkle'};
+
 /// The built-in accent tone names [NeoSduiTheme.accentFor] resolves even without
 /// a theme-declared `accents.<name>` entry. Exported so the role-drift lint reads
 /// one list instead of hand-duplicating it; keep in sync with `accentFor`'s switch.
-const Set<String> kBuiltinAccentTones = {'accent', 'critical', 'warning'};
+const Set<String> kBuiltinAccentTones = {
+  'accent',
+  'accentFlat',
+  'strong',
+  'critical',
+  'warning',
+};
 
 /// One accent *role* the wire can name via `tone` — a flat [color] and an
 /// optional [gradient] painted over the glyphs when set (null → flat, like a
@@ -259,6 +273,13 @@ class NeoSduiTheme {
     // The cases here are the [kBuiltinAccentTones] set — keep the two in sync.
     return switch (tone) {
       'accent' => NeoAccent(accent, accentGradient),
+      // Same accent hue, painted FLAT (no gradient) — the figma step-4 example
+      // prompt, a solid bright green rather than the darkening `accentGradient`.
+      'accentFlat' => NeoAccent(accent),
+      // Not an accent hue at all — the primary text color, so a single run in a
+      // muted line can read white (the figma "Add those tasks to my Notion."
+      // clause standing out from the grey use-case subtitle).
+      'strong' => NeoAccent(textPrimary),
       'critical' => NeoAccent(danger),
       'warning' => NeoAccent(warning),
       _ => null,

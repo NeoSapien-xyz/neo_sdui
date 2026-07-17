@@ -6,12 +6,13 @@
 /// Works on the reconciled ledger, not a live theme: a named accent resolves iff
 /// the ledger declared `accents.<name>` (or it is the built-in `accent`/
 /// `critical`); a named icon resolves iff `icons.<name>` was declared (or it is
-/// one of the default glyphs). `emphasis` always resolves (built-in fill), so it
-/// never drifts.
+/// one of the default glyphs, or a package-drawn glyph like `sparkle`).
+/// `emphasis` always resolves (built-in fill), so it never drifts.
 library;
 
 import '../model/validate_vocabulary.dart' show WireIssueSeverity;
-import '../theme/neo_sdui_theme.dart' show kDefaultIcons, kBuiltinAccentTones;
+import '../theme/neo_sdui_theme.dart'
+    show kDefaultIcons, kDrawnIcons, kBuiltinAccentTones;
 import 'theme_ledger.dart';
 
 /// One drift problem. Collected, never thrown. Reuses [WireIssueSeverity] so the
@@ -58,7 +59,9 @@ List<RoleDriftIssue> lintRoleDrift(Reconciled r) {
         }
       case 'icon':
         referencedIcons.add(name);
-        if (!kDefaultIcons.containsKey(name) && !namedIcons.contains(name)) {
+        if (!kDefaultIcons.containsKey(name) &&
+            !kDrawnIcons.contains(name) &&
+            !namedIcons.contains(name)) {
           out.add(RoleDriftIssue(
               tag,
               "wire icon '$name' has no theme icon slot",

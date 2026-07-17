@@ -49,6 +49,37 @@ void main() {
     expect(tester.widget<Text>(find.text('NeoSapien')).style!.color, _plain.accent);
   });
 
+  testWidgets('an accentFlat run stays flat accent even when the theme sets a gradient',
+      (tester) async {
+    // The figma step-4 example prompt: the accent hue, painted solid — NOT the
+    // darkening `accentGradient` that plain `tone:accent` would apply.
+    await _pump(tester, {
+      'type': 'text',
+      'body': [
+        'try: ',
+        {'text': 'What do you know about me?', 'tone': 'accentFlat'},
+      ],
+    }, _gradTheme);
+    expect(find.byType(ShaderMask), findsNothing); // flat, no gradient mask
+  });
+
+  testWidgets('a strong run reads the primary text color, not an accent hue',
+      (tester) async {
+    // The figma "Add those tasks to my Notion." clause: white, standing out from
+    // the muted rest — NOT a green accent, and flat (no gradient mask).
+    await _pump(tester, {
+      'type': 'text',
+      'body': [
+        {'text': 'Add those tasks to my Notion.', 'tone': 'strong'},
+        ' Your AI has both.',
+      ],
+    }, _gradTheme);
+    expect(find.byType(ShaderMask), findsNothing);
+    final text = tester.widget<Text>(find.byType(Text).first);
+    final first = (text.textSpan! as TextSpan).children!.first as TextSpan;
+    expect(first.style!.color, _gradTheme.textPrimary);
+  });
+
   testWidgets('plain non-accent text gets no gradient even under a gradient theme',
       (tester) async {
     await _pump(tester, {'type': 'text', 'body': 'plain copy'}, _gradTheme);

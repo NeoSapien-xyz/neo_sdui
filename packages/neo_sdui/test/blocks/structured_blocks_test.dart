@@ -217,21 +217,35 @@ void main() {
     expect(find.byType(AspectRatio), findsNothing);
   });
 
-  testWidgets('callout draws a leading icon named on the wire', (tester) async {
+  testWidgets('callout draws a theme-mapped leading icon, tinted by tone', (tester) async {
+    await _pump(tester, {
+      'type': 'callout',
+      'tone': 'accent',
+      'icon': 'export',
+      'title': 'Requires laptop for setup',
+      'bullets': ['Works everywhere once connected.'],
+    });
+    expect(find.byIcon(Icons.ios_share), findsOneWidget);
+    // Tinted by tone: accent -> the accent role color.
+    expect(
+      tester.widget<Icon>(find.byIcon(Icons.ios_share)).color,
+      _theme.accent,
+    );
+    expect(find.text('Requires laptop for setup'), findsOneWidget);
+  });
+
+  testWidgets('the sparkle icon paints the drawn NeoSapien star, not a Material glyph',
+      (tester) async {
+    // `sparkle` isn't a font glyph — the package draws the two-pointed brand star
+    // (figma "Bold / Weather / Stars"); `Icons.auto_awesome` was a wrong match.
     await _pump(tester, {
       'type': 'callout',
       'tone': 'accent',
       'icon': 'sparkle',
-      'title': 'Requires laptop for setup',
-      'bullets': ['Works everywhere once connected.'],
+      'title': 'Not getting results?',
     });
-    expect(find.byIcon(Icons.auto_awesome), findsOneWidget);
-    // Tinted by tone: accent -> the accent role color.
-    expect(
-      tester.widget<Icon>(find.byIcon(Icons.auto_awesome)).color,
-      _theme.accent,
-    );
-    expect(find.text('Requires laptop for setup'), findsOneWidget);
+    expect(find.byKey(const Key('icon-sparkle')), findsOneWidget);
+    expect(find.byIcon(Icons.auto_awesome), findsNothing);
   });
 
   testWidgets('an unmapped icon name draws nothing (graceful)', (tester) async {
