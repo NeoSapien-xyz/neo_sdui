@@ -47,13 +47,17 @@ Widget buildCallout(BuildContext context, BlockNode node) {
   return DecoratedBox(
     decoration: shapeDecoration(
       node.stringOr('shape'),
-      theme.radiusMd,
+      // The figma "use case" card is the theme's large card radius (16), not the
+      // medium chip radius — a callout IS a card, so it takes the card roles.
+      theme.radiusLg,
       fallback: 'rounded',
       color: bg,
       gradient: grad,
     ),
     child: Padding(
-      padding: EdgeInsets.all(theme.spaceMd),
+      // Card insets (20h / 18v), not the tight `spaceMd` box — the figma callout
+      // breathes like every other card, not like an inline chip.
+      padding: theme.cardPadding,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
