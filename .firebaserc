@@ -1,0 +1,7 @@
+{
+  "projects": {
+    "default": "neo-app-dev-677c2",
+    "dev": "neo-app-dev-677c2",
+    "prod": "neo-app-prod"
+  }
+}

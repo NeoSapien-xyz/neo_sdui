@@ -47,10 +47,9 @@ stop — you are breaking the contract the whole package depends on.
 - A figma.com link/selection or node id destined for a neo_sdui screen is in scope for this repo.
 - A designer handed a screenshot of a screen, frame, or component to transcribe into a wire document.
 
-**Not for:** the neo app's Dart widgets (that's `neofig`), pushing JSON to Firebase Remote Config
-(out of scope — figwire writes a reviewable deliverable folder), or inventing look.
+**Not for:** the neo app's Dart widgets (that's `neofig`), or inventing look.
 
-## Propagation + host — figwire doesn't push it; it still owns knowing what happens to it
+## Propagation + host — publishing is one command, and it is never step one
 
 - **Wire** changes reach the device on an RC republish, and the app wires **realtime** Remote Config
   (`onConfigUpdated` → `activate()`), whose fetch **bypasses `minimumFetchInterval`** — so a
@@ -160,7 +159,34 @@ contract has drifted from the blocks. That is the floor, not parity — see the 
 Only after the validate gate passes: write the wire to `deliverables/<family>/<family>.json` and the
 exported images to `deliverables/<family>/assets/` (gitignored, CDN-mirroring). Show the coverage
 report, preview path, the asset `HAVE`/`MISSING` manifest, and any low-confidence / secret flags for
-sign-off. No Firebase push. See `references/deliverables-and-assets.md`.
+sign-off. See `references/deliverables-and-assets.md`.
+
+### 7. Publish (only on the user's say-so)
+
+The deliverable is still the review artifact — publishing is what happens *after* sign-off, never
+instead of it. One command, from the repo root:
+
+```bash
+python3 tool/publish_guide.py dev            # or: prod --yes
+python3 tool/publish_guide.py dev --dry-run  # pull + byte diff, publish nothing
+#   --wire  deliverables/<family>/<family>.json   --param  <rc_key>
+```
+
+**Never `firebase deploy --only remoteconfig` by hand, and never commit a template file.** That
+deploy replaces the *whole* Remote Config template, so any parameter stale in your local copy
+overwrites live and anything added via the console since your pull is deleted. `publish_guide.py`
+exists to make that impossible: it re-pulls the live template every run and edits exactly one
+parameter. Its guards run before the deploy call — malformed wire, or a `--param` that isn't already
+live, aborts rather than publishes.
+
+Publishing needs a valid CLI token, and it expires. `firebase login --reauth` **cannot** run from a
+tool call or a `!` prefix (non-interactive) — the user runs it in their own terminal. The Firebase
+MCP shares the same credential store, so it fails identically; its "Authenticated User" line reports
+a stored email, not a live token.
+
+Verify from live, not from the deploy's exit code: re-pull, `json.loads` the parameter, and assert
+deep equality against the deliverable. A large byte drop is expected and is not loss — the script
+publishes minified, the console stores pretty-printed.
 
 If a theme was accumulated, run the terminal compile once at the end and hand the user the base
 `NeoSduiTheme` + per-page `copyWith` overrides + the coverage report, resolving any conflict roles via
@@ -186,3 +212,6 @@ Package tools these call (in `packages/neo_sdui/`):
 - `test/authoring/theme_values_test.dart` — `NEO_THEME_LEDGER=<ledger> fvm flutter test test/authoring/theme_values_test.dart` → the look asserted as data: family bound (never a bare `fontFamily:`), gradients carry `begin`/`end`.
 - `test/golden/` — `fvm flutter test test/golden/` → **no flag, so these can actually fail** (the PNGs are committed). A regression alarm, not a parity check, and narrower than it looks: every golden is 2400×1800 = the **default 800×600 surface at DPR 3**, so the 390-wide guide sits centered in an 800-wide window and is clipped to ~600 logical px tall — a tall view is captured as a middle slice — and the type renders at the fallback font. It tells you *something moved*, never *it matches figma*. Regenerate only when you intend the look to change (`fvm flutter test --update-goldens test/golden/`).
 - `test/tools/compile_theme_test.dart` — `NEO_THEME_LEDGER=<ledger> [NEO_THEME_OUT=<theme.dart>] [NEO_THEME_BASE_PAGE=<page>] fvm flutter test test/tools/compile_theme_test.dart` → paste-in `NeoSduiTheme` + coverage report + role-drift lint (`NEO_THEME_BASE_PAGE` pins that page's look as the base).
+
+Repo-root tool (in `neo_sdui/`, not the package):
+- `tool/publish_guide.py` — `python3 tool/publish_guide.py <dev|prod> [--wire <path>] [--param <key>] [--dry-run] [--yes]` → re-pulls the live Remote Config template, overwrites one parameter, deploys. The **only** sanctioned push path (step 7). Must run from the repo root — `.firebaserc` lives there, so the `dev`/`prod` aliases don't resolve from anywhere else.

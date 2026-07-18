@@ -38,3 +38,7 @@ coverage/
 
 # figwire deliverables — CDN staging (wire JSON + exported assets); reviewed then uploaded, never committed
 deliverables/
+
+# Remote Config: re-pulled live on every publish (tool/publish_guide.py), never a committed baseline
+remoteconfig.template.json
+firebase-debug.log
