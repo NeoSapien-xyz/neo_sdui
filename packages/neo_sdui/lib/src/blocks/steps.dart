@@ -121,6 +121,20 @@ Widget _badge(NeoSduiTheme theme, int n, String tone) {
   );
 }
 
+/// A numbered bare-step row: the tone-colored index, a gap, then the item
+/// [body]. Shared by the bare checklist path and its (and the carded path's) R8
+/// error fallback, so the number + placeholder layout can't drift between them.
+Widget _numberedRow(
+        NeoSduiTheme theme, int n, String numberTone, TextStyle index, Widget body) =>
+    Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        neoText(theme, '$n', index, tone: numberTone),
+        const SizedBox(width: 12),
+        Expanded(child: body),
+      ],
+    );
+
 Widget _item(NeoSduiScope scope, int n, Map<String, Object?> item, String numberTone) {
   final theme = scope.theme;
   // The how_to "List Item": an image-topped card whose details panel carries a
@@ -136,16 +150,8 @@ Widget _item(NeoSduiScope scope, int n, Map<String, Object?> item, String number
     try {
       return _cardedItem(scope, n, item, numberTone);
     } catch (_) {
-      return Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          neoText(theme, '$n', index, tone: numberTone),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text('—', key: const Key('step-error'), style: theme.body),
-          ),
-        ],
-      );
+      return _numberedRow(theme, n, numberTone, index,
+          Text('—', key: const Key('step-error'), style: theme.body));
     }
   }
   Widget body;
@@ -176,14 +182,7 @@ Widget _item(NeoSduiScope scope, int n, Map<String, Object?> item, String number
     // Bad item -> keep the number, show a placeholder, keep numbering intact.
     body = Text('—', key: const Key('step-error'), style: theme.body);
   }
-  final row = Row(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      neoText(theme, '$n', index, tone: numberTone),
-      const SizedBox(width: 12),
-      Expanded(child: body),
-    ],
-  );
+  final row = _numberedRow(theme, n, numberTone, index, body);
   // A step's rich content: an optional full-width baked `image` above the row
   // (the how-to screenshot), and/or a nested `blocks` list below it — composed
   // content a baked image can't be, e.g. a grid `group` wrapping a `row` + a
