@@ -50,6 +50,17 @@ void main() {
     expect(tester.widget<Text>(find.text('Hi')).style!.color, _theme.accent);
   });
 
+  testWidgets('header icon:"export" resolves the package-drawn export glyph',
+      (tester) async {
+    // Regression guard: `export` is a package-drawn glyph (kDrawnIcons — the
+    // figma up-arrow-out-of-a-tray), not the Material `Icons.ios_share` it used
+    // to map to. Guards the kDrawnIcons registration + the _drawnIcon switch.
+    await _pump(tester,
+        {'type': 'header', 'title': 'Export data', 'tone': 'accent', 'icon': 'export'});
+    expect(find.byKey(const Key('icon-export')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('text uses body; emphasis low renders muted', (tester) async {
     await _pump(tester, {'type': 'text', 'body': 'B'});
     expect(tester.widget<Text>(find.text('B')).style, _theme.body);

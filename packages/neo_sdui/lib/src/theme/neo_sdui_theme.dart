@@ -7,7 +7,6 @@ import 'package:flutter/widgets.dart';
 /// graceful, like a null [NeoSduiTheme.accentGradient].
 const Map<String, IconData> kDefaultIcons = {
   'download': Icons.download,
-  'export': Icons.ios_share,
   'info': Icons.info_outline,
   'check': Icons.check_circle,
   'warning': Icons.warning_amber_rounded,
@@ -18,10 +17,11 @@ const Map<String, IconData> kDefaultIcons = {
 /// Wire icon names the package paints itself (a `CustomPaint` glyph in
 /// `_icon.dart`) rather than resolving to a font [IconData] — the figma brand
 /// marks a Material glyph can't match. `sparkle` is the two-pointed NeoSapien
-/// star. A theme's `icons.<name>` entry still wins (an app override beats the
+/// star; `export` is the figma up-arrow-out-of-a-tray (a share-sheet `ios_share`
+/// glyph read wrong). A theme's `icons.<name>` entry still wins (an app override beats the
 /// drawn default); absent that, [leadingIcon] paints these. Exported so the
 /// role-drift lint counts them as resolvable, same as [kDefaultIcons].
-const Set<String> kDrawnIcons = {'sparkle'};
+const Set<String> kDrawnIcons = {'sparkle', 'export'};
 
 /// The built-in accent tone names [NeoSduiTheme.accentFor] resolves even without
 /// a theme-declared `accents.<name>` entry. Exported so the role-drift lint reads

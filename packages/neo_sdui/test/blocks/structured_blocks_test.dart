@@ -218,17 +218,19 @@ void main() {
   });
 
   testWidgets('callout draws a theme-mapped leading icon, tinted by tone', (tester) async {
+    // A Material-mapped icon name (kDefaultIcons) resolves to an Icon, tinted by
+    // tone. (`export` is now a package-drawn glyph — see the leaf-blocks test.)
     await _pump(tester, {
       'type': 'callout',
       'tone': 'accent',
-      'icon': 'export',
+      'icon': 'download',
       'title': 'Requires laptop for setup',
       'bullets': ['Works everywhere once connected.'],
     });
-    expect(find.byIcon(Icons.ios_share), findsOneWidget);
+    expect(find.byIcon(Icons.download), findsOneWidget);
     // Tinted by tone: accent -> the accent role color.
     expect(
-      tester.widget<Icon>(find.byIcon(Icons.ios_share)).color,
+      tester.widget<Icon>(find.byIcon(Icons.download)).color,
       _theme.accent,
     );
     expect(find.text('Requires laptop for setup'), findsOneWidget);
