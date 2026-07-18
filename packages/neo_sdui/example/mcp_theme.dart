@@ -73,5 +73,16 @@ NeoSduiTheme _build() {
       fontWeight: FontWeight.w400,
       letterSpacing: -.48,
     ),
+    // Callout supporting line: a notch under body (body-1) so a callout title
+    // (which rides body) still reads larger than its own body line — the role the
+    // package falls back to body without.
+    calloutBody: TextStyle(
+      fontFamily: work,
+      color: white,
+      fontSize: 15,
+      height: 1.2,
+      fontWeight: FontWeight.w400,
+      letterSpacing: -.3,
+    ),
   );
 }
