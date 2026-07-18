@@ -67,7 +67,7 @@ class _SparklePainter extends CustomPainter {
       ..style = PaintingStyle.fill
       ..isAntiAlias = true;
     final path = Path()
-      ..addPath(_star(const Offset(5.67, 5.67), 4.5), Offset.zero)
+      ..addPath(_star(const Offset(5.67, 5.67), 4.33), Offset.zero)
       ..addPath(_star(const Offset(11.67, 11.67), 3.0), Offset.zero);
     canvas.drawPath(
       path.transform(Matrix4.diagonal3Values(s, s, 1).storage),
