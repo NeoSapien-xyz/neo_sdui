@@ -633,6 +633,101 @@ void main() {
     );
   });
 
+  testWidgets('the hero command card rides commandStyle when the theme sets it',
+      (tester) async {
+    // The role's non-null path (R8/#3): a theme that sets commandStyle sizes the
+    // hero command by it, not the `mono` fallback.
+    await _pumpThemed(
+      tester,
+      {
+        'type': 'steps',
+        'items': [
+          {'caption': 'run:', 'code': 'claude mcp add x', 'emphasis': 'high'},
+        ],
+      },
+      NeoSduiTheme.fallback().copyWith(
+        stepCardColor: const Color(0x05FFFFFF),
+        commandStyle: const TextStyle(fontSize: 88),
+      ),
+    );
+    final cmd = tester.widget<Text>(find.byKey(const Key('command-card')));
+    expect(cmd.style!.fontSize, 88); // the role, not resolvedCommandStyle's mono fallback
+  });
+
+  testWidgets('a callout bullet rides calloutBody when the theme sets it',
+      (tester) async {
+    // The role's non-null path (#3): a theme that sets calloutBody sizes the
+    // bullet by it, not the `body` fallback.
+    await _pumpThemed(
+      tester,
+      {
+        'type': 'callout',
+        'bullets': ['Export all memories'],
+      },
+      NeoSduiTheme.fallback().copyWith(calloutBody: const TextStyle(fontSize: 99)),
+    );
+    expect(
+      tester.widget<Text>(find.text('Export all memories')).style!.fontSize,
+      99,
+    );
+  });
+
+  testWidgets('the copy button foot color derives from the theme cardGradient',
+      (tester) async {
+    // #4: the flat-pill fix reads the cardGradient's dark stop as its foot color.
+    const cardGrad = LinearGradient(colors: [Color(0xFF202423), Color(0xFF171A19)]);
+    await _pumpThemed(
+      tester,
+      {
+        'type': 'steps',
+        'items': [
+          {'caption': 'run:', 'code': 'claude mcp add x', 'emphasis': 'high'},
+        ],
+      },
+      NeoSduiTheme.fallback().copyWith(
+        stepCardColor: const Color(0x05FFFFFF),
+        cardGradient: cardGrad,
+      ),
+    );
+    final box = tester.widget<DecoratedBox>(
+      find
+          .ancestor(
+            of: find.text('Copy Command'),
+            matching: find.byType(DecoratedBox),
+          )
+          .first,
+    );
+    final grad = (box.decoration as BoxDecoration).gradient! as LinearGradient;
+    expect(grad.colors.last, cardGrad.colors.last); // the cardGradient foot, not theme.surface
+  });
+
+  testWidgets('a carded step that throws is isolated by the R8 catch; siblings survive',
+      (tester) async {
+    // #2: force a synchronous throw inside `_cardedItem` — a nested `blocks`
+    // entry that is a Map with a non-String key trips `Map<String,Object?>.from`.
+    // The R8 try/catch must degrade just that item to a `step-error` placeholder
+    // (keeping its number) while a sibling carded item still renders.
+    await _pumpThemed(
+      tester,
+      {
+        'type': 'steps',
+        'items': [
+          {'caption': 'Good step'},
+          {
+            'caption': 'Boom',
+            'blocks': [
+              {42: 'non-string key throws in Map<String,Object?>.from'},
+            ],
+          },
+        ],
+      },
+      NeoSduiTheme.fallback().copyWith(stepCardColor: const Color(0x05FFFFFF)),
+    );
+    expect(tester.takeException(), isNull); // caught, not propagated to the block
+    expect(find.byKey(const Key('step-error')), findsOneWidget);
+    expect(find.text('Good step'), findsOneWidget); // the sibling still renders
+  });
+
   testWidgets('a group heading with no tone reads as primary, not muted body',
       (tester) async {
     const muted = Color(0xFF868686);

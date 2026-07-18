@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:neo_sdui/neo_sdui.dart';
+import 'package:neo_sdui/src/blocks/_motion.dart' show SwapFade;
 
 /// A tabs block with [webSteps] blocks in its first tab — enough content to
 /// outrun the viewport so scrolling is observable.
@@ -84,5 +85,14 @@ void main() {
     await tester.tap(find.text('Desktop'));
     await tester.pumpAndSettle();
     expect(find.text('desktop steps'), findsOneWidget);
+  });
+
+  testWidgets('the pinned form swaps its content through a SwapFade, not a hard cut',
+      (tester) async {
+    // Regression guard for the pinned-tab-swap fix: both tab forms route their
+    // content through `_swapContent` -> `SwapFade`. Reverting the pinned form to
+    // a bare `_tabContent` (the old instant page change) drops this widget.
+    await _pump(tester);
+    expect(find.byType(SwapFade), findsOneWidget);
   });
 }

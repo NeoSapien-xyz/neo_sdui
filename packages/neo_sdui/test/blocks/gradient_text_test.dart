@@ -100,6 +100,48 @@ void main() {
     expect(mono.style!.fontFamilyFallback, _gradTheme.mono.fontFamilyFallback);
   });
 
+  testWidgets('a mono run with an explicit tone recolors to the accent color, stays flat',
+      (tester) async {
+    // `_monoStyle`'s recolor arm: a mono run that also names a tone rides the
+    // mono slot but takes the tone's flat color (never gradient-shaded).
+    await _pump(tester, {
+      'type': 'text',
+      'body': [
+        'Run ',
+        {'text': 'claude login', 'mono': true, 'tone': 'accent'},
+      ],
+    }, _gradTheme);
+    expect(find.byType(ShaderMask), findsNothing); // mono is never shaded
+    final text = tester.widget<Text>(find.byType(Text).first);
+    final spans = (text.textSpan! as TextSpan).children!.cast<TextSpan>();
+    final mono = spans.firstWhere((s) => s.text == 'claude login');
+    expect(mono.style!.fontSize, _gradTheme.mono.fontSize); // still the mono slot
+    expect(mono.style!.color, _gradTheme.accentFor('accent')!.color); // recolored
+  });
+
+  testWidgets('a mono run beside a gradient accent run: mono flat, accent shaded',
+      (tester) async {
+    // The anyMono branch's mixed arms: a mono run (flat TextSpan) alongside a
+    // gradient accent run (a shaded WidgetSpan) on one line.
+    await _pump(tester, {
+      'type': 'text',
+      'body': [
+        {'text': 'claude mcp add', 'mono': true},
+        ' for ',
+        {'text': 'NeoSapien', 'tone': 'accent'},
+      ],
+    }, _gradTheme);
+    expect(tester.takeException(), isNull);
+    expect(find.byType(ShaderMask), findsOneWidget); // just the accent run
+    expect(find.text('NeoSapien'), findsOneWidget); // the shaded WidgetSpan child
+    final outer = tester.widget<Text>(find.byType(Text).first);
+    final mono = (outer.textSpan! as TextSpan)
+        .children!
+        .whereType<TextSpan>()
+        .firstWhere((s) => s.text == 'claude mcp add');
+    expect(mono.style!.fontSize, _gradTheme.mono.fontSize); // flat mono, not shaded
+  });
+
   testWidgets('plain non-accent text gets no gradient even under a gradient theme',
       (tester) async {
     await _pump(tester, {'type': 'text', 'body': 'plain copy'}, _gradTheme);
