@@ -1,6 +1,6 @@
 name: neo_sdui_media
 description: "neo_sdui add-on: one media block that infers image vs video from the URL, plays video (looping/muted/autoplay), and disk-caches both via flutter_cache_manager."
-version: 0.0.1
+version: 0.1.0
 publish_to: none
 
 environment:
@@ -24,7 +24,7 @@ dependencies:
     git:
       url: https://github.com/NeoSapien-xyz/neo_sdui.git
       path: packages/neo_sdui
-      ref: neo_sdui-v0.0.1
+      ref: neo_sdui-v0.1.0
   video_player: ^2.11.1
 
 dev_dependencies:

@@ -1,6 +1,6 @@
 name: neo_sdui_syntax
 description: "neo_sdui add-on: re-registers the `code` block to syntax-highlight its content by language, keeping the copy affordance. Scaffold — highlighting is a placeholder badge until flutter_highlight is wired."
-version: 0.0.1
+version: 0.1.0
 publish_to: none
 
 environment:
@@ -23,7 +23,7 @@ dependencies:
     git:
       url: https://github.com/NeoSapien-xyz/neo_sdui.git
       path: packages/neo_sdui
-      ref: neo_sdui-v0.0.1
+      ref: neo_sdui-v0.1.0
   # Real syntax highlighting for the `code` block (HighlightView in
   # src/syntax_code.dart). Pinned to the classic 0.7.x API (hyphenated theme
   # imports, no ensureInitialized).
