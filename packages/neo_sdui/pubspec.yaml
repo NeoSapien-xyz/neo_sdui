@@ -1,6 +1,6 @@
 name: neo_sdui
 description: "Server-driven UI for Neo: turns a Firebase Remote Config JSON document into baked, themed Flutter widgets for pure-content screens (guides, walkthroughs, FAQs)."
-version: 0.0.1
+version: 0.1.0
 homepage:
 
 environment:
