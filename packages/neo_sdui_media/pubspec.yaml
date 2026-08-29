@@ -14,8 +14,17 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_cache_manager: ^3.4.1
+  # Core declared as a git dep (not `path:`) so `melos version` can keep its
+  # `ref:` on the per-package `neo_sdui-v<version>` tag (see melos.yaml
+  # updateGitTagRefs). Locally the pub workspace resolves this to the sibling
+  # package by name, so the ref is only consulted when the app pulls this add-on
+  # transitively as a git dep — where a matching tag ref avoids pub's
+  # "neo_sdui_syntax from git is forbidden" clash.
   neo_sdui:
-    path: ../neo_sdui
+    git:
+      url: https://github.com/NeoSapien-xyz/neo_sdui.git
+      path: packages/neo_sdui
+      ref: neo_sdui-v0.0.1
   video_player: ^2.11.1
 
 dev_dependencies:

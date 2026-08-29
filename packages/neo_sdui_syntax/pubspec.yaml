@@ -13,8 +13,17 @@ resolution: workspace
 dependencies:
   flutter:
     sdk: flutter
+  # Core declared as a git dep (not `path:`) so `melos version` can keep its
+  # `ref:` on the per-package `neo_sdui-v<version>` tag (see melos.yaml
+  # updateGitTagRefs). Locally the pub workspace resolves this to the sibling
+  # package by name, so the ref is only consulted when the app pulls this add-on
+  # transitively as a git dep — where a matching tag ref avoids pub's
+  # "neo_sdui_syntax from git is forbidden" clash.
   neo_sdui:
-    path: ../neo_sdui
+    git:
+      url: https://github.com/NeoSapien-xyz/neo_sdui.git
+      path: packages/neo_sdui
+      ref: neo_sdui-v0.0.1
   # Real syntax highlighting for the `code` block (HighlightView in
   # src/syntax_code.dart). Pinned to the classic 0.7.x API (hyphenated theme
   # imports, no ensureInitialized).
