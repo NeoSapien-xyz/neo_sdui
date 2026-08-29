@@ -4,6 +4,15 @@ name: neo_sdui
 packages:
   - packages/*
 
+command:
+  version:
+    # Rewrite each add-on's `neo_sdui` git `ref:` to the newly-cut
+    # `neo_sdui-v<version>` tag on every `melos version`. With per-package tags
+    # this makes the consuming app's ref and the add-ons' transitive ref carry
+    # the same string, so pub stops rejecting them ("neo_sdui_syntax from git is
+    # forbidden"). Requires the add-ons to declare core as a git dep, not path.
+    updateGitTagRefs: true
+
 scripts:
   analyze:
     description: Analyze every package.
