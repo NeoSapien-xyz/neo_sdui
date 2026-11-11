@@ -288,4 +288,94 @@ void main() {
       });
     }
   });
+
+  group('header and text roles', () {
+    Future<void> pumpThemed(
+        WidgetTester t, NeoSduiTheme theme, Map<String, Object?> block) =>
+        t.pumpWidget(Directionality(
+          textDirection: TextDirection.ltr,
+          child: MediaQuery(
+            data: const MediaQueryData(),
+            child: NeoSduiView(
+              document:
+                  NeoDocument.fromJson({'version': 1, 'blocks': [block]}),
+              theme: theme,
+              onAction: (_, _) {},
+            ),
+          ),
+        ));
+    TextStyle? styleOf(WidgetTester t, String s) =>
+        t.widget<Text>(find.text(s)).style;
+
+    testWidgets('footnote uses the footnote role when set', (t) async {
+      const role = TextStyle(fontSize: 11, color: Color(0xFF123456));
+      await pumpThemed(t, _theme.copyWith(footnote: role),
+          {'type': 'text', 'body': 'Note', 'variant': 'footnote'});
+      expect(styleOf(t, 'Note')!.fontSize, 11);
+      expect(styleOf(t, 'Note')!.color, const Color(0xFF123456));
+    });
+
+    testWidgets('footnote unset keeps the muted caption', (t) async {
+      await pumpThemed(t, _theme,
+          {'type': 'text', 'body': 'Note', 'variant': 'footnote'});
+      expect(styleOf(t, 'Note')!.fontSize, _theme.caption.fontSize);
+      expect(styleOf(t, 'Note')!.color, _theme.textMuted);
+    });
+
+    testWidgets('paragraph role styles normal text', (t) async {
+      const role = TextStyle(fontSize: 17, color: Color(0xFF654321));
+      await pumpThemed(t, _theme.copyWith(paragraph: role),
+          {'type': 'text', 'body': 'Body'});
+      expect(styleOf(t, 'Body')!.fontSize, 17);
+    });
+
+    testWidgets('low emphasis stays muted body with a paragraph role',
+        (t) async {
+      await pumpThemed(
+          t,
+          _theme.copyWith(paragraph: const TextStyle(fontSize: 17)),
+          {'type': 'text', 'body': 'Low', 'emphasis': 'low'});
+      expect(styleOf(t, 'Low')!.color, _theme.textMuted);
+    });
+
+    Map<String, Object?> compactHeader() => {
+          'type': 'group',
+          'children': [
+            {
+              'type': 'header',
+              'title': 'H',
+              'subtitle': 'S',
+              'icon': 'check',
+            },
+          ],
+        };
+
+    testWidgets('compact header uses rowTitle, icon size/gap, subtitle gap',
+        (t) async {
+      const role = TextStyle(fontSize: 19, color: Color(0xFF0000FF));
+      final themed = _theme.copyWith(
+        rowTitle: role,
+        header: const NeoHeaderStyle(
+            subtitleGap: 10, compactIconSize: 30, compactIconGap: 14),
+      );
+      await pumpThemed(t, themed, compactHeader());
+      expect(styleOf(t, 'H')!.fontSize, 19);
+      final h = t.getRect(find.text('H'));
+      final s = t.getRect(find.text('S'));
+      expect(s.top - h.bottom, greaterThanOrEqualTo(10));
+      final icon = t.getRect(find.byType(Icon).first);
+      expect(icon.width, 30);
+      expect(h.left - icon.right, 14);
+    });
+
+    testWidgets('compact header default: body at w500 primary, gap 4',
+        (t) async {
+      await pumpThemed(t, _theme, compactHeader());
+      expect(styleOf(t, 'H')!.fontSize, _theme.body.fontSize);
+      expect(styleOf(t, 'H')!.fontWeight, FontWeight.w500);
+      final icon = t.getRect(find.byType(Icon).first);
+      expect(icon.width, _theme.body.fontSize);
+      expect(t.getRect(find.text('H')).left - icon.right, _theme.spaceSm);
+    });
+  });
 }

@@ -12,7 +12,9 @@ import '_gradient_text.dart';
 Widget buildText(BuildContext context, BlockNode node) {
   final theme = NeoSduiScope.of(context).theme;
   final style = node.stringOr('variant') == 'footnote'
-      ? theme.caption.copyWith(color: theme.textMuted)
-      : theme.bodyEmphasis(node.stringOr('emphasis'));
+      ? theme.resolvedFootnote
+      : node.stringOr('emphasis') == 'low'
+          ? theme.resolvedParagraph.copyWith(color: theme.textMuted)
+          : theme.resolvedParagraph;
   return neoText(theme, node.fields['body'], style, tone: node.stringOr('tone'));
 }

@@ -44,8 +44,9 @@ Widget buildHeader(BuildContext context, BlockNode node) {
   // *body at heading weight*, never a size baked here — a block that pins a
   // fontSize/letterSpacing puts that value out of the theme's reach forever.
   final base = compact
-      ? theme.body
-          .copyWith(fontWeight: FontWeight.w500, color: theme.textPrimary)
+      ? theme.rowTitle ??
+          theme.body
+              .copyWith(fontWeight: FontWeight.w500, color: theme.textPrimary)
       : theme.title;
   final subtitleStyle = compact
       ? theme.caption.copyWith(fontWeight: FontWeight.w500)
@@ -80,7 +81,9 @@ Widget buildHeader(BuildContext context, BlockNode node) {
     );
   }
   final icon = leadingIcon(theme, node.stringOr('icon'), tone,
-      size: base.fontSize ?? 20);
+      size: (compact ? theme.header.compactIconSize : null) ??
+          base.fontSize ??
+          20);
   final column = Column(
     crossAxisAlignment:
         centered ? CrossAxisAlignment.center : CrossAxisAlignment.start,
@@ -95,14 +98,16 @@ Widget buildHeader(BuildContext context, BlockNode node) {
               compact ? CrossAxisAlignment.center : CrossAxisAlignment.start,
           children: [
             icon,
-            SizedBox(width: theme.spaceSm),
+            SizedBox(
+                width: (compact ? theme.header.compactIconGap : null) ??
+                    theme.spaceSm),
             if (centered) title else Expanded(child: title),
           ],
         )
       else
         title,
       if (hasSubtitle) ...[
-        const SizedBox(height: 4),
+        SizedBox(height: theme.header.subtitleGap),
         // Figma's item subtitle is Work Sans Medium (w500), not the flat caption
         // weight — the "Summarise everything I said today." rows.
         if (subtitleValue is List)
