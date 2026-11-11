@@ -15,6 +15,7 @@ import '_shape.dart';
 /// an inline accent phrase (e.g. a gradient "from NeoSapien") rides a bullet.
 Widget buildCallout(BuildContext context, BlockNode node) {
   final theme = NeoSduiScope.of(context).theme;
+  final style = theme.callout;
   final tone = node.stringOr('tone');
   final title = node.fields['title'];
   final hasTitle = title is String || title is List;
@@ -32,8 +33,16 @@ Widget buildCallout(BuildContext context, BlockNode node) {
   // Accent/default sit on the theme's card surface (the figma "use case" card —
   // a subtle dark gradient when the theme sets one, else flat surface); only
   // critical tints its box. The wire names the tone; the surface is the theme's.
-  final bg = tone == 'critical' ? theme.toneSurface('critical') : theme.surface;
-  final grad = tone == 'critical' ? null : theme.cardGradient;
+  // `callout.fill` replaces surface and gradient; `toneSurfaces` tints a named
+  // tone; otherwise only critical tints.
+  final toneFill = style.toneSurfaces[tone];
+  final fill = style.fill ?? toneFill;
+  final bg = fill ??
+      (tone == 'critical' ? theme.toneSurface('critical') : theme.surface);
+  final grad = fill != null || tone == 'critical' ? null : theme.cardGradient;
+  final radius = style.radius ?? theme.radiusLg;
+  final shape = node.stringOr('shape');
+  final border = style.border;
   // Flat tone color on the title (the figma card titles are solid accent, not
   // the accent gradient); run-level tones inside the title still resolve.
   final titleColor = switch (tone) {
@@ -41,23 +50,30 @@ Widget buildCallout(BuildContext context, BlockNode node) {
     'critical' => theme.danger,
     _ => theme.onSurface,
   };
-  final titleStyle =
-      theme.body.copyWith(fontWeight: FontWeight.w500, color: titleColor);
+  final titleStyle = theme.resolvedPanelTitle.copyWith(color: titleColor);
   final titleWidget = neoText(theme, title, titleStyle);
   return DecoratedBox(
-    decoration: shapeDecoration(
-      node.stringOr('shape'),
-      // The figma "use case" card is the theme's large card radius (16), not the
-      // medium chip radius — a callout IS a card, so it takes the card roles.
-      theme.radiusLg,
-      fallback: 'rounded',
-      color: bg,
-      gradient: grad,
-    ),
+    decoration: border == null
+        ? shapeDecoration(
+            shape,
+            // The figma "use case" card is the theme's large card radius (16),
+            // not the medium chip radius — a callout IS a card.
+            radius,
+            fallback: 'rounded',
+            color: bg,
+            gradient: grad,
+          )
+        : ShapeDecoration(
+            color: grad == null ? bg : null,
+            gradient: grad,
+            shape: (shapeBorder(shape, radius, fallback: 'rounded')
+                    as OutlinedBorder)
+                .copyWith(side: border),
+          ),
     child: Padding(
       // Card insets (20h / 18v), not the tight `spaceMd` box — the figma callout
       // breathes like every other card, not like an inline chip.
-      padding: theme.cardPadding,
+      padding: style.padding ?? theme.cardPadding,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -89,7 +105,7 @@ Widget buildCallout(BuildContext context, BlockNode node) {
                 theme,
                 bullets[i],
                 dotted: bullets.length > 1,
-                emphasized: i == 0,
+                emphasized: i == 0 && style.emphasizeFirstBullet,
               ),
             ),
         ],
