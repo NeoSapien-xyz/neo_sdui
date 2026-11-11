@@ -2,6 +2,7 @@
   "version": 1,
   "imports": [
     "package:google_fonts/google_fonts.dart",
+    "package:flutter_svg/flutter_svg.dart",
     "package:neo/view/widgets/common/cards/card_grain_overlay.dart"
   ],
   "observations": [
@@ -23,11 +24,11 @@
     },
     {
       "roleKey": "backdropBlur",
-      "value": "3",
+      "value": "0",
       "page": "base",
       "provenance": "measured",
       "kind": "number",
-      "source": "shipped:neo@35d2b8c89:lib/view/screens/profile/mcp_guide_theme.dart:19"
+      "source": "neo-mcp-guide@55caf81:css/styles.css:268"
     },
     {
       "roleKey": "background",
@@ -39,11 +40,11 @@
     },
     {
       "roleKey": "backgroundGradient",
-      "value": "LinearGradient(colors: [Color(0xFF2B2B2B), Color(0xFF070707)], stops: [0.0, 0.7], begin: Alignment.topRight, end: Alignment.bottomLeft)",
+      "value": "LinearGradient(colors: [Color(0xFF1B1C1C), Color(0xFF070707)], stops: [0.0, 0.7], begin: Alignment.topCenter, end: Alignment.bottomCenter, transform: NeoCssAngle(226))",
       "page": "base",
       "provenance": "measured",
       "kind": "gradient",
-      "source": "shipped:neo@35d2b8c89:lib/view/screens/profile/mcp_guide_theme.dart:21"
+      "source": "neo-mcp-guide@55caf81:css/styles.css:78"
     },
     {
       "roleKey": "body",
@@ -63,19 +64,19 @@
     },
     {
       "roleKey": "calloutBody",
-      "value": "GoogleFonts.workSans(color: Color(0xFFFFFFFF), fontSize: 14, height: 1.2, fontWeight: FontWeight.w400, letterSpacing: -0.56)",
+      "value": "GoogleFonts.workSans(color: Color(0xFFFFFFFF), fontSize: 13, height: 1.4615, fontWeight: FontWeight.w400)",
       "page": "base",
       "provenance": "measured",
       "kind": "textStyle",
-      "source": "shipped:neo@35d2b8c89:lib/view/screens/profile/mcp_guide_theme.dart:26"
+      "source": "neo-mcp-guide@55caf81:css/styles.css:487"
     },
     {
       "roleKey": "cardGradient",
-      "value": "LinearGradient(colors: [Color(0xFF202423), Color(0xFF171A19)], begin: Alignment(-0.41, -0.91), end: Alignment(0.41, 0.91))",
+      "value": "LinearGradient(colors: [Color(0xFF202423), Color(0xFF171A19)], stops: [0.001, 0.999], begin: Alignment.topCenter, end: Alignment.bottomCenter, transform: NeoCssAngle(168))",
       "page": "base",
       "provenance": "measured",
       "kind": "gradient",
-      "source": "shipped:neo@35d2b8c89:lib/view/screens/profile/mcp_guide_theme.dart:29"
+      "source": "neo-mcp-guide@55caf81:css/styles.css:30"
     },
     {
       "roleKey": "cardPadding",
@@ -95,11 +96,11 @@
     },
     {
       "roleKey": "contentPadding",
-      "value": "EdgeInsets.symmetric(horizontal: 20)",
+      "value": "EdgeInsets.symmetric(horizontal: 16)",
       "page": "base",
       "provenance": "measured",
       "kind": "other",
-      "source": "shipped:neo@35d2b8c89:lib/view/screens/profile/mcp_guide_theme.dart:34"
+      "source": "neo-mcp-guide@55caf81:css/styles.css:138"
     },
     {
       "roleKey": "ctaGradient",
@@ -108,14 +109,6 @@
       "provenance": "measured",
       "kind": "gradient",
       "source": "shipped:neo@35d2b8c89:lib/view/screens/profile/mcp_guide_theme.dart:35"
-    },
-    {
-      "roleKey": "titleGradient",
-      "value": "LinearGradient(colors: [Color(0xFFFFFFFF), Color(0xFF999999)], begin: Alignment.topCenter, end: Alignment.bottomCenter)",
-      "page": "base",
-      "provenance": "measured",
-      "kind": "gradient",
-      "source": "shipped:neo@35d2b8c89:lib/view/screens/profile/mcp_guide_theme.dart:38"
     },
     {
       "roleKey": "divider",
@@ -143,11 +136,11 @@
     },
     {
       "roleKey": "mono",
-      "value": "GoogleFonts.ibmPlexMono(color: Color(0xBFFFFFFF), fontSize: 14, fontWeight: FontWeight.w500).copyWith(fontFamilyFallback: ['Menlo', 'monospace'])",
+      "value": "GoogleFonts.jetBrainsMono(color: Color(0xFFDFE8E4), fontSize: 12.5, height: 1.55, fontWeight: FontWeight.w400).copyWith(fontFamilyFallback: ['Menlo', 'monospace'])",
       "page": "base",
       "provenance": "measured",
       "kind": "textStyle",
-      "source": "shipped:neo@35d2b8c89:lib/view/screens/profile/mcp_guide_theme.dart:45"
+      "source": "neo-mcp-guide@55caf81:css/styles.css:509"
     },
     {
       "roleKey": "commandStyle",
@@ -239,11 +232,11 @@
     },
     {
       "roleKey": "subtitle",
-      "value": "GoogleFonts.workSans(color: Color(0x8AFFFFFF), fontSize: 12, height: 1.2, fontWeight: FontWeight.w400, letterSpacing: -0.48)",
+      "value": "GoogleFonts.workSans(color: Color(0x8AFFFFFF), fontSize: 13, height: 1.3846, fontWeight: FontWeight.w400)",
       "page": "base",
       "provenance": "measured",
       "kind": "textStyle",
-      "source": "shipped:neo@35d2b8c89:lib/view/screens/profile/mcp_guide_theme.dart:59"
+      "source": "neo-mcp-guide@55caf81:css/styles.css:155"
     },
     {
       "roleKey": "surface",
@@ -279,11 +272,771 @@
     },
     {
       "roleKey": "warning",
-      "value": "0xFFFFC107",
+      "value": "0xFFFFC454",
       "page": "base",
       "provenance": "measured",
       "kind": "color",
-      "source": "shipped:neo@35d2b8c89:lib/view/screens/profile/mcp_guide_theme.dart:64"
+      "source": "neo-mcp-guide@55caf81:css/styles.css:498"
+    },
+    {
+      "roleKey": "cardShape",
+      "value": "RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16)))",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "other",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:272"
+    },
+    {
+      "roleKey": "blockSpacing",
+      "value": "20",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "number",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:376"
+    },
+    {
+      "roleKey": "sectionSpacing",
+      "value": "36",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "number",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:141"
+    },
+    {
+      "roleKey": "viewPadding",
+      "value": "EdgeInsets.only(top: 4, bottom: 48)",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "other",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:138"
+    },
+    {
+      "roleKey": "backgroundOverlay",
+      "value": "(context) => LayoutBuilder(builder: (context, c) { final rx = 1.2 * c.maxWidth; final ry = 0.9 * c.maxHeight; return ClipRect(child: OverflowBox(alignment: Alignment.topRight, minWidth: rx, maxWidth: rx, minHeight: rx, maxHeight: rx, child: Transform(alignment: Alignment.topRight, transform: Matrix4.diagonal3Values(1, ry / rx, 1), child: const DecoratedBox(decoration: BoxDecoration(gradient: RadialGradient(center: Alignment.topRight, radius: 1, colors: [Color(0xFF2B2B2B), Color(0x002B2B2B)], stops: [0.0, 0.55])))))); })",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "other",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:77"
+    },
+    {
+      "roleKey": "rowTitle",
+      "value": "GoogleFonts.workSans(color: Color(0xFFFFFFFF), fontSize: 14, fontWeight: FontWeight.w500, letterSpacing: -0.56)",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "textStyle",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:284"
+    },
+    {
+      "roleKey": "panelTitle",
+      "value": "GoogleFonts.workSans(color: Color(0xFFFFFFFF), fontSize: 14, fontWeight: FontWeight.w500, letterSpacing: -0.28)",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "textStyle",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:491"
+    },
+    {
+      "roleKey": "paragraph",
+      "value": "GoogleFonts.workSans(color: Color(0xFFFFFFFF), fontSize: 16, height: 1.35, fontWeight: FontWeight.w400, letterSpacing: -0.64)",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "textStyle",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:403"
+    },
+    {
+      "roleKey": "footnote",
+      "value": "GoogleFonts.workSans(color: Color(0x66FFFFFF), fontSize: 13, height: 1.3846, fontWeight: FontWeight.w400)",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "textStyle",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:293"
+    },
+    {
+      "roleKey": "subheading",
+      "value": "GoogleFonts.workSans(color: Color(0xFFFFFFFF), fontSize: 20, fontWeight: FontWeight.w500, letterSpacing: -0.8)",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "textStyle",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:415"
+    },
+    {
+      "roleKey": "glyphs.help",
+      "value": "(size, color) => SvgPicture.string('''<svg viewBox=\"0 0 24 24\" fill=\"none\"><circle cx=\"12\" cy=\"12\" r=\"9\" stroke=\"currentColor\" stroke-width=\"1.7\"/><path d=\"M9.6 9.3a2.4 2.4 0 114.2 1.6c-.8.8-1.8 1.2-1.8 2.4\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\"/><circle cx=\"12\" cy=\"16.6\" r=\"1\" fill=\"currentColor\"/></svg>''', width: size, height: size, colorFilter: ColorFilter.mode(color, BlendMode.srcIn))",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "other",
+      "source": "neo-mcp-guide@55caf81:js/app.js:14"
+    },
+    {
+      "roleKey": "glyphs.chat",
+      "value": "(size, color) => SvgPicture.string('''<svg viewBox=\"0 0 24 24\" fill=\"none\"><path d=\"M4 5h16v11H8l-4 3.5z\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linejoin=\"round\"/><circle cx=\"9\" cy=\"10.5\" r=\"1\" fill=\"currentColor\"/><circle cx=\"12.5\" cy=\"10.5\" r=\"1\" fill=\"currentColor\"/><circle cx=\"16\" cy=\"10.5\" r=\"1\" fill=\"currentColor\"/></svg>''', width: size, height: size, colorFilter: ColorFilter.mode(color, BlendMode.srcIn))",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "other",
+      "source": "neo-mcp-guide@55caf81:js/app.js:15"
+    },
+    {
+      "roleKey": "glyphs.sparkle",
+      "value": "(size, color) => SvgPicture.string('''<svg viewBox=\"0 0 256 256\" fill=\"currentColor\"><path d=\"M197.58,129.06,146,110l-19-51.62a15.92,15.92,0,0,0-29.88,0L78,110l-51.62,19a15.92,15.92,0,0,0,0,29.88L78,178l19,51.62a15.92,15.92,0,0,0,29.88,0L146,178l51.62-19a15.92,15.92,0,0,0,0-29.88ZM137,164.22a8,8,0,0,0-4.74,4.74L112,223.85,91.78,169A8,8,0,0,0,87,164.22L32.15,144,87,123.78A8,8,0,0,0,91.78,119L112,64.15,132.22,119a8,8,0,0,0,4.74,4.74L191.85,144ZM144,40a8,8,0,0,1,8-8h16V16a8,8,0,0,1,16,0V32h16a8,8,0,0,1,0,16H184V64a8,8,0,0,1-16,0V48H152A8,8,0,0,1,144,40ZM248,88a8,8,0,0,1-8,8h-8v8a8,8,0,0,1-16,0V96h-8a8,8,0,0,1,0-16h8V72a8,8,0,0,1,16,0v8h8A8,8,0,0,1,248,88Z\"/></svg>''', width: size, height: size, colorFilter: ColorFilter.mode(color, BlendMode.srcIn))",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "other",
+      "source": "neo-mcp-guide@55caf81:js/app.js:29"
+    },
+    {
+      "roleKey": "glyphs.sunHorizon",
+      "value": "(size, color) => SvgPicture.string('''<svg viewBox=\"0 0 256 256\" fill=\"currentColor\"><path d=\"M240,152H199.55a73.54,73.54,0,0,0,.45-8,72,72,0,0,0-144,0,73.54,73.54,0,0,0,.45,8H16a8,8,0,0,0,0,16H240a8,8,0,0,0,0-16ZM72,144a56,56,0,1,1,111.41,8H72.59A56.13,56.13,0,0,1,72,144Zm144,56a8,8,0,0,1-8,8H48a8,8,0,0,1,0-16H208A8,8,0,0,1,216,200ZM72.84,43.58a8,8,0,0,1,14.32-7.16l8,16a8,8,0,0,1-14.32,7.16Zm-56,48.84a8,8,0,0,1,10.74-3.57l16,8a8,8,0,0,1-7.16,14.31l-16-8A8,8,0,0,1,16.84,92.42Zm192,15.16a8,8,0,0,1,3.58-10.73l16-8a8,8,0,1,1,7.16,14.31l-16,8a8,8,0,0,1-10.74-3.58Zm-48-55.16,8-16a8,8,0,0,1,14.32,7.16l-8,16a8,8,0,1,1-14.32-7.16Z\"/></svg>''', width: size, height: size, colorFilter: ColorFilter.mode(color, BlendMode.srcIn))",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "other",
+      "source": "neo-mcp-guide@55caf81:js/app.js:22"
+    },
+    {
+      "roleKey": "glyphs.pencilLine",
+      "value": "(size, color) => SvgPicture.string('''<svg viewBox=\"0 0 256 256\" fill=\"currentColor\"><path d=\"M227.32,73.37,182.63,28.69a16,16,0,0,0-22.63,0L36.69,152A15.86,15.86,0,0,0,32,163.31V208a16,16,0,0,0,16,16H216a8,8,0,0,0,0-16H115.32l112-112A16,16,0,0,0,227.32,73.37ZM92.69,208H48V163.31l88-88L180.69,120ZM192,108.69,147.32,64l24-24L216,84.69Z\"/></svg>''', width: size, height: size, colorFilter: ColorFilter.mode(color, BlendMode.srcIn))",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "other",
+      "source": "neo-mcp-guide@55caf81:js/app.js:23"
+    },
+    {
+      "roleKey": "glyphs.calendarDots",
+      "value": "(size, color) => SvgPicture.string('''<svg viewBox=\"0 0 256 256\" fill=\"currentColor\"><path d=\"M208,32H184V24a8,8,0,0,0-16,0v8H88V24a8,8,0,0,0-16,0v8H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32ZM72,48v8a8,8,0,0,0,16,0V48h80v8a8,8,0,0,0,16,0V48h24V80H48V48ZM208,208H48V96H208V208Zm-68-76a12,12,0,1,1-12-12A12,12,0,0,1,140,132Zm44,0a12,12,0,1,1-12-12A12,12,0,0,1,184,132ZM96,172a12,12,0,1,1-12-12A12,12,0,0,1,96,172Zm44,0a12,12,0,1,1-12-12A12,12,0,0,1,140,172Zm44,0a12,12,0,1,1-12-12A12,12,0,0,1,184,172Z\"/></svg>''', width: size, height: size, colorFilter: ColorFilter.mode(color, BlendMode.srcIn))",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "other",
+      "source": "neo-mcp-guide@55caf81:js/app.js:24"
+    },
+    {
+      "roleKey": "glyphs.magnifier",
+      "value": "(size, color) => SvgPicture.string('''<svg viewBox=\"0 0 256 256\" fill=\"currentColor\"><path d=\"M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z\"/></svg>''', width: size, height: size, colorFilter: ColorFilter.mode(color, BlendMode.srcIn))",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "other",
+      "source": "neo-mcp-guide@55caf81:js/app.js:25"
+    },
+    {
+      "roleKey": "glyphs.listChecks",
+      "value": "(size, color) => SvgPicture.string('''<svg viewBox=\"0 0 256 256\" fill=\"currentColor\"><path d=\"M224,128a8,8,0,0,1-8,8H128a8,8,0,0,1,0-16h88A8,8,0,0,1,224,128ZM128,72h88a8,8,0,0,0,0-16H128a8,8,0,0,0,0,16Zm88,112H128a8,8,0,0,0,0,16h88a8,8,0,0,0,0-16ZM82.34,42.34,56,68.69,45.66,58.34A8,8,0,0,0,34.34,69.66l16,16a8,8,0,0,0,11.32,0l32-32A8,8,0,0,0,82.34,42.34Zm0,64L56,132.69,45.66,122.34a8,8,0,0,0-11.32,11.32l16,16a8,8,0,0,0,11.32,0l32-32a8,8,0,0,0-11.32-11.32Zm0,64L56,196.69,45.66,186.34a8,8,0,0,0-11.32,11.32l16,16a8,8,0,0,0,11.32,0l32-32a8,8,0,0,0-11.32-11.32Z\"/></svg>''', width: size, height: size, colorFilter: ColorFilter.mode(color, BlendMode.srcIn))",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "other",
+      "source": "neo-mcp-guide@55caf81:js/app.js:26"
+    },
+    {
+      "roleKey": "glyphs.squaresFour",
+      "value": "(size, color) => SvgPicture.string('''<svg viewBox=\"0 0 256 256\" fill=\"currentColor\"><path d=\"M104,40H56A16,16,0,0,0,40,56v48a16,16,0,0,0,16,16h48a16,16,0,0,0,16-16V56A16,16,0,0,0,104,40Zm0,64H56V56h48v48Zm96-64H152a16,16,0,0,0-16,16v48a16,16,0,0,0,16,16h48a16,16,0,0,0,16-16V56A16,16,0,0,0,200,40Zm0,64H152V56h48v48Zm-96,32H56a16,16,0,0,0-16,16v48a16,16,0,0,0,16,16h48a16,16,0,0,0,16-16V152A16,16,0,0,0,104,136Zm0,64H56V152h48v48Zm96-64H152a16,16,0,0,0-16,16v48a16,16,0,0,0,16,16h48a16,16,0,0,0,16-16V152A16,16,0,0,0,200,136Zm0,64H152V152h48v48Z\"/></svg>''', width: size, height: size, colorFilter: ColorFilter.mode(color, BlendMode.srcIn))",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "other",
+      "source": "neo-mcp-guide@55caf81:js/app.js:27"
+    },
+    {
+      "roleKey": "glyphs.export",
+      "value": "(size, color) => SvgPicture.string('''<svg viewBox=\"0 0 256 256\" fill=\"currentColor\"><path d=\"M216,112v96a16,16,0,0,1-16,16H56a16,16,0,0,1-16-16V112A16,16,0,0,1,56,96H80a8,8,0,0,1,0,16H56v96H200V112H176a8,8,0,0,1,0-16h24A16,16,0,0,1,216,112ZM93.66,69.66,120,43.31V136a8,8,0,0,0,16,0V43.31l26.34,26.35a8,8,0,0,0,11.32-11.32l-40-40a8,8,0,0,0-11.32,0l-40,40A8,8,0,0,0,93.66,69.66Z\"/></svg>''', width: size, height: size, colorFilter: ColorFilter.mode(color, BlendMode.srcIn))",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "other",
+      "source": "neo-mcp-guide@55caf81:js/app.js:28"
+    },
+    {
+      "roleKey": "tabs.trackColor",
+      "value": "0xE6101211",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "color",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:353"
+    },
+    {
+      "roleKey": "tabs.trackBorder",
+      "value": "BorderSide(color: Color(0x0DFFFFFF), width: 1)",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "other",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:356"
+    },
+    {
+      "roleKey": "tabs.trackRadius",
+      "value": "BorderRadius.all(Radius.circular(14))",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "other",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:357"
+    },
+    {
+      "roleKey": "tabs.trackPadding",
+      "value": "EdgeInsets.all(5)",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "other",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:352"
+    },
+    {
+      "roleKey": "tabs.gap",
+      "value": "4",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "number",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:351"
+    },
+    {
+      "roleKey": "tabs.neumorphic",
+      "value": "false",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "other",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:346"
+    },
+    {
+      "roleKey": "tabs.pillColor",
+      "value": "0xFF2D302F",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "color",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:371"
+    },
+    {
+      "roleKey": "tabs.pillShadow",
+      "value": "[BoxShadow(color: Color(0x59000000), blurRadius: 3, offset: Offset(0, 1))]",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "other",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:373"
+    },
+    {
+      "roleKey": "tabs.pillBorder",
+      "value": "BorderSide(color: Color(0x0FFFFFFF), width: 1)",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "other",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:373"
+    },
+    {
+      "roleKey": "tabs.labelStyle",
+      "value": "GoogleFonts.workSans(color: Color(0xFF868686), fontSize: 15, fontWeight: FontWeight.w500, letterSpacing: -0.45)",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "textStyle",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:366"
+    },
+    {
+      "roleKey": "tabs.unselectedWeight",
+      "value": "FontWeight.w500",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "other",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:366"
+    },
+    {
+      "roleKey": "tabs.labelPadding",
+      "value": "EdgeInsets.symmetric(horizontal: 8, vertical: 11)",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "other",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:361"
+    },
+    {
+      "roleKey": "tabs.unselectedColor",
+      "value": "0xFF868686",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "color",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:364"
+    },
+    {
+      "roleKey": "tabs.labelMaxLines",
+      "value": "1",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "number",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:368"
+    },
+    {
+      "roleKey": "tabs.contentGap",
+      "value": "24",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "number",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:343"
+    },
+    {
+      "roleKey": "card.shadow",
+      "value": "[]",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "other",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:268"
+    },
+    {
+      "roleKey": "card.listShadow",
+      "value": "[]",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "other",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:324"
+    },
+    {
+      "roleKey": "card.thumbRadius",
+      "value": "BorderRadius.all(Radius.circular(10))",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "other",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:280"
+    },
+    {
+      "roleKey": "card.titleGap",
+      "value": "6",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "number",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:283"
+    },
+    {
+      "roleKey": "card.actionGap",
+      "value": "12",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "number",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:269"
+    },
+    {
+      "roleKey": "card.listSeparator",
+      "value": "BorderSide(color: Color(0x0AFFFFFF), width: 1)",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "other",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:334"
+    },
+    {
+      "roleKey": "card.listIconColor",
+      "value": "0xFF868686",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "color",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:335"
+    },
+    {
+      "roleKey": "card.listIconGap",
+      "value": "10",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "number",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:331"
+    },
+    {
+      "roleKey": "card.listCaret",
+      "value": "(size, color) => SvgPicture.string('''<svg viewBox=\"0 0 24 24\" fill=\"none\"><path d=\"M9 6l6 6-6 6\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>''', width: size, height: size, colorFilter: ColorFilter.mode(color, BlendMode.srcIn))",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "other",
+      "source": "neo-mcp-guide@55caf81:js/app.js:12"
+    },
+    {
+      "roleKey": "card.listCaretGap",
+      "value": "10",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "number",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:331"
+    },
+    {
+      "roleKey": "group.border",
+      "value": "BorderSide(color: Color(0x0AFFFFFF), width: 1)",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "other",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:300"
+    },
+    {
+      "roleKey": "group.rowInset",
+      "value": "20",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "number",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:306"
+    },
+    {
+      "roleKey": "group.padding",
+      "value": "16",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "number",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:306"
+    },
+    {
+      "roleKey": "group.gap",
+      "value": "16",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "number",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:306"
+    },
+    {
+      "roleKey": "header.subtitleGap",
+      "value": "6",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "number",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:161"
+    },
+    {
+      "roleKey": "header.compactIconSize",
+      "value": "15",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "number",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:315"
+    },
+    {
+      "roleKey": "header.compactIconGap",
+      "value": "6",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "number",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:310"
+    },
+    {
+      "roleKey": "header.subheadingGap",
+      "value": "10",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "number",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:418"
+    },
+    {
+      "roleKey": "header.subheadingTopInset",
+      "value": "4",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "number",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:412"
+    },
+    {
+      "roleKey": "steps.chipGap",
+      "value": "10",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "number",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:246"
+    },
+    {
+      "roleKey": "steps.chipBorder",
+      "value": "0x08FFFFFF",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "color",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:250"
+    },
+    {
+      "roleKey": "steps.badgeStyle",
+      "value": "GoogleFonts.workSans(color: Color(0xFF00F1A0), fontSize: 10, fontWeight: FontWeight.w400)",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "textStyle",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:259"
+    },
+    {
+      "roleKey": "steps.chipLabelStyle",
+      "value": "GoogleFonts.workSans(color: Color(0xCCFFFFFF), fontSize: 13, height: 1.25, fontWeight: FontWeight.w400, letterSpacing: -0.52)",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "textStyle",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:263"
+    },
+    {
+      "roleKey": "steps.cardShadow",
+      "value": "[BoxShadow(color: Color(0x0AFFFFFF), blurRadius: 10)]",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "other",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:385"
+    },
+    {
+      "roleKey": "steps.cardGap",
+      "value": "20",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "number",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:378"
+    },
+    {
+      "roleKey": "steps.imageBackdrop",
+      "value": "0xFFFEFEFE",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "color",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:390"
+    },
+    {
+      "roleKey": "steps.labelStyle",
+      "value": "GoogleFonts.workSans(color: Color(0xFFFFFFFF), fontSize: 16, height: 1.1, fontWeight: FontWeight.w500, letterSpacing: -0.64)",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "textStyle",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:398"
+    },
+    {
+      "roleKey": "steps.labelGap",
+      "value": "6",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "number",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:396"
+    },
+    {
+      "roleKey": "steps.instructionStyle",
+      "value": "GoogleFonts.workSans(color: Color(0xFFFFFFFF), fontSize: 16, height: 1.35, fontWeight: FontWeight.w400, letterSpacing: -0.64)",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "textStyle",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:403"
+    },
+    {
+      "roleKey": "steps.labelNumberOffset",
+      "value": "0",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "number",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:398"
+    },
+    {
+      "roleKey": "steps.labelSuffix",
+      "value": "''",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "other",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:398"
+    },
+    {
+      "roleKey": "steps.autoLinkUrls",
+      "value": "false",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "other",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:405"
+    },
+    {
+      "roleKey": "linkRow.border",
+      "value": "0x14FFFFFF",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "color",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:464"
+    },
+    {
+      "roleKey": "linkRow.fill",
+      "value": "0x08FFFFFF",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "color",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:465"
+    },
+    {
+      "roleKey": "linkRow.iconColor",
+      "value": "0xFF868686",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "color",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:466"
+    },
+    {
+      "roleKey": "linkRow.linkStyle",
+      "value": "GoogleFonts.workSans(color: Color(0xFF00F1A0), fontSize: 13, fontWeight: FontWeight.w400, letterSpacing: -0.13)",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "textStyle",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:454"
+    },
+    {
+      "roleKey": "linkRow.topPadding",
+      "value": "10",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "number",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:448"
+    },
+    {
+      "roleKey": "linkRow.gap",
+      "value": "8",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "number",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:446"
+    },
+    {
+      "roleKey": "linkRow.copySize",
+      "value": "28",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "number",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:461"
+    },
+    {
+      "roleKey": "linkRow.copyGlyph",
+      "value": "(size, color) => SvgPicture.string('''<svg viewBox=\"0 0 24 24\" fill=\"none\"><rect x=\"9\" y=\"9\" width=\"11\" height=\"11\" rx=\"2\" stroke=\"currentColor\" stroke-width=\"1.7\"/><path d=\"M6 15H5a2 2 0 01-2-2V5a2 2 0 012-2h8a2 2 0 012 2v1\" stroke=\"currentColor\" stroke-width=\"1.7\"/></svg>''', width: size, height: size, colorFilter: ColorFilter.mode(color, BlendMode.srcIn))",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "other",
+      "source": "neo-mcp-guide@55caf81:js/app.js:17"
+    },
+    {
+      "roleKey": "linkRow.checkGlyph",
+      "value": "(size, color) => SvgPicture.string('''<svg viewBox=\"0 0 24 24\" fill=\"none\"><path d=\"M5 13l4 4L19 7\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>''', width: size, height: size, colorFilter: ColorFilter.mode(color, BlendMode.srcIn))",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "other",
+      "source": "neo-mcp-guide@55caf81:js/app.js:18"
+    },
+    {
+      "roleKey": "callout.fill",
+      "value": "0x05FFFFFF",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "color",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:489"
+    },
+    {
+      "roleKey": "callout.toneSurfaces",
+      "value": "{'accent': Color(0x0D00F1A0)}",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "other",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:495"
+    },
+    {
+      "roleKey": "callout.border",
+      "value": "BorderSide(color: Color(0x14FFFFFF), width: 1)",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "other",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:488"
+    },
+    {
+      "roleKey": "callout.radius",
+      "value": "BorderRadius.all(Radius.circular(12))",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "other",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:484"
+    },
+    {
+      "roleKey": "callout.padding",
+      "value": "EdgeInsets.symmetric(horizontal: 16, vertical: 14)",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "other",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:485"
+    },
+    {
+      "roleKey": "callout.emphasizeFirstBullet",
+      "value": "false",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "other",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:494"
+    },
+    {
+      "roleKey": "faq.itemDecoration",
+      "value": "BoxDecoration(color: Color(0xFF202423), border: Border.fromBorderSide(BorderSide(color: Color(0x0AFFFFFF), width: 1)), borderRadius: BorderRadius.all(Radius.circular(12)))",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "other",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:531"
+    },
+    {
+      "roleKey": "faq.itemGap",
+      "value": "10",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "number",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:530"
+    },
+    {
+      "roleKey": "faq.questionPadding",
+      "value": "EdgeInsets.symmetric(horizontal: 18, vertical: 16)",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "other",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:541"
+    },
+    {
+      "roleKey": "faq.caretGlyph",
+      "value": "(size, color) => SvgPicture.string('''<svg viewBox=\"0 0 24 24\" fill=\"none\"><path d=\"M12 5v14M5 12h14\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"/></svg>''', width: size, height: size, colorFilter: ColorFilter.mode(color, BlendMode.srcIn))",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "other",
+      "source": "neo-mcp-guide@55caf81:js/app.js:13"
+    },
+    {
+      "roleKey": "faq.openTurns",
+      "value": "0.125",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "number",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:546"
+    },
+    {
+      "roleKey": "faq.caretColor",
+      "value": "0xFF868686",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "color",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:544"
+    },
+    {
+      "roleKey": "faq.answerStyle",
+      "value": "GoogleFonts.workSans(color: Color(0xADFFFFFF), fontSize: 13, height: 1.5385, fontWeight: FontWeight.w400)",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "textStyle",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:550"
+    },
+    {
+      "roleKey": "faq.answerPadding",
+      "value": "EdgeInsets.fromLTRB(18, 0, 18, 16)",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "other",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:552"
+    },
+    {
+      "roleKey": "accordion.chevron",
+      "value": "(size, color) => SvgPicture.string('''<svg viewBox=\"0 0 24 24\" fill=\"none\"><path d=\"M6 9l6 6 6-6\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>''', width: size, height: size, colorFilter: ColorFilter.mode(color, BlendMode.srcIn))",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "other",
+      "source": "neo-mcp-guide@55caf81:js/app.js:193"
+    },
+    {
+      "roleKey": "accordion.chevronSize",
+      "value": "18",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "number",
+      "source": "neo-mcp-guide@55caf81:js/app.js:193"
+    },
+    {
+      "roleKey": "accordion.headPadding",
+      "value": "EdgeInsets.symmetric(horizontal: 20, vertical: 18)",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "other",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:432"
+    },
+    {
+      "roleKey": "accordion.headGap",
+      "value": "12",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "number",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:431"
+    },
+    {
+      "roleKey": "accordion.bodyPadding",
+      "value": "EdgeInsets.fromLTRB(16, 4, 16, 20)",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "other",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:440"
     }
   ],
   "roleUsage": {
