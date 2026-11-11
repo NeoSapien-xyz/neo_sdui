@@ -22,6 +22,7 @@ export 'src/compose/neo_sdui_addon.dart';
 export 'src/action/neo_action.dart';
 
 // Theme
+export 'src/theme/neo_css_angle.dart';
 export 'src/theme/neo_sdui_scope.dart';
 export 'src/theme/neo_sdui_theme.dart';
 
