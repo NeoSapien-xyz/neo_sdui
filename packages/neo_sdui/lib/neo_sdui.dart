@@ -24,6 +24,7 @@ export 'src/action/neo_action.dart';
 // Theme
 export 'src/theme/neo_css_angle.dart';
 export 'src/theme/neo_sdui_scope.dart';
+export 'src/theme/neo_sdui_styles.dart';
 export 'src/theme/neo_sdui_theme.dart';
 
 // Authoring (figwire theme-companion: ledger → compile → lint)

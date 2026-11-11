@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart' show Icons;
 import 'package:flutter/widgets.dart';
 
+import 'neo_sdui_styles.dart';
+
 /// Default named-icon glyphs. The wire names a role ("download"); this resolves
 /// it to a glyph. A client swaps its own set (its AppIcons); an unmapped name
 /// falls back to a package-drawn glyph ([kDrawnIcons]) or draws nothing —
@@ -113,6 +115,23 @@ class NeoSduiTheme {
     this.accents = const {},
     this.icons = kDefaultIcons,
     this.glyphs = const {},
+    this.tabs = const NeoTabsStyle(),
+    this.card = const NeoCardStyle(),
+    this.group = const NeoGroupStyle(),
+    this.steps = const NeoStepsStyle(),
+    this.callout = const NeoCalloutStyle(),
+    this.faq = const NeoFaqStyle(),
+    this.header = const NeoHeaderStyle(),
+    this.accordion = const NeoAccordionStyle(),
+    this.linkRow = const NeoLinkRowStyle(),
+    this.sectionSpacing,
+    this.viewPadding,
+    this.rowTitle,
+    this.panelTitle,
+    this.paragraph,
+    this.footnote,
+    this.subheading,
+    this.backgroundOverlay,
   });
 
   // Role colors.
@@ -290,6 +309,56 @@ class NeoSduiTheme {
   /// the same name. Client-owned, empty by default.
   final Map<String, NeoGlyphBuilder> glyphs;
 
+  // Per-block component styles: each defaults to its block's current look and
+  // nothing paints from them until the block reads its style.
+  final NeoTabsStyle tabs;
+  final NeoCardStyle card;
+  final NeoGroupStyle group;
+  final NeoStepsStyle steps;
+  final NeoCalloutStyle callout;
+  final NeoFaqStyle faq;
+  final NeoHeaderStyle header;
+  final NeoAccordionStyle accordion;
+  final NeoLinkRowStyle linkRow;
+
+  /// Gap between top-level blocks. Null -> [blockSpacing].
+  final double? sectionSpacing;
+
+  /// Padding around the scrolling block list, on top of [contentPadding]. Null
+  /// -> `blockSpacing` above and below.
+  final EdgeInsets? viewPadding;
+
+  /// Picker, list-row and use-case titles. Null -> `body` at weight 500 in
+  /// `onSurface`.
+  final TextStyle? rowTitle;
+
+  /// Callout, FAQ and accordion titles. Null -> `body` at weight 500.
+  final TextStyle? panelTitle;
+
+  /// The `text` block's default style. Null -> `body`.
+  final TextStyle? paragraph;
+
+  /// The `text` block's footnote variant. Null -> `caption` in `textMuted`.
+  final TextStyle? footnote;
+
+  /// A header inside a tab panel. Null -> [title].
+  final TextStyle? subheading;
+
+  /// Painted over the backdrop, under the content. Null -> nothing.
+  final WidgetBuilder? backgroundOverlay;
+
+  double get resolvedSectionSpacing => sectionSpacing ?? blockSpacing;
+  EdgeInsets get resolvedViewPadding =>
+      viewPadding ?? EdgeInsets.symmetric(vertical: blockSpacing);
+  TextStyle get resolvedRowTitle =>
+      rowTitle ?? body.copyWith(color: onSurface, fontWeight: FontWeight.w500);
+  TextStyle get resolvedPanelTitle =>
+      panelTitle ?? body.copyWith(fontWeight: FontWeight.w500);
+  TextStyle get resolvedParagraph => paragraph ?? body;
+  TextStyle get resolvedFootnote =>
+      footnote ?? caption.copyWith(color: textMuted);
+  TextStyle get resolvedSubheading => subheading ?? title;
+
   // Derivation (KTD11): wire sends emphasis/tone, these turn it into pixels.
 
   /// The glyph for a wire icon name, or null when unnamed/unmapped (draw nothing).
@@ -439,6 +508,23 @@ class NeoSduiTheme {
     Map<String, NeoAccent>? accents,
     Map<String, IconData>? icons,
     Map<String, NeoGlyphBuilder>? glyphs,
+    NeoTabsStyle? tabs,
+    NeoCardStyle? card,
+    NeoGroupStyle? group,
+    NeoStepsStyle? steps,
+    NeoCalloutStyle? callout,
+    NeoFaqStyle? faq,
+    NeoHeaderStyle? header,
+    NeoAccordionStyle? accordion,
+    NeoLinkRowStyle? linkRow,
+    double? sectionSpacing,
+    EdgeInsets? viewPadding,
+    TextStyle? rowTitle,
+    TextStyle? panelTitle,
+    TextStyle? paragraph,
+    TextStyle? footnote,
+    TextStyle? subheading,
+    WidgetBuilder? backgroundOverlay,
   }) {
     return NeoSduiTheme(
       accent: accent ?? this.accent,
@@ -491,6 +577,23 @@ class NeoSduiTheme {
       accents: accents ?? this.accents,
       icons: icons ?? this.icons,
       glyphs: glyphs ?? this.glyphs,
+      tabs: tabs ?? this.tabs,
+      card: card ?? this.card,
+      group: group ?? this.group,
+      steps: steps ?? this.steps,
+      callout: callout ?? this.callout,
+      faq: faq ?? this.faq,
+      header: header ?? this.header,
+      accordion: accordion ?? this.accordion,
+      linkRow: linkRow ?? this.linkRow,
+      sectionSpacing: sectionSpacing ?? this.sectionSpacing,
+      viewPadding: viewPadding ?? this.viewPadding,
+      rowTitle: rowTitle ?? this.rowTitle,
+      panelTitle: panelTitle ?? this.panelTitle,
+      paragraph: paragraph ?? this.paragraph,
+      footnote: footnote ?? this.footnote,
+      subheading: subheading ?? this.subheading,
+      backgroundOverlay: backgroundOverlay ?? this.backgroundOverlay,
     );
   }
 }

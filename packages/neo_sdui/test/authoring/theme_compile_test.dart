@@ -427,4 +427,56 @@ void main() {
     expect(src, contains("'help': (s, c) => const SizedBox(),"));
     expect(src, isNot(contains('TODO(theme): unsupported role glyphs')));
   });
+
+  group('component style groups', () {
+    Observation obs(String role, String value, ValueKind kind,
+            [String page = 'home']) =>
+        Observation(
+            roleKey: role,
+            value: value,
+            page: page,
+            provenance: Provenance.measured,
+            kind: kind);
+
+    test('dotted keys group into one style constructor call', () {
+      final r = (RoleLedger()
+            ..observe(obs('tabs.trackColor', '0xE6101211', ValueKind.color))
+            ..observe(obs('tabs.gap', '4', ValueKind.number)))
+          .reconcile();
+      final src = emitTheme(r);
+
+      expect('NeoTabsStyle('.allMatches(src), hasLength(1));
+      final start = src.indexOf('tabs: NeoTabsStyle(');
+      final call = src.substring(start, src.indexOf('\n  ),', start));
+      expect(call, contains('trackColor: Color(0xE6101211)'));
+      expect(call, contains('gap: 4'));
+      expect(src, isNot(contains('unsupported')));
+    });
+
+    test('a kind-mismatched dotted value is skipped and flagged', () {
+      final r = (RoleLedger()
+            ..observe(obs('tabs.gap', '0xFF000000', ValueKind.color)))
+          .reconcile();
+      final src = emitTheme(r);
+
+      expect(src, isNot(contains('NeoTabsStyle(')));
+      expect(src, contains('unresolved tabs.gap'));
+    });
+
+    test('a dotted key in a page override emits an unsupported TODO', () {
+      final r = (RoleLedger()
+            ..observe(obs('accent', '0xFF00F1A0', ValueKind.color, 'a'))
+            ..observe(obs('accent', '0xFF00F1A0', ValueKind.color, 'b'))
+            ..observe(obs('tabs.gap', '4', ValueKind.number, 'a'))
+            ..observe(obs('tabs.gap', '4', ValueKind.number, 'b'))
+            ..observe(obs('tabs.gap', '8', ValueKind.number, 'odd')))
+          .reconcile();
+      final src = emitTheme(r);
+
+      final override = src.substring(src.indexOf('final odd = base.copyWith('));
+      expect(override, isNot(contains('NeoTabsStyle(')));
+      expect(override, contains('TODO(theme): unsupported'));
+      expect(override, contains('tabs.gap'));
+    });
+  });
 }

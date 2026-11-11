@@ -123,7 +123,116 @@ final Map<String, RoleSlot> kRoleSlots = Map.unmodifiable({
   'entranceDuration': RoleSlot(ValueKind.other),
   'entranceCurve': RoleSlot(ValueKind.other),
   'reduceMotion': RoleSlot(ValueKind.other),
+  // Component style fields — one slot per field, grouped into `<group>: <Class>(...)`
+  // on emit (see kStyleGroups). No live painter: the preview keeps fallback.
+  'tabs.trackColor': RoleSlot(ValueKind.color),
+  'tabs.trackBorder': RoleSlot(ValueKind.other),
+  'tabs.trackRadius': RoleSlot(ValueKind.other),
+  'tabs.trackPadding': RoleSlot(ValueKind.other),
+  'tabs.gap': RoleSlot(ValueKind.number),
+  'tabs.neumorphic': RoleSlot(ValueKind.other),
+  'tabs.pillColor': RoleSlot(ValueKind.color),
+  'tabs.pillShadow': RoleSlot(ValueKind.other),
+  'tabs.pillBorder': RoleSlot(ValueKind.other),
+  'tabs.labelStyle': RoleSlot(ValueKind.textStyle),
+  'tabs.unselectedWeight': RoleSlot(ValueKind.other),
+  'tabs.labelPadding': RoleSlot(ValueKind.other),
+  'tabs.unselectedColor': RoleSlot(ValueKind.color),
+  'tabs.labelMaxLines': RoleSlot(ValueKind.number),
+  'tabs.contentGap': RoleSlot(ValueKind.number),
+  'card.thumbRadius': RoleSlot(ValueKind.other),
+  'card.titleGap': RoleSlot(ValueKind.number),
+  'card.actionGap': RoleSlot(ValueKind.number),
+  'card.listSeparator': RoleSlot(ValueKind.other),
+  'card.listIconColor': RoleSlot(ValueKind.color),
+  'card.listIconGap': RoleSlot(ValueKind.number),
+  'card.listCaret': RoleSlot(ValueKind.other),
+  'card.listCaretGap': RoleSlot(ValueKind.number),
+  'card.shadow': RoleSlot(ValueKind.other),
+  'card.listShadow': RoleSlot(ValueKind.other),
+  'group.border': RoleSlot(ValueKind.other),
+  'group.rowInset': RoleSlot(ValueKind.number),
+  'group.padding': RoleSlot(ValueKind.number),
+  'group.gap': RoleSlot(ValueKind.number),
+  'steps.chipGap': RoleSlot(ValueKind.number),
+  'steps.chipBorder': RoleSlot(ValueKind.color),
+  'steps.badgeStyle': RoleSlot(ValueKind.textStyle),
+  'steps.chipLabelStyle': RoleSlot(ValueKind.textStyle),
+  'steps.cardShadow': RoleSlot(ValueKind.other),
+  'steps.cardGap': RoleSlot(ValueKind.number),
+  'steps.imageBackdrop': RoleSlot(ValueKind.color),
+  'steps.labelStyle': RoleSlot(ValueKind.textStyle),
+  'steps.labelGap': RoleSlot(ValueKind.number),
+  'steps.instructionStyle': RoleSlot(ValueKind.textStyle),
+  'steps.labelNumberOffset': RoleSlot(ValueKind.number),
+  'steps.labelSuffix': RoleSlot(ValueKind.other),
+  'steps.autoLinkUrls': RoleSlot(ValueKind.other),
+  'callout.fill': RoleSlot(ValueKind.color),
+  'callout.toneSurfaces': RoleSlot(ValueKind.other),
+  'callout.border': RoleSlot(ValueKind.other),
+  'callout.radius': RoleSlot(ValueKind.other),
+  'callout.padding': RoleSlot(ValueKind.other),
+  'callout.emphasizeFirstBullet': RoleSlot(ValueKind.other),
+  'faq.itemDecoration': RoleSlot(ValueKind.other),
+  'faq.itemGap': RoleSlot(ValueKind.number),
+  'faq.questionPadding': RoleSlot(ValueKind.other),
+  'faq.caretGlyph': RoleSlot(ValueKind.other),
+  'faq.openTurns': RoleSlot(ValueKind.number),
+  'faq.caretColor': RoleSlot(ValueKind.color),
+  'faq.answerStyle': RoleSlot(ValueKind.textStyle),
+  'faq.answerPadding': RoleSlot(ValueKind.other),
+  'header.subtitleGap': RoleSlot(ValueKind.number),
+  'header.compactIconSize': RoleSlot(ValueKind.number),
+  'header.compactIconGap': RoleSlot(ValueKind.number),
+  'header.subheadingGap': RoleSlot(ValueKind.number),
+  'header.subheadingTopInset': RoleSlot(ValueKind.number),
+  'accordion.chevron': RoleSlot(ValueKind.other),
+  'accordion.chevronSize': RoleSlot(ValueKind.number),
+  'accordion.headPadding': RoleSlot(ValueKind.other),
+  'accordion.headGap': RoleSlot(ValueKind.number),
+  'accordion.bodyPadding': RoleSlot(ValueKind.other),
+  'linkRow.border': RoleSlot(ValueKind.color),
+  'linkRow.fill': RoleSlot(ValueKind.color),
+  'linkRow.iconColor': RoleSlot(ValueKind.color),
+  'linkRow.linkStyle': RoleSlot(ValueKind.textStyle),
+  'linkRow.topPadding': RoleSlot(ValueKind.number),
+  'linkRow.gap': RoleSlot(ValueKind.number),
+  'linkRow.copySize': RoleSlot(ValueKind.number),
+  'linkRow.copyGlyph': RoleSlot(ValueKind.other),
+  'linkRow.checkGlyph': RoleSlot(ValueKind.other),
+  'sectionSpacing': RoleSlot(ValueKind.number),
+  'viewPadding': RoleSlot(ValueKind.other),
+  'rowTitle': RoleSlot(ValueKind.textStyle),
+  'panelTitle': RoleSlot(ValueKind.textStyle),
+  'paragraph': RoleSlot(ValueKind.textStyle),
+  'footnote': RoleSlot(ValueKind.textStyle),
+  'subheading': RoleSlot(ValueKind.textStyle),
+  'backgroundOverlay': RoleSlot(ValueKind.other),
 });
+
+/// Style-group prefix -> style class. A ledger key `tabs.gap` is one field of the
+/// `tabs` group; the emit gathers a group's keys into one `tabs: NeoTabsStyle(...)`
+/// argument, so each field keeps its own kind, provenance and source in the
+/// ledger. The group names are `NeoSduiTheme` params.
+const Map<String, String> kStyleGroups = {
+  'tabs': 'NeoTabsStyle',
+  'card': 'NeoCardStyle',
+  'group': 'NeoGroupStyle',
+  'steps': 'NeoStepsStyle',
+  'callout': 'NeoCalloutStyle',
+  'faq': 'NeoFaqStyle',
+  'header': 'NeoHeaderStyle',
+  'accordion': 'NeoAccordionStyle',
+  'linkRow': 'NeoLinkRowStyle',
+};
+
+/// The style group a dotted role key belongs to (`tabs.gap` -> `tabs`), or null.
+String? _styleGroupOf(String key) {
+  final dot = key.indexOf('.');
+  if (dot < 0) return null;
+  final group = key.substring(0, dot);
+  return kStyleGroups.containsKey(group) ? group : null;
+}
 
 /// The [NeoSduiTheme] fields [kRoleSlots] deliberately has no slot for, each with
 /// its reason. Every *other* constructor param must be a registered slot:
@@ -131,7 +240,20 @@ final Map<String, RoleSlot> kRoleSlots = Map.unmodifiable({
 /// a field added to the theme can never again reach the compile as a passive
 /// `// TODO(theme): unsupported role` — which is exactly how `titleGradient`
 /// shipped as a field two blocks read and the compile could not place.
+const String _styleGroupReason = 'style group — observed per field as '
+    '`<group>.<field>`, grouped into one style constructor call by kStyleGroups, '
+    'never as a whole-object slot.';
+
 const Map<String, String> kRoleSlotsIntentionallyAbsent = {
+  'tabs': _styleGroupReason,
+  'card': _styleGroupReason,
+  'group': _styleGroupReason,
+  'steps': _styleGroupReason,
+  'callout': _styleGroupReason,
+  'faq': _styleGroupReason,
+  'header': _styleGroupReason,
+  'accordion': _styleGroupReason,
+  'linkRow': _styleGroupReason,
   'accents': 'map-typed — observed per entry as `accents.<name>`, matched by '
       '$kAccentsPrefix in _isKnownRole/_emitRoles, never as a whole-map slot.',
   'icons': 'map-typed — observed per entry as `icons.<name>`, matched by '
@@ -299,6 +421,15 @@ String _emitBody(Reconciled r, String name) {
     final skippedOverride =
         _emitRoles(b, r.overridesByPage[page]!, isOverride: true, base: name);
     b.writeln(');');
+    final styleKeys = r.overridesByPage[page]!.keys
+        .where((k) => _styleGroupOf(k) != null)
+        .toList()
+      ..sort();
+    if (styleKeys.isNotEmpty) {
+      b.writeln('// TODO(theme): unsupported role(s) ${styleKeys.join(', ')} '
+          'on override "$page" — style classes have no copyWith; set them on '
+          'the base theme.');
+    }
     if (skippedOverride.isNotEmpty) {
       b.writeln('// TODO(theme): unresolved ${(skippedOverride..sort()).join(', ')} '
           'on override "$page" — ledger kind/value did not match the registry '
@@ -401,8 +532,18 @@ List<String> _emitRoles(StringBuffer b, Map<String, ResolvedRole> roles,
   final accents = <String, ResolvedRole>{};
   final icons = <String, ResolvedRole>{};
   final glyphs = <String, ResolvedRole>{};
+  final styles = <String, List<String>>{};
   final simple = <String>[];
   for (final key in roles.keys) {
+    final styleGroup = _styleGroupOf(key);
+    if (styleGroup != null) {
+      // Style fields group into one constructor call on the base; an override
+      // has no copyWith for them, so the caller flags them instead.
+      if (!isOverride && kRoleSlots.containsKey(key)) {
+        (styles[styleGroup] ??= <String>[]).add(key);
+      }
+      continue;
+    }
     final accentName = stripRolePrefix(key, kAccentsPrefix);
     final iconName = stripRolePrefix(key, kIconsPrefix);
     final glyphName = stripRolePrefix(key, kGlyphsPrefix);
@@ -435,6 +576,27 @@ List<String> _emitRoles(StringBuffer b, Map<String, ResolvedRole> roles,
     final confirm =
         role.provenance == Provenance.inferred ? '  // confirm:' : '';
     b.writeln('  $key: $expr,$confirm');
+  }
+  for (final group in kStyleGroups.keys) {
+    final keys = styles[group];
+    if (keys == null) continue;
+    final lines = <String>[];
+    for (final key in keys..sort()) {
+      final role = roles[key]!;
+      if (role.provenance == Provenance.todo) continue;
+      final expr = _scalarExpr(kRoleSlots[key]!, role);
+      if (expr == null) {
+        skipped.add(key);
+        continue;
+      }
+      final confirm =
+          role.provenance == Provenance.inferred ? '  // confirm:' : '';
+      lines.add('    ${key.substring(group.length + 1)}: $expr,$confirm');
+    }
+    if (lines.isEmpty) continue;
+    b.writeln('  $group: ${kStyleGroups[group]}(');
+    lines.forEach(b.writeln);
+    b.writeln('  ),');
   }
   if (accents.isNotEmpty) {
     b.writeln('  accents: {');
