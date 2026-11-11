@@ -807,14 +807,6 @@
       "source": "neo-mcp-guide@55caf81:css/styles.css:398"
     },
     {
-      "roleKey": "steps.autoLinkUrls",
-      "value": "false",
-      "page": "base",
-      "provenance": "measured",
-      "kind": "other",
-      "source": "neo-mcp-guide@55caf81:css/styles.css:405"
-    },
-    {
       "roleKey": "linkRow.border",
       "value": "0x14FFFFFF",
       "page": "base",
