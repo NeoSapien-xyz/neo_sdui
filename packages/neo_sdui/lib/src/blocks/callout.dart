@@ -19,7 +19,8 @@ Widget buildCallout(BuildContext context, BlockNode node) {
   final tone = node.stringOr('tone');
   final title = node.fields['title'];
   final hasTitle = title is String || title is List;
-  final icon = leadingIcon(theme, node.stringOr('icon'), tone, size: 16);
+  final icon = leadingIcon(theme, node.stringOr('icon'), tone,
+      size: 16, color: tone == null ? style.neutralTitleColor : null);
   final rawBullets = node.fields['bullets'];
   // Each bullet may be a plain string or a run list (for an inline accent span).
   final bullets = rawBullets is List
@@ -49,7 +50,7 @@ Widget buildCallout(BuildContext context, BlockNode node) {
     'accent' => theme.accent,
     'critical' => theme.danger,
     'warning' => theme.warning,
-    _ => theme.onSurface,
+    _ => style.neutralTitleColor ?? theme.onSurface,
   };
   final titleStyle = theme.resolvedPanelTitle.copyWith(color: titleColor);
   final titleWidget = neoText(theme, title, titleStyle);

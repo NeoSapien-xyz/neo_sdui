@@ -37,13 +37,20 @@ Widget buildCode(BuildContext context, BlockNode node) {
 /// block wraps, so the two share look and copy behavior.
 Widget codeChip(String content) => _CopyableCode(content: content);
 
+/// The same themed surface with a caller-supplied body — for add-ons that
+/// re-register `code` (syntax highlighting) and must keep `theme.code`'s box,
+/// padding, wrap and copy button. [body] receives the resolved text style.
+Widget neoCodeSurface(String content, Widget Function(TextStyle base) body) =>
+    _CopyableCode(content: content, body: body);
+
 /// The copyable surface: mono content + a Copy chip that flips to a "Copied"
 /// confirmation for [_confirmFor] after a tap. Stateful only for that transient
 /// acknowledgement (a short, bounded timer — KTD9).
 class _CopyableCode extends StatefulWidget {
-  const _CopyableCode({required this.content});
+  const _CopyableCode({required this.content, this.body});
 
   final String content;
+  final Widget Function(TextStyle base)? body;
 
   @override
   State<_CopyableCode> createState() => _CopyableCodeState();
@@ -76,8 +83,9 @@ class _CopyableCodeState extends State<_CopyableCode> {
     final theme = NeoSduiScope.of(context).theme;
     final s = theme.code;
     final mono = s.textStyle ?? theme.mono.copyWith(color: theme.textPrimary);
-    final text = Text(widget.content,
-        style: mono, softWrap: s.wrap, maxLines: s.wrap ? null : 1);
+    final text = widget.body?.call(mono) ??
+        Text(widget.content,
+            style: mono, softWrap: s.wrap, maxLines: s.wrap ? null : 1);
     final glyph = s.copyGlyph;
     return DecoratedBox(
       decoration: BoxDecoration(

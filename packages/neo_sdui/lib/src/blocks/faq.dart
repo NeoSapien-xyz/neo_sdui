@@ -66,9 +66,10 @@ class _FaqState extends State<_Faq> {
                         _str(item['question']),
                         // A question reads as a heading — primary (white),
                         // medium — not the muted body color.
-                        style: theme.resolvedPanelTitle.copyWith(
-                          color: theme.textPrimary,
-                        ),
+                        style: style.questionStyle ??
+                            theme.resolvedPanelTitle.copyWith(
+                              color: theme.textPrimary,
+                            ),
                       ),
                     ),
                     const SizedBox(width: 12),

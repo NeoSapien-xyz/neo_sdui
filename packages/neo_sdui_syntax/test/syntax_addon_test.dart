@@ -38,6 +38,54 @@ void main() {
   final addonCode = NeoSdui.compose([neoSduiSyntaxAddon]).registry.builderFor('code')!;
   final coreCode = NeoSdui.compose(const []).registry.builderFor('code')!;
 
+  testWidgets('honours theme.code: fill, single line, copy glyph (no Copy text)',
+      (tester) async {
+    const fill = Color(0xFF0B0C0C);
+    final theme = NeoSduiTheme.fallback().copyWith(
+      code: NeoCodeStyle(
+        fill: fill,
+        wrap: false,
+        padding: const EdgeInsets.fromLTRB(16, 14, 44, 14),
+        copyGlyph: (size, c) =>
+            SizedBox(key: const Key('glyph'), width: size, height: size),
+      ),
+    );
+    await tester.pumpWidget(Directionality(
+      textDirection: TextDirection.ltr,
+      child: MediaQuery(
+        data: const MediaQueryData(),
+        child: Center(
+          child: SizedBox(
+            width: 300,
+            child: NeoSduiScope(
+              theme: theme,
+              dispatch: (_, _) {},
+              buildBlocks: (_) => const [],
+              child: Builder(
+                  builder: (c) => addonCode(
+                      c,
+                      _code(
+                          'https://api.neosapien.xyz/mcp/very/long/path/that/would/wrap/on/a/narrow/box'))),
+            ),
+          ),
+        ),
+      ),
+    ));
+    expect(find.text('Copy'), findsNothing);
+    expect(find.byKey(const Key('glyph')), findsOneWidget);
+    final d = tester
+        .widget<DecoratedBox>(find
+            .descendant(
+                of: find.byType(NeoSduiScope), matching: find.byType(DecoratedBox))
+            .first)
+        .decoration as BoxDecoration;
+    expect(d.color, fill);
+    final h = tester
+        .getSize(find.textContaining('https://api', findRichText: true))
+        .height;
+    expect(h, lessThan(25));
+  });
+
   group('add-on present', () {
     testWidgets('overrides code: renders content, language badge, copy chip',
         (tester) async {

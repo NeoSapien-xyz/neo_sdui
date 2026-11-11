@@ -130,6 +130,24 @@ void main() {
     expect(find.text('abc'), findsOneWidget);
   });
 
+  testWidgets('neutral callout title + icon take neutralTitleColor', (tester) async {
+    const green = Color(0xFF00F1A0);
+    await _pump(tester, [
+      {'type': 'callout', 'icon': 'sparkle', 'title': 'Not getting results?'}
+    ], base.copyWith(callout: const NeoCalloutStyle(neutralTitleColor: green)));
+    final t = tester.widget<RichText>(find
+        .descendant(of: find.byType(NeoSduiView), matching: find.byType(RichText))
+        .first);
+    expect(t.text.style?.color ?? (t.text as TextSpan).children?.first.style?.color, green);
+  });
+
+  testWidgets('faq questionStyle sets the question line height', (tester) async {
+    await _pump(tester, [
+      {'type': 'faq', 'items': [{'question': 'Q one', 'answer': 'A'}]}
+    ], base.copyWith(faq: NeoFaqStyle(questionStyle: base.body.copyWith(fontSize: 14, height: 2))));
+    expect(tester.getSize(find.text('Q one')).height, 28);
+  });
+
   testWidgets('a centered header centers a wrapped title line by line',
       (tester) async {
     await _pump(tester, [

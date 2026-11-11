@@ -206,6 +206,7 @@ class NeoCalloutStyle {
     this.padding,
     this.emphasizeFirstBullet = true,
     this.neutralBody,
+    this.neutralTitleColor,
   });
 
   /// Null -> `surface` (or the tone surface for `critical`).
@@ -230,6 +231,9 @@ class NeoCalloutStyle {
   /// Body style of a callout with no `tone`, used as is (its own colour, no
   /// dimming). Null -> `calloutBody`, dimmed.
   final TextStyle? neutralBody;
+
+  /// Title and leading-icon colour of a callout with no `tone`. Null -> `onSurface`.
+  final Color? neutralTitleColor;
 }
 
 /// The `faq` block.
@@ -244,6 +248,7 @@ class NeoFaqStyle {
     this.caretColor,
     this.answerStyle,
     this.answerPadding,
+    this.questionStyle,
     this.caretSize = 22,
     this.caretBox = 24,
   });
@@ -264,6 +269,9 @@ class NeoFaqStyle {
 
   /// Null -> `body`.
   final TextStyle? answerStyle;
+
+  /// Null -> `panelTitle` in `textPrimary`.
+  final TextStyle? questionStyle;
 
   /// Null -> `spaceSm` above the answer.
   final EdgeInsets? answerPadding;
