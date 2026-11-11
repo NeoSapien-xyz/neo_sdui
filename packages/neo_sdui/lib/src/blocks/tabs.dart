@@ -125,11 +125,14 @@ Widget _label(NeoSduiTheme theme, String label, bool selected) {
         textAlign: TextAlign.center,
         maxLines: style.labelMaxLines,
         overflow: style.labelMaxLines == null ? null : TextOverflow.ellipsis,
-        style: (style.labelStyle ?? theme.body).copyWith(
+        style: (selected
+                ? theme.emphasize(style.labelStyle ?? theme.body)
+                : (style.labelStyle ?? theme.body)
+                    .copyWith(fontWeight: style.unselectedWeight))
+            .copyWith(
           color: selected
               ? theme.accent
               : (style.unselectedColor ?? theme.textPrimary),
-          fontWeight: selected ? FontWeight.w500 : style.unselectedWeight,
         ),
       ),
     ),

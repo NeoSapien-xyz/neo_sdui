@@ -146,10 +146,11 @@ class _FaqState extends State<_Faq> {
     return TurningCaret(
       open: open,
       openTurns: style.openTurns,
+      box: style.caretBox,
       closedColor: style.caretColor ?? theme.textPrimary,
       openColor: theme.accent,
       glyph: (color) =>
-          style.caretGlyph?.call(22, color) ??
+          style.caretGlyph?.call(style.caretSize, color) ??
           Text(
             '›',
             // geometry: sizes the '›' glyph inside its 24px box — icon

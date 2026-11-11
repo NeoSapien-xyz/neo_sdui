@@ -107,6 +107,7 @@ Widget buildCallout(BuildContext context, BlockNode node) {
                 bullets[i],
                 dotted: bullets.length > 1,
                 emphasized: i == 0 && style.emphasizeFirstBullet,
+                own: tone == null ? style.neutralBody : null,
               ),
             ),
         ],
@@ -120,11 +121,12 @@ Widget buildCallout(BuildContext context, BlockNode node) {
 /// when [dotted]. Inline `tone` runs (a green "from NeoSapien") still resolve
 /// through neoText on top of this base color.
 Widget _bullet(NeoSduiTheme theme, Object? value,
-    {required bool dotted, required bool emphasized}) {
-  final color = emphasized
+    {required bool dotted, required bool emphasized, TextStyle? own}) {
+  final color = own?.color ?? (emphasized
       ? theme.textPrimary
-      : theme.textPrimary.withValues(alpha: 0.7);
-  final text = neoText(theme, value, theme.resolvedCalloutBody.copyWith(color: color));
+      : theme.textPrimary.withValues(alpha: 0.7));
+  final text = neoText(theme, value,
+      own ?? theme.resolvedCalloutBody.copyWith(color: color));
   if (!dotted) return text;
   return Row(
     crossAxisAlignment: CrossAxisAlignment.start,

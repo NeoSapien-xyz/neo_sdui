@@ -32,8 +32,7 @@ Widget buildCta(BuildContext context, BlockNode node) {
   final featured = emphasis == 'high' && theme.ctaGradient != null;
   // A label is a label: `featured` changes the *surface* (gradient + emboss),
   // never the type scale — that stays the theme's `body` role for every cta.
-  final label = theme.body
-      .copyWith(color: theme.onFill(emphasis), fontWeight: FontWeight.w500);
+  final label = theme.emphasize(theme.body).copyWith(color: theme.onFill(emphasis));
   final content = Padding(
     padding: EdgeInsets.symmetric(vertical: 14, horizontal: theme.spaceLg),
     child: Center(child: Text(node.stringOr('label', '')!, style: label)),

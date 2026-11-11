@@ -63,7 +63,7 @@ Widget neoText(
             child: _shaded(accentOf(r)!.gradient!, r.text, style),
           )
         else if (accentOf(r) != null)
-          TextSpan(text: r.text, style: _flat(style, r.tone ?? tone, accentOf(r)!))
+          TextSpan(text: r.text, style: _flat(theme, style, r.tone ?? tone, accentOf(r)!))
         else
           TextSpan(text: r.text, style: style),
     ]));
@@ -76,7 +76,7 @@ Widget neoText(
     return a.gradient != null
         ? _shaded(a.gradient!, runs.first.text, style, stretch: stretch)
         : Text(runs.first.text,
-            style: _flat(style, runs.first.tone ?? tone, a));
+            style: _flat(theme, style, runs.first.tone ?? tone, a));
   }
 
   // Whole multi-run line sharing one gradient -> a single ShaderMask (wraps).
@@ -103,7 +103,7 @@ Widget neoText(
       else if (accents[i] != null)
         TextSpan(
             text: runs[i].text,
-            style: _flat(style, runs[i].tone ?? tone, accents[i]!))
+            style: _flat(theme, style, runs[i].tone ?? tone, accents[i]!))
       else
         TextSpan(text: runs[i].text, style: style),
   ]));
@@ -132,13 +132,16 @@ Widget _shaded(Gradient gradient, String text, TextStyle style,
 /// figma grey inline command).
 TextStyle _monoStyle(NeoSduiTheme theme, String? tone) {
   final a = theme.accentFor(tone);
-  return a == null ? theme.mono : _flat(theme.mono, tone, a);
+  return a == null
+      ? theme.mono
+      : theme.mono.copyWith(
+          color: a.color, fontWeight: tone == 'strong' ? FontWeight.w500 : null);
 }
 
 /// [style] recolored to [accent]; a `strong` tone also takes the emphasis weight
 /// (w500), the `<strong>` analog — the wire names emphasis, the client owns weight.
-TextStyle _flat(TextStyle style, String? tone, NeoAccent accent) => style.copyWith(
-    color: accent.color, fontWeight: tone == 'strong' ? FontWeight.w500 : null);
+TextStyle _flat(NeoSduiTheme theme, TextStyle style, String? tone, NeoAccent accent) =>
+    (tone == 'strong' ? theme.emphasize(style) : style).copyWith(color: accent.color);
 
 class _Run {
   const _Run(this.text, this.tone, {this.mono = false});

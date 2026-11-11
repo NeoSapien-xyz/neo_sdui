@@ -124,10 +124,12 @@ class NeoSduiTheme {
     this.header = const NeoHeaderStyle(),
     this.accordion = const NeoAccordionStyle(),
     this.linkRow = const NeoLinkRowStyle(),
+    this.code = const NeoCodeStyle(),
     this.sectionSpacing,
     this.viewPadding,
     this.rowTitle,
     this.panelTitle,
+    this.strong,
     this.paragraph,
     this.footnote,
     this.subheading,
@@ -320,6 +322,7 @@ class NeoSduiTheme {
   final NeoHeaderStyle header;
   final NeoAccordionStyle accordion;
   final NeoLinkRowStyle linkRow;
+  final NeoCodeStyle code;
 
   /// Gap between top-level blocks. Null -> [blockSpacing].
   final double? sectionSpacing;
@@ -334,6 +337,13 @@ class NeoSduiTheme {
 
   /// Callout, FAQ and accordion titles. Null -> `body` at weight 500.
   final TextStyle? panelTitle;
+
+  /// The emphasis (w500) face of the body family. A google_fonts style names the
+  /// font *file* of the one weight it was built with (`WorkSans_regular`), so a
+  /// later `copyWith(fontWeight: w500)` keeps the regular file; this style
+  /// carries the w500 file's family so [emphasize] can borrow it. Null -> a plain
+  /// weight change (right for a system or variable font).
+  final TextStyle? strong;
 
   /// The `text` block's default style. Null -> `body`.
   final TextStyle? paragraph;
@@ -350,10 +360,16 @@ class NeoSduiTheme {
   double get resolvedSectionSpacing => sectionSpacing ?? blockSpacing;
   EdgeInsets get resolvedViewPadding =>
       viewPadding ?? EdgeInsets.symmetric(vertical: blockSpacing);
+  /// [style] at the emphasis weight (w500): the [strong] role's font file when the
+  /// theme sets one, else the weight alone.
+  TextStyle emphasize(TextStyle style) => style.copyWith(
+        fontWeight: FontWeight.w500,
+        fontFamily: strong?.fontFamily,
+        fontFamilyFallback: strong?.fontFamilyFallback,
+      );
   TextStyle get resolvedRowTitle =>
-      rowTitle ?? body.copyWith(color: onSurface, fontWeight: FontWeight.w500);
-  TextStyle get resolvedPanelTitle =>
-      panelTitle ?? body.copyWith(fontWeight: FontWeight.w500);
+      rowTitle ?? emphasize(body).copyWith(color: onSurface);
+  TextStyle get resolvedPanelTitle => panelTitle ?? emphasize(body);
   TextStyle get resolvedParagraph => paragraph ?? body;
   TextStyle get resolvedFootnote =>
       footnote ?? caption.copyWith(color: textMuted);
@@ -517,10 +533,12 @@ class NeoSduiTheme {
     NeoHeaderStyle? header,
     NeoAccordionStyle? accordion,
     NeoLinkRowStyle? linkRow,
+    NeoCodeStyle? code,
     double? sectionSpacing,
     EdgeInsets? viewPadding,
     TextStyle? rowTitle,
     TextStyle? panelTitle,
+    TextStyle? strong,
     TextStyle? paragraph,
     TextStyle? footnote,
     TextStyle? subheading,
@@ -586,10 +604,12 @@ class NeoSduiTheme {
       header: header ?? this.header,
       accordion: accordion ?? this.accordion,
       linkRow: linkRow ?? this.linkRow,
+      code: code ?? this.code,
       sectionSpacing: sectionSpacing ?? this.sectionSpacing,
       viewPadding: viewPadding ?? this.viewPadding,
       rowTitle: rowTitle ?? this.rowTitle,
       panelTitle: panelTitle ?? this.panelTitle,
+      strong: strong ?? this.strong,
       paragraph: paragraph ?? this.paragraph,
       footnote: footnote ?? this.footnote,
       subheading: subheading ?? this.subheading,

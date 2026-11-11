@@ -147,6 +147,7 @@ class NeoStepsStyle {
     this.labelNumberOffset = -1,
     this.labelSuffix = ':',
     this.autoLinkUrls = true,
+    this.blocksOutsideCard = false,
   });
 
   /// Gap between chips. Null -> `spaceMd`.
@@ -187,6 +188,10 @@ class NeoStepsStyle {
 
   /// Underline bare URLs in a string caption.
   final bool autoLinkUrls;
+
+  /// A carded step's `blocks` (a copyable command, say) sit below its card as
+  /// siblings instead of inside it.
+  final bool blocksOutsideCard;
 }
 
 /// The `callout` block.
@@ -200,6 +205,7 @@ class NeoCalloutStyle {
     this.radius,
     this.padding,
     this.emphasizeFirstBullet = true,
+    this.neutralBody,
   });
 
   /// Null -> `surface` (or the tone surface for `critical`).
@@ -220,6 +226,10 @@ class NeoCalloutStyle {
 
   /// First bullet in full white, the rest dimmed.
   final bool emphasizeFirstBullet;
+
+  /// Body style of a callout with no `tone`, used as is (its own colour, no
+  /// dimming). Null -> `calloutBody`, dimmed.
+  final TextStyle? neutralBody;
 }
 
 /// The `faq` block.
@@ -234,6 +244,8 @@ class NeoFaqStyle {
     this.caretColor,
     this.answerStyle,
     this.answerPadding,
+    this.caretSize = 22,
+    this.caretBox = 24,
   });
 
   /// Null -> none (the hairline divider between items is the block's own).
@@ -255,6 +267,10 @@ class NeoFaqStyle {
 
   /// Null -> `spaceSm` above the answer.
   final EdgeInsets? answerPadding;
+
+  /// Caret glyph size, and the square it is centred in (the row is at least this tall).
+  final double caretSize;
+  final double caretBox;
 }
 
 /// The `header` block.
@@ -351,4 +367,54 @@ class NeoLinkRowStyle {
 
   /// Null -> the package-drawn check glyph.
   final NeoGlyphBuilder? checkGlyph;
+}
+
+/// The `code` block: a copyable command. Every field defaults to today's look —
+/// a `surface` box, the `mono` role, a text "Copy" chip.
+@immutable
+class NeoCodeStyle {
+  const NeoCodeStyle({
+    this.fill,
+    this.border,
+    this.radius,
+    this.padding,
+    this.textStyle,
+    this.wrap = true,
+    this.copyGlyph,
+    this.copySize = 28,
+    this.copyFill,
+    this.copyBorder,
+    this.copyRadius,
+    this.copyInset = 8,
+  });
+
+  /// Null -> `surface`.
+  final Color? fill;
+
+  /// Null -> none.
+  final BorderSide? border;
+
+  /// Null -> `radiusMd`.
+  final BorderRadius? radius;
+
+  /// Null -> `spaceMd` all round. With a [copyGlyph] the button floats over the
+  /// box's trailing padding, so that padding must clear it.
+  final EdgeInsets? padding;
+
+  /// Null -> `mono` in `textPrimary`.
+  final TextStyle? textStyle;
+
+  /// False keeps the command on one line and scrolls it sideways.
+  final bool wrap;
+
+  /// Set -> an icon button of [copySize] pinned [copyInset] from the top-trailing
+  /// corner replaces the text chip. Null -> the "Copy" text chip.
+  final NeoGlyphBuilder? copyGlyph;
+  final double copySize;
+
+  /// Icon-button fill / border / radius. Null -> none / none / `radiusSm`.
+  final Color? copyFill;
+  final BorderSide? copyBorder;
+  final BorderRadius? copyRadius;
+  final double copyInset;
 }

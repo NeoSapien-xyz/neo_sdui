@@ -226,7 +226,7 @@ Widget _cardedItem(NeoSduiScope scope, int n, Map<String, Object?> item, String 
   // Caption is white (not the muted body color), medium weight; a bare-string
   // caption also gets its URLs underlined (the figma link look).
   final capStyle = theme.steps.instructionStyle ??
-      theme.body.copyWith(color: theme.textPrimary, fontWeight: FontWeight.w500);
+      theme.emphasize(theme.body).copyWith(color: theme.textPrimary);
   final detail = item['detail'];
   final code = item['code'];
   final image = _stepImage(theme, item, clip: false);
@@ -253,6 +253,7 @@ Widget _cardedItem(NeoSduiScope scope, int n, Map<String, Object?> item, String 
           ? neoText(theme, cap, capStyle)
           : Text('—', key: const Key('step-error'), style: capStyle));
   final blocks = scope.buildBlocks(_stepBlocks(item));
+  final outside = theme.steps.blocksOutsideCard;
   final body = Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
@@ -266,7 +267,7 @@ Widget _cardedItem(NeoSduiScope scope, int n, Map<String, Object?> item, String 
         const SizedBox(height: 4),
         Text(detail, style: capStyle.copyWith(color: theme.textMuted)),
       ],
-      if (blocks.isNotEmpty) ...[
+      if (blocks.isNotEmpty && !outside) ...[
         SizedBox(height: theme.spaceSm),
         for (var i = 0; i < blocks.length; i++) ...[
           if (i > 0) SizedBox(height: theme.blockSpacing),
@@ -295,7 +296,7 @@ Widget _cardedItem(NeoSduiScope scope, int n, Map<String, Object?> item, String 
               ),
               child: image,
             ));
-  return Container(
+  final card = Container(
     clipBehavior: Clip.antiAlias,
     decoration: BoxDecoration(
       color: theme.surface,
@@ -313,6 +314,14 @@ Widget _cardedItem(NeoSduiScope scope, int n, Map<String, Object?> item, String 
       ],
     ),
   );
+  if (!outside || blocks.isEmpty) return card;
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      card,
+      for (final b in blocks) ...[SizedBox(height: theme.steps.cardGap), b],
+    ],
+  );
 }
 
 /// The "Step n:" label: a white->grey vertical gradient (the figma detail head),
@@ -321,8 +330,7 @@ Widget _cardedItem(NeoSduiScope scope, int n, Map<String, Object?> item, String 
 /// null theme -> the baked white->grey fallback, so the render is unchanged.
 Widget _stepLabel(NeoSduiTheme theme, int n) {
   final style = theme.steps.labelStyle ??
-      theme.body
-          .copyWith(fontWeight: FontWeight.w500, color: const Color(0xFFFFFFFF));
+      theme.emphasize(theme.body).copyWith(color: const Color(0xFFFFFFFF));
   final gradient = theme.titleGradient ??
       const LinearGradient(
         begin: Alignment.topCenter,
@@ -661,7 +669,7 @@ class _CommandCardState extends State<_CommandCard> {
   /// the use-case titles paint with). No theme gradient -> flat accent.
   Widget _copyLabel(NeoSduiTheme theme) {
     final text = _copied ? 'Copied' : 'Copy Command';
-    final style = theme.caption.copyWith(fontWeight: FontWeight.w500);
+    final style = theme.emphasize(theme.caption);
     final ag = theme.accentGradient;
     if (ag is! LinearGradient) return neoText(theme, text, style, tone: 'accent');
     final vertical = LinearGradient(

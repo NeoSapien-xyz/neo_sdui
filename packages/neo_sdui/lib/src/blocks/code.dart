@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 
 import '../model/block_node.dart';
 import '../theme/neo_sdui_scope.dart';
+import '../theme/neo_sdui_styles.dart';
 import '_motion.dart';
 
 /// code: monospace content with a tap-to-copy affordance — the zero-dependency
@@ -73,21 +74,64 @@ class _CopyableCodeState extends State<_CopyableCode> {
   @override
   Widget build(BuildContext context) {
     final theme = NeoSduiScope.of(context).theme;
-    final mono = theme.mono.copyWith(color: theme.textPrimary);
+    final s = theme.code;
+    final mono = s.textStyle ?? theme.mono.copyWith(color: theme.textPrimary);
+    final text = Text(widget.content,
+        style: mono, softWrap: s.wrap, maxLines: s.wrap ? null : 1);
+    final glyph = s.copyGlyph;
     return DecoratedBox(
-      decoration: BoxDecoration(color: theme.surface, borderRadius: theme.radiusMd),
-      child: Padding(
-        padding: EdgeInsets.all(theme.spaceMd),
-        child: Row(
-          children: [
-            Expanded(child: Text(widget.content, style: mono)),
-            SizedBox(width: theme.spaceSm),
-            _CopyChip(copied: _copied, onTap: _copy),
-          ],
-        ),
+      decoration: BoxDecoration(
+        color: s.fill ?? theme.surface,
+        border: s.border == null ? null : Border.fromBorderSide(s.border!),
+        borderRadius: s.radius ?? theme.radiusMd,
       ),
+      child: glyph == null
+          ? Padding(
+              padding: s.padding ?? EdgeInsets.all(theme.spaceMd),
+              child: Row(
+                children: [
+                  Expanded(child: _scrolled(s, text)),
+                  SizedBox(width: theme.spaceSm),
+                  _CopyChip(copied: _copied, onTap: _copy),
+                ],
+              ),
+            )
+          : Stack(
+              children: [
+                Padding(
+                  padding: s.padding ?? EdgeInsets.all(theme.spaceMd),
+                  child: _scrolled(s, text),
+                ),
+                Positioned(
+                  top: s.copyInset,
+                  right: s.copyInset,
+                  child: PressScale(
+                    onTap: _copy,
+                    scale: 0.9,
+                    child: Container(
+                      key: const Key('code-copy'),
+                      width: s.copySize,
+                      height: s.copySize,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: s.copyFill,
+                        border: s.copyBorder == null
+                            ? null
+                            : Border.fromBorderSide(s.copyBorder!),
+                        borderRadius: s.copyRadius ?? theme.radiusSm,
+                      ),
+                      child: glyph(15, _copied ? theme.accent : theme.textMuted),
+                    ),
+                  ),
+                ),
+              ],
+            ),
     );
   }
+
+  Widget _scrolled(NeoCodeStyle s, Widget text) => s.wrap
+      ? text
+      : SingleChildScrollView(scrollDirection: Axis.horizontal, child: text);
 }
 
 /// Accent-tinted pill: "Copy" -> "Copied" after a tap. Fill and text derive from

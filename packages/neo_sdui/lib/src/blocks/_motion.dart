@@ -194,6 +194,7 @@ class TurningCaret extends StatelessWidget {
   const TurningCaret({
     required this.open,
     required this.openTurns,
+    this.box = 24,
     required this.closedColor,
     required this.openColor,
     required this.glyph,
@@ -202,6 +203,7 @@ class TurningCaret extends StatelessWidget {
 
   final bool open;
   final double openTurns;
+  final double box;
   final Color closedColor;
   final Color openColor;
   final Widget Function(Color color) glyph;
@@ -211,8 +213,8 @@ class TurningCaret extends StatelessWidget {
     final theme = NeoSduiScope.of(context).theme;
     final duration = theme.reduceMotion ? Duration.zero : theme.swapDuration;
     return SizedBox(
-      width: 24,
-      height: 24,
+      width: box,
+      height: box,
       child: Center(
         child: AnimatedRotation(
           turns: open ? openTurns : 0,

@@ -52,14 +52,13 @@ Widget buildHeader(BuildContext context, BlockNode node) {
   // fontSize/letterSpacing puts that value out of the theme's reach forever.
   final base = compact
       ? theme.rowTitle ??
-          theme.body
-              .copyWith(fontWeight: FontWeight.w500, color: theme.textPrimary)
+          theme.emphasize(theme.body).copyWith(color: theme.textPrimary)
       : sub
           ? theme.resolvedSubheading
           : theme.title;
   final lineHeight = compact ? theme.header.compactLineHeight : null;
   final subtitleStyle = compact
-      ? theme.caption.copyWith(fontWeight: FontWeight.w500, height: lineHeight)
+      ? theme.emphasize(theme.caption).copyWith(height: lineHeight)
       : theme.subtitle;
   final accent = theme.accentFor(tone);
   final titleStyle = (accent == null ? base : base.copyWith(color: accent.color))
@@ -68,6 +67,11 @@ Widget buildHeader(BuildContext context, BlockNode node) {
   // flex-1 element), so a short label ends brighter instead of at the full stop.
   Widget title =
       neoText(theme, node.fields['title'], titleStyle, tone: tone, stretch: compact);
+  // A wrapped title centers line by line, like the subtitle (a Text only aligns
+  // inside its own box, and the column's cross-axis centring places the box).
+  if (centered) {
+    title = DefaultTextStyle.merge(textAlign: TextAlign.center, child: title);
+  }
   // A plain section title takes the heading emboss — but the *mirror* of the
   // "Step n:" label: dark (grey) at the top fading to white at the foot, not the
   // label's white->grey. Same `titleGradient` role, same stops, reversed

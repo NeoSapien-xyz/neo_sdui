@@ -89,7 +89,7 @@ Widget buildCard(BuildContext context, BlockNode node) {
           neoText(
             theme,
             actionLabel,
-            theme.caption.copyWith(fontWeight: FontWeight.w500),
+            theme.emphasize(theme.caption),
             tone: 'accent',
           )
         else
@@ -177,10 +177,7 @@ Widget buildCard(BuildContext context, BlockNode node) {
             // the `details` row paints, on the theme's caption role.
             Text(
               actionLabel,
-              style: theme.caption.copyWith(
-                fontWeight: FontWeight.w500,
-                color: theme.accent,
-              ),
+              style: theme.emphasize(theme.caption).copyWith(color: theme.accent),
             ),
           ],
         ],
