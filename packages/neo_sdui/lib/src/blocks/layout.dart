@@ -78,7 +78,7 @@ Widget buildGroup(BuildContext context, BlockNode node) {
         border: theme.stepCardBorderColor == null
             ? null
             : Border.all(color: theme.stepCardBorderColor!),
-        boxShadow: theme.cardShadow,
+        boxShadow: theme.card.listShadow ?? theme.cardShadow,
       ),
       child: ClipRRect(
         borderRadius: theme.radiusLg,
@@ -86,7 +86,18 @@ Widget buildGroup(BuildContext context, BlockNode node) {
           listed: true,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: kids,
+            children: [
+              for (var i = 0; i < kids.length; i++)
+                if (i > 0 && theme.card.listSeparator != null)
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      border: Border(top: theme.card.listSeparator!),
+                    ),
+                    child: kids[i],
+                  )
+                else
+                  kids[i],
+            ],
           ),
         ),
       ),
@@ -98,17 +109,24 @@ Widget buildGroup(BuildContext context, BlockNode node) {
   // the card edge (figma: full-width dashed rule, rows padded) — so the inset is
   // applied per child, not as one outer Padding.
   final kids = scope.buildBlocks(childNodes);
-  final hInset = EdgeInsets.symmetric(horizontal: theme.spaceMd);
+  final hInset = EdgeInsets.symmetric(
+    horizontal: theme.group.rowInset ?? theme.spaceMd,
+  );
   // `variant:"tight"` pulls the item gap in to spaceSm — the figma troubleshooting
   // card (a title over a body, gap-8), vs the default use-case row rhythm.
   final gap =
-      node.stringOr('variant') == 'tight' ? theme.spaceSm : theme.blockSpacing;
+      theme.group.gap ??
+      (node.stringOr('variant') == 'tight'
+          ? theme.spaceSm
+          : theme.blockSpacing);
   bool isRule(BlockNode n) =>
       n.type == 'spacer' && n.stringOr('variant') == 'rule';
   final Widget content = HeadingScale(
     compact: true,
     child: Padding(
-      padding: EdgeInsets.symmetric(vertical: theme.spaceMd),
+      padding: EdgeInsets.symmetric(
+        vertical: theme.group.padding ?? theme.spaceMd,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -136,7 +154,10 @@ Widget buildGroup(BuildContext context, BlockNode node) {
                 theme.radiusLg,
                 fallback: 'rounded',
                 child: CustomPaint(
-                  painter: GridPainter(line: theme.gridLine!, step: theme.gridSpacing),
+                  painter: GridPainter(
+                    line: theme.gridLine!,
+                    step: theme.gridSpacing,
+                  ),
                 ),
               ),
             ),
@@ -144,17 +165,30 @@ Widget buildGroup(BuildContext context, BlockNode node) {
           ],
         )
       : content;
+  final decoration = shapeDecoration(
+    shape,
+    theme.radiusLg,
+    fallback: 'rounded',
+    color: theme.surface,
+    // A featured group fills with the theme's group gradient (the hero / use-
+    // case surface); null -> flat surface, so the wire still names only the
+    // emphasis and the stops live in the theme (like cardGradient).
+    gradient: featured ? theme.groupGradient : null,
+  );
+  final side = theme.group.border;
   return DecoratedBox(
-    decoration: shapeDecoration(
-      shape,
-      theme.radiusLg,
-      fallback: 'rounded',
-      color: theme.surface,
-      // A featured group fills with the theme's group gradient (the hero / use-
-      // case surface); null -> flat surface, so the wire still names only the
-      // emphasis and the stops live in the theme (like cardGradient).
-      gradient: featured ? theme.groupGradient : null,
-    ),
+    decoration: switch ((side, decoration)) {
+      (null, _) => decoration,
+      (final s?, final BoxDecoration d) => d.copyWith(
+        border: Border.fromBorderSide(s),
+      ),
+      (final s?, final ShapeDecoration d) => ShapeDecoration(
+        color: d.color,
+        gradient: d.gradient,
+        shape: (d.shape as OutlinedBorder).copyWith(side: s),
+      ),
+      _ => decoration,
+    },
     child: child,
   );
 }
@@ -183,7 +217,8 @@ Widget buildSpacer(BuildContext context, BlockNode node) {
     height: 1,
     child: CustomPaint(
       painter: _DashedLinePainter(
-          theme.divider ?? theme.onSurface.withValues(alpha: 0.12)),
+        theme.divider ?? theme.onSurface.withValues(alpha: 0.12),
+      ),
     ),
   );
 }
@@ -202,8 +237,11 @@ class _DashedLinePainter extends CustomPainter {
       ..strokeWidth = size.height;
     final y = size.height / 2;
     for (double x = 0; x < size.width; x += _dash + _gap) {
-      canvas.drawLine(Offset(x, y),
-          Offset((x + _dash).clamp(0, size.width), y), paint);
+      canvas.drawLine(
+        Offset(x, y),
+        Offset((x + _dash).clamp(0, size.width), y),
+        paint,
+      );
     }
   }
 

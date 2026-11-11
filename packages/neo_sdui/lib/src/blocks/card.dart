@@ -50,8 +50,9 @@ Widget buildCard(BuildContext context, BlockNode node) {
   // A *featured* card (`emphasis:"high"`) takes the theme's card gradient; every
   // other card stays the flat surface. Null gradient -> featured falls back to
   // flat, so the wire names emphasis and the theme owns whether it's a gradient.
-  final featuredGradient =
-      node.stringOr('emphasis') == 'high' ? theme.cardGradient : null;
+  final featuredGradient = node.stringOr('emphasis') == 'high'
+      ? theme.cardGradient
+      : null;
   // The icon-row picker card (a `thumb` card that isn't a `tile`) is figma's
   // neumorphic card: the theme's card gradient + hairline border + soft glow,
   // not the flat surface every other card keeps.
@@ -60,8 +61,7 @@ Widget buildCard(BuildContext context, BlockNode node) {
       featuredGradient ?? (pickerCard ? theme.cardGradient : null);
   // Wire `shape` role (opt-in); the card defaults to the theme's squircle.
   final shape = node.stringOr('shape');
-  final titleStyle =
-      theme.body.copyWith(color: theme.onSurface, fontWeight: FontWeight.w500);
+  final titleStyle = theme.resolvedRowTitle;
 
   // Inside a `variant:"list"` group: a flat icon + label + caret row, no surface.
   if (CardListed.of(context)) {
@@ -86,9 +86,12 @@ Widget buildCard(BuildContext context, BlockNode node) {
         // default caret. The caret branch is untouched, so cards without a label
         // regenerate no goldens.
         if (actionLabel != null)
-          neoText(theme, actionLabel,
-              theme.caption.copyWith(fontWeight: FontWeight.w500),
-              tone: 'accent')
+          neoText(
+            theme,
+            actionLabel,
+            theme.caption.copyWith(fontWeight: FontWeight.w500),
+            tone: 'accent',
+          )
         else
           Text('›', style: titleStyle),
       ],
@@ -136,7 +139,7 @@ Widget buildCard(BuildContext context, BlockNode node) {
         children: [
           clipShape(
             shape,
-            theme.radiusMd,
+            theme.card.thumbRadius ?? theme.radiusMd,
             fallback: 'rounded',
             child: SizedBox(
               width: 40,
@@ -156,19 +159,26 @@ Widget buildCard(BuildContext context, BlockNode node) {
               children: [
                 Text(node.stringOr('title', '')!, style: titleStyle),
                 if (subtitle != null) ...[
-                  const SizedBox(height: 8),
-                  Text(subtitle, style: titleStyle.copyWith(color: theme.textMuted)),
+                  SizedBox(height: theme.card.titleGap),
+                  Text(
+                    subtitle,
+                    style: titleStyle.copyWith(color: theme.textMuted),
+                  ),
                 ],
               ],
             ),
           ),
           if (actionLabel != null) ...[
-            const SizedBox(width: 8),
+            SizedBox(width: theme.card.actionGap),
             // Flat accent, not the accent gradient — the same affordance label
             // the `details` row paints, on the theme's caption role.
-            Text(actionLabel,
-                style: theme.caption.copyWith(
-                    fontWeight: FontWeight.w500, color: theme.accent)),
+            Text(
+              actionLabel,
+              style: theme.caption.copyWith(
+                fontWeight: FontWeight.w500,
+                color: theme.accent,
+              ),
+            ),
           ],
         ],
       ),
@@ -186,7 +196,13 @@ Widget buildCard(BuildContext context, BlockNode node) {
     'rounded' => RoundedRectangleBorder(borderRadius: theme.radiusLg),
     _ => theme.resolvedCardShape,
   };
-  final surface = _surface(theme, cardShape, content, gradient: surfaceGradient);
+  final surface = _surface(
+    theme,
+    cardShape,
+    content,
+    gradient: surfaceGradient,
+    shadows: pickerCard ? theme.card.shadow : null,
+  );
   if (action == null) return surface;
   return PressScale(
     onTap: () => scope.dispatch(context, NeoAction.parse(action)),
@@ -198,17 +214,36 @@ Widget buildCard(BuildContext context, BlockNode node) {
 /// its own (the enclosing `variant:"list"` group draws the shared card). Leading
 /// `icon` is a theme glyph role; the caret is a muted chevron. Tappable when the
 /// wire sets an `action`.
-Widget _listedCard(BuildContext context, NeoSduiScope scope, NeoSduiTheme theme,
-    BlockNode node, TextStyle titleStyle) {
+Widget _listedCard(
+  BuildContext context,
+  NeoSduiScope scope,
+  NeoSduiTheme theme,
+  BlockNode node,
+  TextStyle titleStyle,
+) {
   final action = node.stringOr('action');
   final subtitle = node.stringOr('subtitle');
-  final icon =
-      leadingIcon(theme, node.stringOr('icon'), node.stringOr('tone'), size: 20);
+  // A themed icon colour replaces the tone colour: tone is dropped and the
+  // glyph's default (onSurface) is pointed at the themed colour.
+  final iconColor = theme.card.listIconColor;
+  final icon = iconColor == null
+      ? leadingIcon(
+          theme,
+          node.stringOr('icon'),
+          node.stringOr('tone'),
+          size: 20,
+        )
+      : leadingIcon(
+          theme.copyWith(onSurface: iconColor),
+          node.stringOr('icon'),
+          null,
+          size: 20,
+        );
   final row = Padding(
     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
     child: Row(
       children: [
-        if (icon != null) ...[icon, const SizedBox(width: 12)],
+        if (icon != null) ...[icon, SizedBox(width: theme.card.listIconGap)],
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -219,8 +254,11 @@ Widget _listedCard(BuildContext context, NeoSduiScope scope, NeoSduiTheme theme,
           ),
         ),
         if (action != null) ...[
-          const SizedBox(width: 8),
-          Text('›', style: titleStyle.copyWith(color: theme.textMuted)),
+          SizedBox(width: theme.card.listCaretGap),
+          if (theme.card.listCaret case final caret?)
+            caret(20, theme.textMuted)
+          else
+            Text('›', style: titleStyle.copyWith(color: theme.textMuted)),
         ],
       ],
     ),
@@ -240,8 +278,13 @@ Widget _listedCard(BuildContext context, NeoSduiScope scope, NeoSduiTheme theme,
 /// `cardGradient`) and fills with it instead of the flat card color. Geometry
 /// values come from the theme; the wire carries at most a `shape`/`emphasis`
 /// role (already resolved into [shape]/[gradient] by the caller).
-Widget _surface(NeoSduiTheme theme, ShapeBorder shape, Widget child,
-    {Gradient? gradient}) {
+Widget _surface(
+  NeoSduiTheme theme,
+  ShapeBorder shape,
+  Widget child, {
+  Gradient? gradient,
+  List<BoxShadow>? shadows,
+}) {
   // A gradient (neumorphic) card also takes figma's hairline border; a flat card
   // keeps its borderless shape, byte-identical to before.
   final shaped = gradient != null && theme.stepCardBorderColor != null
@@ -252,7 +295,7 @@ Widget _surface(NeoSduiTheme theme, ShapeBorder shape, Widget child,
       color: gradient == null ? theme.resolvedCardColor : null,
       gradient: gradient,
       shape: shaped,
-      shadows: theme.cardShadow,
+      shadows: shadows ?? theme.cardShadow,
     ),
     child: child,
   );
@@ -260,7 +303,10 @@ Widget _surface(NeoSduiTheme theme, ShapeBorder shape, Widget child,
   return ClipPath(
     clipper: ShapeBorderClipper(shape: shaped),
     child: BackdropFilter(
-      filter: ImageFilter.blur(sigmaX: theme.backdropBlur, sigmaY: theme.backdropBlur),
+      filter: ImageFilter.blur(
+        sigmaX: theme.backdropBlur,
+        sigmaY: theme.backdropBlur,
+      ),
       child: box,
     ),
   );
@@ -269,9 +315,13 @@ Widget _surface(NeoSduiTheme theme, ShapeBorder shape, Widget child,
 /// The card shape with a hairline [side] added — used for the neumorphic
 /// (gradient) card's figma border. Only the two rounded families the card uses.
 ShapeBorder _withSide(ShapeBorder shape, BorderSide side) => switch (shape) {
-      RoundedSuperellipseBorder b =>
-        RoundedSuperellipseBorder(borderRadius: b.borderRadius, side: side),
-      RoundedRectangleBorder b =>
-        RoundedRectangleBorder(borderRadius: b.borderRadius, side: side),
-      _ => shape,
-    };
+  RoundedSuperellipseBorder b => RoundedSuperellipseBorder(
+    borderRadius: b.borderRadius,
+    side: side,
+  ),
+  RoundedRectangleBorder b => RoundedRectangleBorder(
+    borderRadius: b.borderRadius,
+    side: side,
+  ),
+  _ => shape,
+};

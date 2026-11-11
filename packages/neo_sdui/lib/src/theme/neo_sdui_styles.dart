@@ -111,7 +111,8 @@ class NeoCardStyle {
 class NeoGroupStyle {
   const NeoGroupStyle({this.border, this.rowInset, this.padding, this.gap});
 
-  /// Null -> a hairline in `stepCardBorderColor`, or none when that is null.
+  /// The plain group's outline. Null -> no border, as today; the list-card
+  /// variant keeps its own `stepCardBorderColor` hairline either way.
   final BorderSide? border;
 
   /// Horizontal row inset. Null -> `spaceMd`.
