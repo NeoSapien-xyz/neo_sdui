@@ -136,6 +136,8 @@ const Map<String, String> kRoleSlotsIntentionallyAbsent = {
       '$kAccentsPrefix in _isKnownRole/_emitRoles, never as a whole-map slot.',
   'icons': 'map-typed — observed per entry as `icons.<name>`, matched by '
       '$kIconsPrefix (and spread over kDefaultIcons on emit).',
+  'glyphs': 'map-typed — observed per entry as `glyphs.<name>`, a verbatim '
+      'NeoGlyphBuilder literal, matched by $kGlyphsPrefix (no default to spread).',
 };
 
 /// A roleKey the compile knows how to place: a registered scalar slot or a
@@ -143,7 +145,8 @@ const Map<String, String> kRoleSlotsIntentionallyAbsent = {
 bool _isKnownRole(String key) =>
     kRoleSlots.containsKey(key) ||
     key.startsWith(kAccentsPrefix) ||
-    key.startsWith(kIconsPrefix);
+    key.startsWith(kIconsPrefix) ||
+    key.startsWith(kGlyphsPrefix);
 
 /// A live [NeoSduiTheme] from a reconciled ledger, for U4's render preview.
 ///
@@ -397,14 +400,18 @@ List<String> _emitRoles(StringBuffer b, Map<String, ResolvedRole> roles,
     {bool isOverride = false, String base = 'base'}) {
   final accents = <String, ResolvedRole>{};
   final icons = <String, ResolvedRole>{};
+  final glyphs = <String, ResolvedRole>{};
   final simple = <String>[];
   for (final key in roles.keys) {
     final accentName = stripRolePrefix(key, kAccentsPrefix);
     final iconName = stripRolePrefix(key, kIconsPrefix);
+    final glyphName = stripRolePrefix(key, kGlyphsPrefix);
     if (accentName != null) {
       accents[accentName] = roles[key]!;
     } else if (iconName != null) {
       icons[iconName] = roles[key]!;
+    } else if (glyphName != null) {
+      glyphs[glyphName] = roles[key]!;
     } else if (kRoleSlots.containsKey(key)) {
       simple.add(key); // unknown scalar roles are skipped — emitTheme TODOs them
     }
@@ -442,6 +449,14 @@ List<String> _emitRoles(StringBuffer b, Map<String, ResolvedRole> roles,
     b.writeln(isOverride ? '    ...$base.icons,' : '    ...kDefaultIcons,');
     for (final name in icons.keys.toList()..sort()) {
       b.writeln("    '$name': ${_expr(icons[name]!)},");
+    }
+    b.writeln('  },');
+  }
+  if (glyphs.isNotEmpty) {
+    b.writeln('  glyphs: {');
+    if (isOverride) b.writeln('    ...$base.glyphs,');
+    for (final name in glyphs.keys.toList()..sort()) {
+      b.writeln("    '$name': ${_expr(glyphs[name]!)},");
     }
     b.writeln('  },');
   }

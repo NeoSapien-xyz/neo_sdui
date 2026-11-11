@@ -40,6 +40,9 @@ List<RoleDriftIssue> lintRoleDrift(Reconciled r) {
   final namedIcons = <String>{
     for (final k in r.base.keys) ?stripRolePrefix(k, kIconsPrefix),
   };
+  final namedGlyphs = <String>{
+    for (final k in r.base.keys) ?stripRolePrefix(k, kGlyphsPrefix),
+  };
   final referencedAccents = <String>{};
   final referencedIcons = <String>{};
 
@@ -61,7 +64,8 @@ List<RoleDriftIssue> lintRoleDrift(Reconciled r) {
         referencedIcons.add(name);
         if (!kDefaultIcons.containsKey(name) &&
             !kDrawnIcons.contains(name) &&
-            !namedIcons.contains(name)) {
+            !namedIcons.contains(name) &&
+            !namedGlyphs.contains(name)) {
           out.add(RoleDriftIssue(
               tag,
               "wire icon '$name' has no theme icon slot",
@@ -78,7 +82,7 @@ List<RoleDriftIssue> lintRoleDrift(Reconciled r) {
           'theme accent unused by any wire role', WireIssueSeverity.warn));
     }
   }
-  for (final ic in namedIcons) {
+  for (final ic in {...namedIcons, ...namedGlyphs}) {
     if (!referencedIcons.contains(ic)) {
       out.add(RoleDriftIssue('icons.$ic',
           'theme icon unused by any wire role', WireIssueSeverity.warn));

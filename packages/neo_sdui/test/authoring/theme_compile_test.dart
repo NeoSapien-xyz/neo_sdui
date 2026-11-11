@@ -412,4 +412,19 @@ void main() {
     expect(todoLines.every((l) => l.trimLeft().startsWith('// TODO(theme):')),
         isTrue);
   });
+
+  test('a glyphs.<name> observation emits inside a glyphs map', () {
+    final r = (RoleLedger()
+          ..observe(const Observation(
+              roleKey: 'glyphs.help',
+              value: '(s, c) => const SizedBox()',
+              page: 'home',
+              provenance: Provenance.measured,
+              kind: ValueKind.other)))
+        .reconcile();
+    final src = emitTheme(r);
+    expect(src, contains('glyphs: {'));
+    expect(src, contains("'help': (s, c) => const SizedBox(),"));
+    expect(src, isNot(contains('TODO(theme): unsupported role glyphs')));
+  });
 }

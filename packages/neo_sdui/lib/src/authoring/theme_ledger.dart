@@ -52,6 +52,7 @@ enum ValueKind { color, number, textStyle, gradient, other }
 /// compile and the lint split keys the same way — one literal, no per-file drift.
 const String kAccentsPrefix = 'accents.';
 const String kIconsPrefix = 'icons.';
+const String kGlyphsPrefix = 'glyphs.';
 
 /// The name after [prefix] if [key] starts with it, else null.
 String? stripRolePrefix(String key, String prefix) =>

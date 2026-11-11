@@ -14,11 +14,17 @@ const Map<String, IconData> kDefaultIcons = {
   'chat': Icons.chat_bubble_outline,
 };
 
+/// A theme-supplied icon glyph: paints the wire icon name it is keyed under at
+/// [size] in the resolved tone [color]. Lets an app draw icons a font
+/// [IconData] cannot (an SVG string, a custom painter) without the package
+/// taking a dependency on how it is drawn.
+typedef NeoGlyphBuilder = Widget Function(double size, Color color);
+
 /// Wire icon names the package paints itself (a `CustomPaint` glyph in
 /// `_icon.dart`) rather than resolving to a font [IconData] — the figma brand
 /// marks a Material glyph can't match. `sparkle` is the two-pointed NeoSapien
 /// star; `export` is the figma up-arrow-out-of-a-tray (a share-sheet `ios_share`
-/// glyph read wrong). A theme's `icons.<name>` entry still wins (an app override beats the
+/// glyph read wrong). A theme's `glyphs.<name>` / `icons.<name>` entry still wins (an app override beats the
 /// drawn default); absent that, [leadingIcon] paints these. Exported so the
 /// role-drift lint counts them as resolvable, same as [kDefaultIcons].
 const Set<String> kDrawnIcons = {'sparkle', 'export'};
@@ -106,6 +112,7 @@ class NeoSduiTheme {
     this.titleGradient,
     this.accents = const {},
     this.icons = kDefaultIcons,
+    this.glyphs = const {},
   });
 
   // Role colors.
@@ -279,6 +286,10 @@ class NeoSduiTheme {
   /// swaps its own set; an unmapped name resolves to null and no icon is drawn.
   final Map<String, IconData> icons;
 
+  /// Named-icon → glyph *builder* map; wins over [icons] and [kDrawnIcons] for
+  /// the same name. Client-owned, empty by default.
+  final Map<String, NeoGlyphBuilder> glyphs;
+
   // Derivation (KTD11): wire sends emphasis/tone, these turn it into pixels.
 
   /// The glyph for a wire icon name, or null when unnamed/unmapped (draw nothing).
@@ -427,6 +438,7 @@ class NeoSduiTheme {
     Gradient? titleGradient,
     Map<String, NeoAccent>? accents,
     Map<String, IconData>? icons,
+    Map<String, NeoGlyphBuilder>? glyphs,
   }) {
     return NeoSduiTheme(
       accent: accent ?? this.accent,
@@ -478,6 +490,7 @@ class NeoSduiTheme {
       titleGradient: titleGradient ?? this.titleGradient,
       accents: accents ?? this.accents,
       icons: icons ?? this.icons,
+      glyphs: glyphs ?? this.glyphs,
     );
   }
 }

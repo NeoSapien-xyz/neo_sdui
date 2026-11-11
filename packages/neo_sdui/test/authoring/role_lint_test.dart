@@ -57,4 +57,17 @@ void main() {
     expect(issues.where((i) => i.isBlocking), isEmpty);
     expect(issues.any((i) => i.role == 'accents.brand' && !i.isBlocking), isTrue);
   });
+
+  test('a wire icon resolved only through glyphs.<name> is clean', () {
+    final r = (RoleLedger()
+          ..observe(const Observation(
+              roleKey: 'glyphs.link',
+              value: '(s, c) => const SizedBox()',
+              page: 'home',
+              provenance: Provenance.measured,
+              kind: ValueKind.other))
+          ..useRole('home', 'icon:link'))
+        .reconcile();
+    expect(lintRoleDrift(r), isEmpty);
+  });
 }

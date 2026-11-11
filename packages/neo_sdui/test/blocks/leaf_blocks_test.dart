@@ -2,6 +2,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:neo_sdui/neo_sdui.dart';
+import 'package:neo_sdui/src/blocks/_icon.dart';
 
 final _theme = NeoSduiTheme.fallback();
 
@@ -235,5 +236,56 @@ void main() {
     expect(find.text('Copy'), findsOneWidget);
     tester.binding.defaultBinaryMessenger
         .setMockMethodCallHandler(SystemChannels.platform, null);
+  });
+
+  group('glyphs', () {
+    Future<void> pumpIcon(WidgetTester t, NeoSduiTheme theme) => t.pumpWidget(
+          Directionality(
+            textDirection: TextDirection.ltr,
+            child: Center(child: leadingIcon(theme, 'help', 'accent', size: 20)),
+          ),
+        );
+
+    testWidgets('a theme glyph wins over the default icon and gets size + colour',
+        (t) async {
+      double? gotSize;
+      Color? gotColor;
+      final theme = _theme.copyWith(glyphs: {
+        'help': (size, color) {
+          gotSize = size;
+          gotColor = color;
+          return SizedBox.square(key: const Key('mine'), dimension: size);
+        },
+      });
+      await pumpIcon(t, theme);
+      expect(find.byKey(const Key('mine')), findsOneWidget);
+      expect(find.byType(Icon), findsNothing);
+      expect(gotSize, 20);
+      expect(gotColor, theme.toneColor('accent'));
+    });
+
+    testWidgets('no glyph entry: help still renders the Material icon',
+        (t) async {
+      await pumpIcon(t, _theme);
+      expect(t.widget<Icon>(find.byType(Icon)).icon, kDefaultIcons['help']);
+    });
+
+    for (final (key, build) in <(String, Widget Function(Color))>[
+      ('icon-chevron-down', (c) => NeoChevronDownIcon(size: 24, color: c)),
+      ('icon-copy', (c) => NeoCopyIcon(size: 24, color: c)),
+      ('icon-check', (c) => NeoCheckIcon(size: 24, color: c)),
+    ]) {
+      testWidgets('$key paints inside its square in the given colour',
+          (t) async {
+        const c = Color(0xFF123456);
+        await t.pumpWidget(Directionality(
+            textDirection: TextDirection.ltr, child: Center(child: build(c))));
+        final f = find.byKey(Key(key));
+        expect(t.getSize(f), const Size.square(24));
+        expect(t.renderObject<RenderBox>(f).paintBounds,
+            const Rect.fromLTWH(0, 0, 24, 24));
+        expect(f, paints..path(color: c));
+      });
+    }
   });
 }
