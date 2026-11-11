@@ -9,14 +9,16 @@ import '../theme/neo_sdui_theme.dart';
 /// accent → the accent green, critical → danger, else onSurface. Resolution is:
 /// a theme `glyphs.<name>` builder first, then a theme `icons.<name>` glyph (an
 /// app's own AppIcons override wins), then a package-drawn glyph
-/// ([kDrawnIcons], e.g. the brand `sparkle`), else null.
+/// ([kDrawnIcons], e.g. the brand `sparkle`), else null. A non-null [color]
+/// overrides the tone's colour (the glyph builders receive it too).
 Widget? leadingIcon(
   NeoSduiTheme theme,
   String? name,
   String? tone, {
   double size = 16,
+  Color? color,
 }) {
-  final color = theme.toneColor(tone);
+  color ??= theme.toneColor(tone);
   final glyph = name == null ? null : theme.glyphs[name];
   if (glyph != null) return glyph(size, color);
   final data = theme.iconFor(name);

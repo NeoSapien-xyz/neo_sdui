@@ -223,22 +223,14 @@ Widget _listedCard(
 ) {
   final action = node.stringOr('action');
   final subtitle = node.stringOr('subtitle');
-  // A themed icon colour replaces the tone colour: tone is dropped and the
-  // glyph's default (onSurface) is pointed at the themed colour.
-  final iconColor = theme.card.listIconColor;
-  final icon = iconColor == null
-      ? leadingIcon(
-          theme,
-          node.stringOr('icon'),
-          node.stringOr('tone'),
-          size: 20,
-        )
-      : leadingIcon(
-          theme.copyWith(onSurface: iconColor),
-          node.stringOr('icon'),
-          null,
-          size: 20,
-        );
+  // A themed icon colour replaces the tone colour.
+  final icon = leadingIcon(
+    theme,
+    node.stringOr('icon'),
+    node.stringOr('tone'),
+    size: 20,
+    color: theme.card.listIconColor,
+  );
   final row = Padding(
     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
     child: Row(
