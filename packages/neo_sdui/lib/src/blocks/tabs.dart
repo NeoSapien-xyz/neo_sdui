@@ -23,15 +23,15 @@ typedef _Tab = ({String label, List<BlockNode> blocks});
 
 /// The tab list off a `tabs` node — shared by both render forms.
 List<_Tab> _tabsOf(BlockNode node) => [
-      for (final t in node.mapList('tabs'))
-        (
-          label: t['label'] as String? ?? '',
-          blocks: [
-            for (final b in (t['blocks'] as List? ?? const []))
-              if (b is Map) BlockNode.fromJson(Map<String, Object?>.from(b)),
-          ],
-        ),
-    ];
+  for (final t in node.mapList('tabs'))
+    (
+      label: t['label'] as String? ?? '',
+      blocks: [
+        for (final b in (t['blocks'] as List? ?? const []))
+          if (b is Map) BlockNode.fromJson(Map<String, Object?>.from(b)),
+      ],
+    ),
+];
 
 /// The neumorphic segmented control itself: a recessed `tabTrack` groove holding
 /// the tabs, the selected one a darker pill pressed into it. All colours are
@@ -44,33 +44,47 @@ Widget _strip(
   int selected,
   ValueChanged<int> onTap,
 ) {
+  final style = theme.tabs;
   final trackInsets = <Inset>[
-    Inset(kInsetDark, const Offset(3.5, 3.5), 12),
-    Inset(theme.onSurface.withValues(alpha: 0.10), const Offset(-1.5, -1.5), 8),
+    if (style.neumorphic) ...[
+      Inset(kInsetDark, const Offset(3.5, 3.5), 12),
+      Inset(
+        theme.onSurface.withValues(alpha: 0.10),
+        const Offset(-1.5, -1.5),
+        8,
+      ),
+    ],
   ];
   final pillInsets = <Inset>[
-    Inset(kInsetDark, const Offset(-2, -2), 4),
-    Inset(theme.onSurface.withValues(alpha: 0.06), const Offset(1, 1), 6),
+    if (style.neumorphic) ...[
+      Inset(kInsetDark, const Offset(-2, -2), 4),
+      Inset(theme.onSurface.withValues(alpha: 0.06), const Offset(1, 1), 6),
+    ],
   ];
   // The pressed pill sits *darker* than the track (the figma reads a dented
   // segment) — surface barely lifted, well below the lighter `tabTrack`.
   final pillColor =
+      style.pillColor ??
       Color.alphaBlend(theme.onSurface.withValues(alpha: 0.03), theme.surface);
   // A faint hairline between two *unselected* neighbours; suppressed next to the
   // pill, which owns that edge.
   final divider = theme.onSurface.withValues(alpha: 0.06);
 
   return neumorphic(
-    radius: theme.radiusMd,
-    color: theme.tabTrack,
+    radius: style.trackRadius ?? theme.radiusMd,
+    color: style.trackColor ?? theme.tabTrack,
+    border: style.trackBorder == null
+        ? null
+        : Border.fromBorderSide(style.trackBorder!),
     insets: trackInsets,
     child: Padding(
-      padding: const EdgeInsets.all(2),
+      padding: style.trackPadding,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           for (var i = 0; i < tabs.length; i++) ...[
-            if (i > 0 && selected != i && selected != i - 1)
+            if (i > 0 && style.gap > 0) SizedBox(width: style.gap),
+            if (style.neumorphic && i > 0 && selected != i && selected != i - 1)
               Container(width: 1, height: 20, color: divider),
             Expanded(
               child: GestureDetector(
@@ -80,6 +94,10 @@ Widget _strip(
                     ? neumorphic(
                         radius: theme.radiusSm,
                         color: pillColor,
+                        border: style.pillBorder == null
+                            ? null
+                            : Border.fromBorderSide(style.pillBorder!),
+                        shadows: style.pillShadow,
                         insets: pillInsets,
                         child: _label(theme, tabs[i].label, true),
                       )
@@ -96,19 +114,26 @@ Widget _strip(
 /// A tab label: the selected one in the accent role (medium), the rest primary
 /// white (regular). Tracking rides the `body` role (the figma −0.04em Work Sans
 /// tracking), so it stays wired to the theme, not hardcoded here.
-Widget _label(NeoSduiTheme theme, String label, bool selected) => Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-      child: Center(
-        child: Text(
-          label,
-          textAlign: TextAlign.center,
-          style: theme.body.copyWith(
-            color: selected ? theme.accent : theme.textPrimary,
-            fontWeight: selected ? FontWeight.w500 : FontWeight.w400,
-          ),
+Widget _label(NeoSduiTheme theme, String label, bool selected) {
+  final style = theme.tabs;
+  return Padding(
+    padding: style.labelPadding,
+    child: Center(
+      child: Text(
+        label,
+        textAlign: TextAlign.center,
+        maxLines: style.labelMaxLines,
+        overflow: style.labelMaxLines == null ? null : TextOverflow.ellipsis,
+        style: (style.labelStyle ?? theme.body).copyWith(
+          color: selected
+              ? theme.accent
+              : (style.unselectedColor ?? theme.textPrimary),
+          fontWeight: selected ? FontWeight.w500 : style.unselectedWeight,
         ),
       ),
-    );
+    ),
+  );
+}
 
 /// Builds the selected tab's stack: the shared header (rides above every tab)
 /// then the chosen tab's own blocks, themed-spaced.
@@ -142,13 +167,12 @@ Widget _swapContent(
   List<BlockNode> header,
   List<_Tab> tabs,
   int sel,
-) =>
-    SwapFade(
-      child: KeyedSubtree(
-        key: ValueKey(sel),
-        child: _tabContent(theme, buildBlocks, header, tabs[sel]),
-      ),
-    );
+) => SwapFade(
+  child: KeyedSubtree(
+    key: ValueKey(sel),
+    child: _tabContent(theme, buildBlocks, header, tabs[sel]),
+  ),
+);
 
 // ── Pinned form ──────────────────────────────────────────────────────────────
 
@@ -170,7 +194,11 @@ List<Widget> tabsPinnedSlivers(
     SliverPersistentHeader(
       pinned: true,
       delegate: _PinnedStrip(
-          theme, tabs, selected, MediaQuery.textScalerOf(context).scale(1)),
+        theme,
+        tabs,
+        selected,
+        MediaQuery.textScalerOf(context).scale(1),
+      ),
     ),
     SliverToBoxAdapter(
       child: ValueListenableBuilder<int>(
@@ -178,8 +206,12 @@ List<Widget> tabsPinnedSlivers(
         builder: (context, sel, _) => Padding(
           // Horizontal content inset; a `spaceMd` gap under the pinned pill, and
           // `blockSpacing` below before the next block.
-          padding: theme.contentPadding +
-              EdgeInsets.only(top: theme.spaceMd, bottom: theme.blockSpacing),
+          padding:
+              theme.contentPadding +
+              EdgeInsets.only(
+                top: theme.tabs.contentGap ?? theme.spaceMd,
+                bottom: theme.blockSpacing,
+              ),
           child: _swapContent(
             theme,
             buildBlocks,
@@ -221,7 +253,11 @@ class _PinnedStrip extends SliverPersistentHeaderDelegate {
   double get minExtent => _extent;
 
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
     return Padding(
       padding: theme.contentPadding + const EdgeInsets.symmetric(vertical: 8),
       child: ValueListenableBuilder<int>(
@@ -278,16 +314,26 @@ class _TabsState extends State<_Tabs> {
     if (widget.tabs.isEmpty) return const SizedBox.shrink();
     final selected = _selected.clamp(0, widget.tabs.length - 1);
 
-    final strip =
-        _strip(theme, widget.tabs, selected, (i) => setState(() => _selected = i));
+    final strip = _strip(
+      theme,
+      widget.tabs,
+      selected,
+      (i) => setState(() => _selected = i),
+    );
 
     // Content faded + risen in on each tap — same swap as the pinned form.
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         strip,
-        SizedBox(height: theme.spaceMd),
-        _swapContent(theme, scope.buildBlocks, widget.header, widget.tabs, selected),
+        SizedBox(height: theme.tabs.contentGap ?? theme.spaceMd),
+        _swapContent(
+          theme,
+          scope.buildBlocks,
+          widget.header,
+          widget.tabs,
+          selected,
+        ),
       ],
     );
   }
