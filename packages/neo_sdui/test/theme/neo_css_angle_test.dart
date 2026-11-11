@@ -44,4 +44,9 @@ void main() {
     expect(const NeoCssAngle(168).hashCode, const NeoCssAngle(168).hashCode);
     expect(const NeoCssAngle(168), isNot(const NeoCssAngle(90)));
   });
+
+  test('an empty box gets no transform instead of a non-finite matrix', () {
+    expect(const NeoCssAngle(226).transform(const Rect.fromLTWH(0, 0, 320, 0)),
+        isNull);
+  });
 }

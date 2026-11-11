@@ -16,6 +16,9 @@ class NeoCssAngle extends GradientTransform {
 
   @override
   Matrix4? transform(Rect bounds, {TextDirection? textDirection}) {
+    // An empty box (first layout frame) has no gradient line to fit; scaling by
+    // length / 0 would hand the shader a non-finite matrix.
+    if (bounds.isEmpty) return null;
     final t = degrees * math.pi / 180;
     final length =
         (bounds.width * math.sin(t)).abs() + (bounds.height * math.cos(t)).abs();
