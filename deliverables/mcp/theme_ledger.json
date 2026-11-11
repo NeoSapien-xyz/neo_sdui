@@ -1041,8 +1041,21 @@
   ],
   "roleUsage": {
     "base": [
+      "emphasis:high",
+      "icon:calendarDots",
+      "icon:chat",
+      "icon:export",
+      "icon:help",
+      "icon:listChecks",
+      "icon:magnifier",
+      "icon:pencilLine",
+      "icon:sparkle",
+      "icon:squaresFour",
+      "icon:sunHorizon",
       "tone:accent",
-      "emphasis:high"
+      "tone:accentFlat",
+      "tone:strong",
+      "tone:warning"
     ]
   }
 }
