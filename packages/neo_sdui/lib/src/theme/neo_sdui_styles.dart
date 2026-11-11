@@ -77,6 +77,7 @@ class NeoCardStyle {
     this.listCaretGap = 8,
     this.shadow,
     this.listShadow,
+    this.pickerLineHeight,
   });
 
   /// Null -> `radiusMd`.
@@ -104,6 +105,10 @@ class NeoCardStyle {
 
   /// Null -> `cardShadow`.
   final List<BoxShadow>? listShadow;
+
+  /// Line-height multiplier for the picker card's name and description. Null ->
+  /// inherit the ambient text height.
+  final double? pickerLineHeight;
 }
 
 /// The `group` block (the shared card around use-case rows and list rows).
@@ -191,6 +196,7 @@ class NeoCalloutStyle {
     this.fill,
     this.toneSurfaces = const {},
     this.border,
+    this.toneBorders = const {},
     this.radius,
     this.padding,
     this.emphasizeFirstBullet = true,
@@ -199,9 +205,12 @@ class NeoCalloutStyle {
   /// Null -> `surface` (or the tone surface for `critical`).
   final Color? fill;
 
-  /// Tone name -> surface, overriding the derived tone tint for that tone.
+  /// Tone name -> surface, winning over [fill] and the derived tint for that tone.
   final Map<String, Color> toneSurfaces;
   final BorderSide? border;
+
+  /// Tone name -> border, winning over [border] for that tone.
+  final Map<String, BorderSide> toneBorders;
 
   /// Null -> `radiusLg`.
   final BorderRadius? radius;
@@ -257,6 +266,8 @@ class NeoHeaderStyle {
     this.compactIconGap,
     this.subheadingGap,
     this.subheadingTopInset = 0,
+    this.compactLineHeight,
+    this.compactSubtitleGap,
   });
 
   /// Title-to-subtitle gap.
@@ -271,6 +282,13 @@ class NeoHeaderStyle {
   /// Null -> [subtitleGap].
   final double? subheadingGap;
   final double subheadingTopInset;
+
+  /// Line-height multiplier for a compact (in-card) header's title and subtitle.
+  /// Null -> inherit the ambient text height.
+  final double? compactLineHeight;
+
+  /// Null -> [subtitleGap].
+  final double? compactSubtitleGap;
 }
 
 /// The accordion block.

@@ -57,11 +57,13 @@ Widget buildHeader(BuildContext context, BlockNode node) {
       : sub
           ? theme.resolvedSubheading
           : theme.title;
+  final lineHeight = compact ? theme.header.compactLineHeight : null;
   final subtitleStyle = compact
-      ? theme.caption.copyWith(fontWeight: FontWeight.w500)
+      ? theme.caption.copyWith(fontWeight: FontWeight.w500, height: lineHeight)
       : theme.subtitle;
   final accent = theme.accentFor(tone);
-  final titleStyle = accent == null ? base : base.copyWith(color: accent.color);
+  final titleStyle = (accent == null ? base : base.copyWith(color: accent.color))
+      .copyWith(height: lineHeight);
   // A compact accent title takes the gradient across the full row width (figma's
   // flex-1 element), so a short label ends brighter instead of at the full stop.
   Widget title =
@@ -119,7 +121,8 @@ Widget buildHeader(BuildContext context, BlockNode node) {
         SizedBox(
             height: sub
                 ? theme.header.subheadingGap ?? theme.header.subtitleGap
-                : theme.header.subtitleGap),
+                : (compact ? theme.header.compactSubtitleGap : null) ??
+                    theme.header.subtitleGap),
         // Figma's item subtitle is Work Sans Medium (w500), not the flat caption
         // weight — the "Summarise everything I said today." rows.
         if (subtitleValue is List)

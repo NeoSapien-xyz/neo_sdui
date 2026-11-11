@@ -57,6 +57,18 @@ double _gapBetween(WidgetTester tester, Finder a, Finder b) =>
     tester.getTopLeft(b).dy - tester.getBottomLeft(a).dy;
 
 void main() {
+  testWidgets('pickerLineHeight sets name and description line height', (
+    tester,
+  ) async {
+    final theme = _base.copyWith(card: const NeoCardStyle(pickerLineHeight: 1.1));
+    await _pump(tester, [_picker()], theme: theme);
+    for (final t in ['Claude', 'Desktop']) {
+      expect(tester.widget<Text>(find.text(t)).style?.height, 1.1);
+    }
+    await _pump(tester, [_picker()]);
+    expect(tester.widget<Text>(find.text('Claude')).style?.height, isNull);
+  });
+
   testWidgets('picker card keeps squircle, radiusMd thumb and 8/8 gaps', (
     tester,
   ) async {

@@ -33,21 +33,22 @@ Widget buildCallout(BuildContext context, BlockNode node) {
   // Accent/default sit on the theme's card surface (the figma "use case" card —
   // a subtle dark gradient when the theme sets one, else flat surface); only
   // critical tints its box. The wire names the tone; the surface is the theme's.
-  // `callout.fill` replaces surface and gradient; `toneSurfaces` tints a named
-  // tone; otherwise only critical tints.
+  // `toneSurfaces` tints a named tone and wins over `callout.fill`, which
+  // replaces surface and gradient for every other tone; otherwise only critical tints.
   final toneFill = style.toneSurfaces[tone];
-  final fill = style.fill ?? toneFill;
+  final fill = toneFill ?? style.fill;
   final bg = fill ??
       (tone == 'critical' ? theme.toneSurface('critical') : theme.surface);
   final grad = fill != null || tone == 'critical' ? null : theme.cardGradient;
   final radius = style.radius ?? theme.radiusLg;
   final shape = node.stringOr('shape');
-  final border = style.border;
+  final border = style.toneBorders[tone] ?? style.border;
   // Flat tone color on the title (the figma card titles are solid accent, not
   // the accent gradient); run-level tones inside the title still resolve.
   final titleColor = switch (tone) {
     'accent' => theme.accent,
     'critical' => theme.danger,
+    'warning' => theme.warning,
     _ => theme.onSurface,
   };
   final titleStyle = theme.resolvedPanelTitle.copyWith(color: titleColor);

@@ -133,6 +133,9 @@ Widget buildCard(BuildContext context, BlockNode node) {
     // line of the title, not a caption), a flat-accent "Open Guide" — everything
     // vertically centered in the row (a Row centers by default), not top-aligned
     // like the shared `details`.
+    final pickerTitle = titleStyle.copyWith(
+      height: theme.card.pickerLineHeight,
+    );
     content = Padding(
       padding: theme.cardPadding,
       child: Row(
@@ -157,12 +160,12 @@ Widget buildCard(BuildContext context, BlockNode node) {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(node.stringOr('title', '')!, style: titleStyle),
+                Text(node.stringOr('title', '')!, style: pickerTitle),
                 if (subtitle != null) ...[
                   SizedBox(height: theme.card.titleGap),
                   Text(
                     subtitle,
-                    style: titleStyle.copyWith(color: theme.textMuted),
+                    style: pickerTitle.copyWith(color: theme.textMuted),
                   ),
                 ],
               ],

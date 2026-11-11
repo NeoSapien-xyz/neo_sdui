@@ -94,4 +94,29 @@ void main() {
     );
     expect(gap, findsOneWidget);
   });
+
+  testWidgets('compact header line height and subtitle gap read the style', (
+    t,
+  ) async {
+    await _pump(
+      t,
+      {
+        'type': 'group',
+        'children': [_header()],
+      },
+      header: const NeoHeaderStyle(
+        subtitleGap: 6,
+        compactSubtitleGap: 4,
+        compactLineHeight: 1.1,
+      ),
+    );
+    expect(_style(t, 'Quick setup')?.height, 1.1);
+    final gap = find.byWidgetPredicate((w) => w is SizedBox && w.height == 4);
+    expect(gap, findsOneWidget);
+    await _pump(t, {
+      'type': 'group',
+      'children': [_header()],
+    });
+    expect(_style(t, 'Quick setup')?.height, isNull);
+  });
 }

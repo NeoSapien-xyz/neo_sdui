@@ -2,7 +2,8 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:neo_sdui/neo_sdui.dart';
 
-Future<void> _pump(WidgetTester tester, NeoSduiTheme theme) =>
+Future<void> _pump(WidgetTester tester, NeoSduiTheme theme,
+        {String tone = 'accent'}) =>
     tester.pumpWidget(
       Directionality(
         textDirection: TextDirection.ltr,
@@ -18,7 +19,7 @@ Future<void> _pump(WidgetTester tester, NeoSduiTheme theme) =>
                   'blocks': [
                     {
                       'type': 'callout',
-                      'tone': 'accent',
+                      'tone': tone,
                       'title': 'Title',
                       'bullets': ['first', 'second'],
                     },
@@ -69,6 +70,47 @@ void main() {
     final box = _calloutBox(tester) as ShapeDecoration;
     expect(box.color, const Color(0x0D00F1A0));
     expect((box.shape as OutlinedBorder).side.color, const Color(0x3300F1A0));
+  });
+
+  testWidgets('a tone surface wins over the generic fill', (tester) async {
+    final theme = NeoSduiTheme.fallback().copyWith(
+      callout: const NeoCalloutStyle(
+        fill: Color(0x05FFFFFF),
+        toneSurfaces: {'accent': Color(0x0D00F1A0)},
+      ),
+    );
+    await _pump(tester, theme);
+    expect(
+      (_calloutBox(tester) as BoxDecoration).color,
+      const Color(0x0D00F1A0),
+    );
+    // A tone with no entry still takes the generic fill.
+    await _pump(tester, theme, tone: 'other');
+    expect(
+      (_calloutBox(tester) as BoxDecoration).color,
+      const Color(0x05FFFFFF),
+    );
+  });
+
+  testWidgets('toneBorders beat the generic border, per tone', (tester) async {
+    final theme = NeoSduiTheme.fallback().copyWith(
+      callout: const NeoCalloutStyle(
+        border: BorderSide(color: Color(0x14FFFFFF)),
+        toneBorders: {'warning': BorderSide(color: Color(0x40FFC454))},
+      ),
+    );
+    await _pump(tester, theme, tone: 'warning');
+    final warn = _calloutBox(tester) as ShapeDecoration;
+    expect((warn.shape as OutlinedBorder).side.color, const Color(0x40FFC454));
+    await _pump(tester, theme);
+    final plain = _calloutBox(tester) as ShapeDecoration;
+    expect((plain.shape as OutlinedBorder).side.color, const Color(0x14FFFFFF));
+  });
+
+  testWidgets('a warning callout titles in the warning colour', (tester) async {
+    final theme = NeoSduiTheme.fallback();
+    await _pump(tester, theme, tone: 'warning');
+    expect(tester.widget<Text>(find.text('Title')).style?.color, theme.warning);
   });
 
   testWidgets('fill, radius and padding override the card roles', (
