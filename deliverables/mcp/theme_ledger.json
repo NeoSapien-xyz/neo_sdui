@@ -1197,6 +1197,22 @@
       "provenance": "measured",
       "kind": "number",
       "source": "neo-mcp-guide@55caf81:css/styles.css:517"
+    },
+    {
+      "roleKey": "callout.neutralTitleColor",
+      "value": "0xFF00F1A0",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "color",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:496"
+    },
+    {
+      "roleKey": "faq.questionStyle",
+      "value": "GoogleFonts.workSans(color: Color(0xFFFFFFFF), fontSize: 14, height: 1.1786, fontWeight: FontWeight.w500, letterSpacing: -0.28)",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "textStyle",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:539"
     }
   ],
   "roleUsage": {
