@@ -82,10 +82,12 @@ List<RoleDriftIssue> lintRoleDrift(Reconciled r) {
           'theme accent unused by any wire role', WireIssueSeverity.warn));
     }
   }
-  for (final ic in {...namedIcons, ...namedGlyphs}) {
-    if (!referencedIcons.contains(ic)) {
-      out.add(RoleDriftIssue('icons.$ic',
-          'theme icon unused by any wire role', WireIssueSeverity.warn));
+  for (final (prefix, names) in [('icons', namedIcons), ('glyphs', namedGlyphs)]) {
+    for (final ic in names) {
+      if (!referencedIcons.contains(ic)) {
+        out.add(RoleDriftIssue('$prefix.$ic',
+            'theme icon unused by any wire role', WireIssueSeverity.warn));
+      }
     }
   }
 

@@ -29,8 +29,17 @@ typedef LiveApply = NeoSduiTheme Function(NeoSduiTheme base, String value);
 /// preview actually paints) how it lands on a live theme.
 @immutable
 class RoleSlot {
-  const RoleSlot(this.kind, [this.live]);
+  const RoleSlot(this.kind, [this.live]) : isInt = false;
+
+  /// A number slot whose theme field is `int`, not `double`.
+  const RoleSlot.integer()
+      : kind = ValueKind.number,
+        live = null,
+        isInt = true;
   final ValueKind kind;
+
+  /// Only an integer literal may fill this slot (`2.0` would not compile).
+  final bool isInt;
 
   /// Applies this role to a live theme for the preview; null for the
   /// textStyle/gradient/other roles the structural preview leaves at fallback —
@@ -138,7 +147,7 @@ final Map<String, RoleSlot> kRoleSlots = Map.unmodifiable({
   'tabs.unselectedWeight': RoleSlot(ValueKind.other),
   'tabs.labelPadding': RoleSlot(ValueKind.other),
   'tabs.unselectedColor': RoleSlot(ValueKind.color),
-  'tabs.labelMaxLines': RoleSlot(ValueKind.number),
+  'tabs.labelMaxLines': RoleSlot.integer(),
   'tabs.contentGap': RoleSlot(ValueKind.number),
   'card.thumbRadius': RoleSlot(ValueKind.other),
   'card.titleGap': RoleSlot(ValueKind.number),
@@ -164,7 +173,7 @@ final Map<String, RoleSlot> kRoleSlots = Map.unmodifiable({
   'steps.labelStyle': RoleSlot(ValueKind.textStyle),
   'steps.labelGap': RoleSlot(ValueKind.number),
   'steps.instructionStyle': RoleSlot(ValueKind.textStyle),
-  'steps.labelNumberOffset': RoleSlot(ValueKind.number),
+  'steps.labelNumberOffset': RoleSlot.integer(),
   'steps.labelSuffix': RoleSlot(ValueKind.other),
   'steps.autoLinkUrls': RoleSlot(ValueKind.other),
   'callout.fill': RoleSlot(ValueKind.color),
@@ -425,6 +434,14 @@ String _emitBody(Reconciled r, String name) {
         .where((k) => _styleGroupOf(k) != null)
         .toList()
       ..sort();
+    final unknownStyleKeys =
+        styleKeys.where((k) => !kRoleSlots.containsKey(k)).toList();
+    styleKeys.removeWhere(unknownStyleKeys.contains);
+    if (unknownStyleKeys.isNotEmpty) {
+      b.writeln('// TODO(theme): unsupported role(s) '
+          '${unknownStyleKeys.join(', ')} on override "$page" — not a '
+          'NeoSduiTheme field; extend kRoleSlots or fix the ledger.');
+    }
     if (styleKeys.isNotEmpty) {
       b.writeln('// TODO(theme): unsupported role(s) ${styleKeys.join(', ')} '
           'on override "$page" — style classes have no copyWith; set them on '
@@ -614,12 +631,19 @@ List<String> _emitRoles(StringBuffer b, Map<String, ResolvedRole> roles,
     }
     b.writeln('  },');
   }
-  if (glyphs.isNotEmpty) {
+  // Only a builder literal (`other`) can be a glyph; anything else is flagged.
+  final glyphLines = <String>[];
+  for (final name in glyphs.keys.toList()..sort()) {
+    if (glyphs[name]!.kind != ValueKind.other) {
+      skipped.add('$kGlyphsPrefix$name');
+      continue;
+    }
+    glyphLines.add("    '$name': ${_expr(glyphs[name]!)},");
+  }
+  if (glyphLines.isNotEmpty) {
     b.writeln('  glyphs: {');
     if (isOverride) b.writeln('    ...$base.glyphs,');
-    for (final name in glyphs.keys.toList()..sort()) {
-      b.writeln("    '$name': ${_expr(glyphs[name]!)},");
-    }
+    glyphLines.forEach(b.writeln);
     b.writeln('  },');
   }
   return skipped;
@@ -646,7 +670,10 @@ String? _scalarExpr(RoleSlot slot, ResolvedRole role) {
     case ValueKind.color:
       return parseColorHex(role.value) == null ? null : 'Color(${role.value})';
     case ValueKind.number:
-      return double.tryParse(role.value) == null ? null : role.value;
+      final ok = slot.isInt
+          ? int.tryParse(role.value) != null
+          : double.tryParse(role.value) != null;
+      return ok ? role.value : null;
     default:
       return role.value;
   }

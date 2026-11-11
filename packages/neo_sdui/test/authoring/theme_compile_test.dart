@@ -479,4 +479,51 @@ void main() {
       expect(override, contains('tabs.gap'));
     });
   });
+
+  group('review fixes', () {
+    Observation obs(String role, String value, ValueKind kind,
+            [String page = 'home']) =>
+        Observation(
+            roleKey: role,
+            value: value,
+            page: page,
+            provenance: Provenance.measured,
+            kind: kind);
+
+    test('an int-typed slot takes only an int value', () {
+      final bad = emitTheme((RoleLedger()
+            ..observe(obs('tabs.labelMaxLines', '2.0', ValueKind.number)))
+          .reconcile());
+      expect(bad, isNot(contains('labelMaxLines:')));
+      expect(bad, contains('unresolved tabs.labelMaxLines'));
+
+      final ok = emitTheme((RoleLedger()
+            ..observe(obs('tabs.labelMaxLines', '2', ValueKind.number)))
+          .reconcile());
+      expect(ok, contains('labelMaxLines: 2,'));
+    });
+
+    test('a glyph value that is not a builder literal is skipped and flagged',
+        () {
+      final src = emitTheme((RoleLedger()
+            ..observe(obs('glyphs.help', '0xFF000000', ValueKind.color)))
+          .reconcile());
+      expect(src, isNot(contains("'help':")));
+      expect(src, contains('unresolved glyphs.help'));
+    });
+
+    test('an unregistered dotted key in an override is an unsupported role', () {
+      final r = (RoleLedger()
+            ..observe(obs('accent', '0xFF00F1A0', ValueKind.color, 'a'))
+            ..observe(obs('accent', '0xFF00F1A0', ValueKind.color, 'b'))
+            ..observe(obs('tabs.gapp', '4', ValueKind.number, 'a'))
+            ..observe(obs('tabs.gapp', '4', ValueKind.number, 'b'))
+            ..observe(obs('tabs.gapp', '8', ValueKind.number, 'odd')))
+          .reconcile();
+      final src = emitTheme(r);
+      final override = src.substring(src.indexOf('final odd = base.copyWith('));
+      expect(override, contains('unsupported role(s) tabs.gapp'));
+      expect(override, isNot(contains('no copyWith')));
+    });
+  });
 }

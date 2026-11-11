@@ -70,4 +70,16 @@ void main() {
         .reconcile();
     expect(lintRoleDrift(r), isEmpty);
   });
+
+  test('an unused glyph is reported under glyphs.<name>, not icons', () {
+    final r = (RoleLedger()
+          ..observe(const Observation(
+              roleKey: 'glyphs.link',
+              value: '(s, c) => const SizedBox()',
+              page: 'home',
+              provenance: Provenance.measured,
+              kind: ValueKind.other)))
+        .reconcile();
+    expect(lintRoleDrift(r).single.role, 'glyphs.link');
+  });
 }

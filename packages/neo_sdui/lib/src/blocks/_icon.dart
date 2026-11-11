@@ -7,9 +7,9 @@ import '../theme/neo_sdui_theme.dart';
 /// carries only the icon *name* (e.g. `"sparkle"`); the glyph, size and tone
 /// color are the theme's (KTD9). `tone` tints it via [NeoSduiTheme.toneColor] —
 /// accent → the accent green, critical → danger, else onSurface. Resolution is:
-/// a theme `icons.<name>` glyph first (an app's own AppIcons override wins),
-/// then a package-drawn glyph ([kDrawnIcons], e.g. the brand `sparkle`), else
-/// null.
+/// a theme `glyphs.<name>` builder first, then a theme `icons.<name>` glyph (an
+/// app's own AppIcons override wins), then a package-drawn glyph
+/// ([kDrawnIcons], e.g. the brand `sparkle`), else null.
 Widget? leadingIcon(
   NeoSduiTheme theme,
   String? name,
