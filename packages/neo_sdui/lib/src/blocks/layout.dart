@@ -122,7 +122,7 @@ Widget buildGroup(BuildContext context, BlockNode node) {
   bool isRule(BlockNode n) =>
       n.type == 'spacer' && n.stringOr('variant') == 'rule';
   final Widget content = HeadingScale(
-    compact: true,
+    level: HeadingLevel.compact,
     child: Padding(
       padding: EdgeInsets.symmetric(
         vertical: theme.group.padding ?? theme.spaceMd,

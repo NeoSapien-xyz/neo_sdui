@@ -4,6 +4,7 @@ import '../model/block_node.dart';
 import '../theme/neo_sdui_scope.dart';
 import '../theme/neo_sdui_theme.dart';
 import '_motion.dart';
+import 'header.dart' show HeadingLevel, HeadingScale;
 import '_neumorphic.dart';
 
 /// tabs: a label strip + the selected tab's child blocks. Widgets-only (no
@@ -144,14 +145,17 @@ Widget _tabContent(
   _Tab tab,
 ) {
   final blocks = [...buildBlocks(header), ...buildBlocks(tab.blocks)];
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      for (var i = 0; i < blocks.length; i++) ...[
-        if (i > 0) SizedBox(height: theme.blockSpacing),
-        blocks[i],
+  return HeadingScale(
+    level: HeadingLevel.subheading,
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (var i = 0; i < blocks.length; i++) ...[
+          if (i > 0) SizedBox(height: theme.blockSpacing),
+          blocks[i],
+        ],
       ],
-    ],
+    ),
   );
 }
 

@@ -5,19 +5,24 @@ import '../theme/neo_sdui_scope.dart';
 import '_gradient_text.dart';
 import '_icon.dart';
 
-/// Heading scale for a subtree. A `group` (a card) pushes [compact]=true so its
+/// Heading level for a subtree. `section` is a top-level header; `compact` is
+/// an item-scale sub-heading; `subheading` is a header inside a tab panel.
+enum HeadingLevel { section, subheading, compact }
+
+/// Heading level for a subtree. A `group` (a card) pushes `compact` so its
 /// child headers render as item-scale sub-headings — the "Here's what it does"
 /// use-case rows are `header`s nested in a group, and read at ~body size, not
-/// the 24px section title a top-level header gets. A document-outline rule
-/// (nesting sets level), not per-guide code: the wire still names only `header`.
+/// the 24px section title a top-level header gets. A `tabs` panel pushes
+/// `subheading`. The innermost scope wins. A document-outline rule (nesting
+/// sets level), not per-guide code: the wire still names only `header`.
 class HeadingScale extends InheritedWidget {
-  const HeadingScale({required this.compact, required super.child, super.key});
-  final bool compact;
-  static bool of(BuildContext context) =>
-      context.dependOnInheritedWidgetOfExactType<HeadingScale>()?.compact ??
-      false;
+  const HeadingScale({required this.level, required super.child, super.key});
+  final HeadingLevel level;
+  static HeadingLevel of(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<HeadingScale>()?.level ??
+      HeadingLevel.section;
   @override
-  bool updateShouldNotify(HeadingScale old) => compact != old.compact;
+  bool updateShouldNotify(HeadingScale old) => level != old.level;
 }
 
 /// header: optional leading `icon` + title + optional subtitle. `tone:
@@ -37,7 +42,9 @@ Widget buildHeader(BuildContext context, BlockNode node) {
   final hasSubtitle = subtitleValue is String || subtitleValue is List;
   final centered = node.stringOr('align') == 'center';
   // Section title (top-level) vs item title (inside a group card).
-  final compact = HeadingScale.of(context);
+  final level = HeadingScale.of(context);
+  final compact = level == HeadingLevel.compact;
+  final sub = level == HeadingLevel.subheading;
   // A compact (in-card) heading still reads as a heading — primary (white), not
   // the muted body color; a `tone` overrides. A section title keeps theme.title.
   // The two scales are the theme's two roles (title vs body): the item title is
@@ -47,7 +54,9 @@ Widget buildHeader(BuildContext context, BlockNode node) {
       ? theme.rowTitle ??
           theme.body
               .copyWith(fontWeight: FontWeight.w500, color: theme.textPrimary)
-      : theme.title;
+      : sub
+          ? theme.resolvedSubheading
+          : theme.title;
   final subtitleStyle = compact
       ? theme.caption.copyWith(fontWeight: FontWeight.w500)
       : theme.subtitle;
@@ -107,7 +116,10 @@ Widget buildHeader(BuildContext context, BlockNode node) {
       else
         title,
       if (hasSubtitle) ...[
-        SizedBox(height: theme.header.subtitleGap),
+        SizedBox(
+            height: sub
+                ? theme.header.subheadingGap ?? theme.header.subtitleGap
+                : theme.header.subtitleGap),
         // Figma's item subtitle is Work Sans Medium (w500), not the flat caption
         // weight — the "Summarise everything I said today." rows.
         if (subtitleValue is List)
@@ -123,5 +135,11 @@ Widget buildHeader(BuildContext context, BlockNode node) {
   );
   // A centered heading stretches full width so it centers within the card;
   // otherwise it hugs its content at the leading edge (unchanged).
-  return centered ? SizedBox(width: double.infinity, child: column) : column;
+  final out =
+      centered ? SizedBox(width: double.infinity, child: column) : column;
+  return sub && theme.header.subheadingTopInset > 0
+      ? Padding(
+          padding: EdgeInsets.only(top: theme.header.subheadingTopInset),
+          child: out)
+      : out;
 }
