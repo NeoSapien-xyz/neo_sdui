@@ -63,7 +63,7 @@ Widget neoText(
             child: _shaded(accentOf(r)!.gradient!, r.text, style),
           )
         else if (accentOf(r) != null)
-          TextSpan(text: r.text, style: style.copyWith(color: accentOf(r)!.color))
+          TextSpan(text: r.text, style: _flat(style, r.tone ?? tone, accentOf(r)!))
         else
           TextSpan(text: r.text, style: style),
     ]));
@@ -75,7 +75,8 @@ Widget neoText(
     final a = accentOf(runs.first)!;
     return a.gradient != null
         ? _shaded(a.gradient!, runs.first.text, style, stretch: stretch)
-        : Text(runs.first.text, style: style.copyWith(color: a.color));
+        : Text(runs.first.text,
+            style: _flat(style, runs.first.tone ?? tone, a));
   }
 
   // Whole multi-run line sharing one gradient -> a single ShaderMask (wraps).
@@ -100,7 +101,9 @@ Widget neoText(
           child: _shaded(accents[i]!.gradient!, runs[i].text, style),
         )
       else if (accents[i] != null)
-        TextSpan(text: runs[i].text, style: style.copyWith(color: accents[i]!.color))
+        TextSpan(
+            text: runs[i].text,
+            style: _flat(style, runs[i].tone ?? tone, accents[i]!))
       else
         TextSpan(text: runs[i].text, style: style),
   ]));
@@ -129,8 +132,13 @@ Widget _shaded(Gradient gradient, String text, TextStyle style,
 /// figma grey inline command).
 TextStyle _monoStyle(NeoSduiTheme theme, String? tone) {
   final a = theme.accentFor(tone);
-  return a == null ? theme.mono : theme.mono.copyWith(color: a.color);
+  return a == null ? theme.mono : _flat(theme.mono, tone, a);
 }
+
+/// [style] recolored to [accent]; a `strong` tone also takes the emphasis weight
+/// (w500), the `<strong>` analog — the wire names emphasis, the client owns weight.
+TextStyle _flat(TextStyle style, String? tone, NeoAccent accent) => style.copyWith(
+    color: accent.color, fontWeight: tone == 'strong' ? FontWeight.w500 : null);
 
 class _Run {
   const _Run(this.text, this.tone, {this.mono = false});
