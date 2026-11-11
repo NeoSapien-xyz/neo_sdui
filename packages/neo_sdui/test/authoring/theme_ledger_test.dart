@@ -206,6 +206,42 @@ void main() {
       expect(restored.malformedObservations, 0);
     });
 
+    test('an observation source round-trips, and stays optional', () {
+      final ledger = RoleLedger()
+        ..observe(const Observation(
+            roleKey: 'accent',
+            value: '0xFF00F1A0',
+            page: 'home',
+            provenance: Provenance.measured,
+            kind: ValueKind.color,
+            source: 'neo-mcp-guide@55caf81:css/styles.css:16'))
+        ..observe(_c('surface', '0xFF202423', 'home'));
+      final restored =
+          RoleLedger.fromJson(jsonDecode(jsonEncode(ledger.toJson())));
+      final byRole = {for (final o in restored.observations) o.roleKey: o};
+      expect(byRole['accent']!.source,
+          'neo-mcp-guide@55caf81:css/styles.css:16');
+      expect(byRole['surface']!.source, isNull);
+      expect(restored.malformedObservations, 0);
+    });
+
+    test('a non-string source makes the observation malformed', () {
+      final ledger = RoleLedger.fromJson({
+        'observations': [
+          {
+            'roleKey': 'accent',
+            'value': '0xFF00F1A0',
+            'page': 'home',
+            'provenance': 'measured',
+            'kind': 'color',
+            'source': 16,
+          },
+        ],
+      });
+      expect(ledger.observations, isEmpty);
+      expect(ledger.malformedObservations, 1);
+    });
+
     test('fromJson tolerates malformed roleUsage shapes', () {
       final ledger = RoleLedger.fromJson({
         'version': 1,

@@ -312,6 +312,90 @@ void main() {
     expect(RoleLedger.fromJson({'imports': ['ok', 7]}).imports, ['ok']);
   });
 
+  group('emitting straight into an app file', () {
+    Reconciled twoPages() => (RoleLedger()
+          ..observe(_color('accent', '0xFF00F1A0', 'a'))
+          ..observe(_color('accent', '0xFF00F1A0', 'b'))
+          ..observe(_color('accent', '0xFFFF0000', 'c')))
+        .reconcile();
+
+    test('a named emit declares that variable and overrides copy from it', () {
+      final src = emitTheme(twoPages(), name: 'mcpGuideTheme');
+      expect(src,
+          contains('final mcpGuideTheme = NeoSduiTheme.fallback().copyWith('));
+      expect(src, contains('= mcpGuideTheme.copyWith('));
+      expect(src, isNot(contains('final base =')));
+    });
+
+    test('the default emit still declares base', () {
+      expect(emitTheme(twoPages()),
+          contains('final base = NeoSduiTheme.fallback().copyWith('));
+    });
+
+    test('the emit carries the lint suppressions the app file needs', () {
+      expect(
+          emitTheme(twoPages()).split('\n'),
+          contains('// ignore_for_file: prefer_const_constructors, '
+              'avoid_redundant_argument_values'));
+    });
+
+    test('a fresh emit verifies its own checksum', () {
+      expect(themeChecksumMatches(emitTheme(twoPages())), isTrue);
+    });
+
+    test('a one-character edit to the body breaks the checksum', () {
+      final src = emitTheme(twoPages());
+      expect(themeChecksumMatches(src.replaceFirst('0xFF00F1A0', '0xFF00F1A1')),
+          isFalse);
+    });
+
+    test('the checksum ignores the header comments themselves', () {
+      final src = emitTheme(twoPages());
+      final retitled = src.replaceFirst(
+          RegExp(r'^// Generated[^\n]*'), '// Generated, reworded header');
+      expect(retitled, isNot(src));
+      expect(themeChecksumMatches(retitled), isTrue);
+    });
+
+    test('the checksum line is 16 lowercase hex digits', () {
+      final line = emitTheme(twoPages())
+          .split('\n')
+          .firstWhere((l) => l.startsWith('// checksum:'));
+      expect(line, matches(RegExp(r'^// checksum: fnv1a64:[0-9a-f]{16}$')));
+    });
+
+    test('a source with no checksum line does not verify', () {
+      expect(themeChecksumMatches("import 'x.dart';\n"), isFalse);
+    });
+
+    test('drift check passes on an identical file and names the first change',
+        () {
+      final src = emitTheme(twoPages());
+      expect(themeSourceDrift(expected: src, actual: src), isNull);
+      final edited = src.replaceFirst('0xFF00F1A0', '0xFF00F1A1');
+      final drift = themeSourceDrift(expected: src, actual: edited);
+      expect(drift, isNotNull);
+      expect(drift, contains('0xFF00F1A1'));
+    });
+  });
+
+  test('the coverage report names each role\'s source and flags unsourced ones',
+      () {
+    final r = (RoleLedger()
+          ..observe(const Observation(
+              roleKey: 'accent',
+              value: '0xFF00F1A0',
+              page: 'home',
+              provenance: Provenance.measured,
+              kind: ValueKind.color,
+              source: 'neo-mcp-guide@55caf81:css/styles.css:16'))
+          ..observe(_color('surface', '0xFF202423', 'home')))
+        .reconcile();
+    final report = coverageReport(r);
+    expect(report, contains('accent <- neo-mcp-guide@55caf81:css/styles.css:16'));
+    expect(report, contains('Unsourced: surface'));
+  });
+
   test('a todo-provenance role is flagged on a standalone TODO(theme) line', () {
     final r = (RoleLedger()
           ..observe(const Observation(

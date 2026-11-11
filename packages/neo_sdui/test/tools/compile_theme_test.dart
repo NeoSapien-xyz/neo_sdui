@@ -18,14 +18,20 @@ import 'package:neo_sdui/neo_sdui.dart';
 /// - the **role-drift lint** (`role_lint.dart`) — FAILING if a wire role names a
 ///   slot the compiled theme does not resolve.
 ///
-/// Optionally writes the source to `NEO_THEME_OUT`. Set `NEO_THEME_BASE_PAGE` to
-/// pin that page's look as the base (else majority wins — the R8 escape hatch).
+/// Optionally writes the source to `NEO_THEME_OUT`, naming the theme variable
+/// `NEO_THEME_NAME` (default `base`; the MCP guide's app file uses
+/// `mcpGuideTheme`). `NEO_THEME_CHECK=<path>` fails when that file is not
+/// exactly a fresh compile, so a hand edit to the app's theme is caught. Set
+/// `NEO_THEME_BASE_PAGE` to pin that page's look as the base (else majority
+/// wins).
 /// Unset `NEO_THEME_LEDGER` (the default — e.g. plain `flutter test`), the test
 /// is skipped so the suite stays green.
 void main() {
   final ledgerPath = Platform.environment['NEO_THEME_LEDGER'];
   final outPath = Platform.environment['NEO_THEME_OUT'];
   final basePage = Platform.environment['NEO_THEME_BASE_PAGE'];
+  final themeName = Platform.environment['NEO_THEME_NAME'] ?? 'base';
+  final checkPath = Platform.environment['NEO_THEME_CHECK'];
   final allowInferred = Platform.environment['NEO_THEME_ALLOW_INFERRED'] == '1';
 
   test('ledger compiles to a role-drift-clean theme', () {
@@ -40,7 +46,7 @@ void main() {
     }
     final reconciled = ledger.reconcile(basePage: basePage);
 
-    final source = emitTheme(reconciled);
+    final source = emitTheme(reconciled, name: themeName);
     // ignore: avoid_print
     print(source);
     // ignore: avoid_print
@@ -50,6 +56,12 @@ void main() {
       File(outPath).writeAsStringSync(source);
       // ignore: avoid_print
       print('Wrote theme to $outPath');
+    }
+
+    if (checkPath != null) {
+      final drift = themeSourceDrift(
+          expected: source, actual: File(checkPath).readAsStringSync());
+      expect(drift, isNull, reason: '$checkPath: $drift');
     }
 
     final drift = lintRoleDrift(reconciled);

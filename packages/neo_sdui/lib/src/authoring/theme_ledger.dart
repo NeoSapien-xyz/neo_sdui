@@ -81,6 +81,7 @@ class Observation {
     required this.page,
     required this.provenance,
     required this.kind,
+    this.source,
   });
 
   /// The `NeoSduiTheme` field this maps to — `accent`, `surface`, `radiusMd`,
@@ -94,12 +95,19 @@ class Observation {
   final Provenance provenance;
   final ValueKind kind;
 
+  /// Where the value was read, so it can be checked again later: a file and
+  /// line pinned to a commit (`neo-mcp-guide@55caf81:css/styles.css:353`), a
+  /// Figma node, or the shipped app file. Pin the commit — an unmerged source
+  /// moves, and a bare line number then points at the wrong rule.
+  final String? source;
+
   Map<String, Object?> toJson() => {
         'roleKey': roleKey,
         'value': value,
         'page': page,
         'provenance': provenance.name,
         'kind': kind.name,
+        if (source != null) 'source': source,
       };
 
   /// Caller must pre-validate the map's shape — these raw casts and `byName`
@@ -111,6 +119,7 @@ class Observation {
         page: json['page'] as String,
         provenance: Provenance.values.byName(json['provenance'] as String),
         kind: ValueKind.values.byName(json['kind'] as String),
+        source: json['source'] as String?,
       );
 }
 
@@ -123,6 +132,7 @@ class ResolvedRole {
     required this.kind,
     required this.provenance,
     required this.pageCount,
+    this.source,
   });
 
   final String roleKey;
@@ -130,6 +140,11 @@ class ResolvedRole {
   final ValueKind kind;
   final Provenance provenance;
   final int pageCount;
+
+  /// The chosen value's source, when its observations carry one. Several pages
+  /// can back one value; the first source in sort order is shown, so the report
+  /// is stable across feed orders.
+  final String? source;
 }
 
 /// The batch result: the base value per role, per-page overrides for divergent
@@ -255,6 +270,7 @@ class RoleLedger {
         kind: baseCluster.kind,
         provenance: baseCluster.provenance,
         pageCount: baseCluster.pages.length,
+        source: baseCluster.source,
       );
       if (clusters.length > 1) {
         conflictRoles.add(roleKey);
@@ -268,6 +284,7 @@ class RoleLedger {
               kind: cl.kind,
               provenance: cl.provenance,
               pageCount: cl.pages.length,
+              source: cl.source,
             );
           }
         }
@@ -316,7 +333,8 @@ class RoleLedger {
             m['value'] is! String ||
             m['page'] is! String ||
             !Provenance.values.asNameMap().containsKey(m['provenance']) ||
-            !ValueKind.values.asNameMap().containsKey(m['kind'])) {
+            !ValueKind.values.asNameMap().containsKey(m['kind']) ||
+            (m.containsKey('source') && m['source'] is! String)) {
           dropped++;
           continue;
         }
@@ -357,10 +375,14 @@ class _Cluster {
   final String canonical;
   final ValueKind kind;
   final Set<String> pages = <String>{};
+  final Set<String> sources = <String>{};
   Provenance provenance = Provenance.todo;
+
+  String? get source => sources.isEmpty ? null : (sources.toList()..sort()).first;
 
   void absorb(_Tally t) {
     pages.addAll(t.pages);
+    sources.addAll(t.sources);
     if (_provenanceRank(t.provenance) < _provenanceRank(provenance)) {
       provenance = t.provenance;
     }
@@ -372,6 +394,7 @@ class _Tally {
   _Tally(this.value);
   final String value;
   final Set<String> pages = <String>{};
+  final Set<String> sources = <String>{};
   Provenance provenance = Provenance.todo;
 }
 
@@ -386,6 +409,7 @@ List<_Cluster> _cluster(List<Observation> obs, int colorThreshold) {
   for (final o in obs) {
     final t = tally.putIfAbsent(o.value, () => _Tally(o.value));
     t.pages.add(o.page);
+    if (o.source != null) t.sources.add(o.source!);
     if (_provenanceRank(o.provenance) < _provenanceRank(t.provenance)) {
       t.provenance = o.provenance;
     }

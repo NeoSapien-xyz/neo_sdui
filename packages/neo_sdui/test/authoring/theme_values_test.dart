@@ -32,7 +32,7 @@ import 'package:neo_sdui/neo_sdui.dart';
 /// `NEO_THEME_LEDGER` would otherwise fall through to a fixture *designed to
 /// pass* and report green on nothing — so the source is announced on every run.
 /// A green here means nothing until you have read which ledger it graded.
-Reconciled _compiled() {
+RoleLedger _ledger() {
   final env = Platform.environment['NEO_THEME_LEDGER'];
   final path = env ?? '../../deliverables/mcp/theme_ledger.json'; // cwd = package root
   final file = File(path);
@@ -43,11 +43,10 @@ Reconciled _compiled() {
       : 'theme_values: NO LEDGER AT $path — grading the built-in FIXTURE. '
           'These detectors proved themselves, not your theme. Pass '
           'NEO_THEME_LEDGER=<ledger> to grade a real hand-off.');
-  final ledger = real
+  return real
       ? RoleLedger.fromJson(
           jsonDecode(file.readAsStringSync()) as Map<String, Object?>)
       : _fixture();
-  return ledger.reconcile();
 }
 
 /// roleKey → Dart literal, for every base role of [kind].
@@ -57,7 +56,8 @@ Map<String, String> _ofKind(Reconciled r, ValueKind kind) => {
     };
 
 void main() {
-  final r = _compiled();
+  final ledger = _ledger();
+  final r = ledger.reconcile();
   final text = _ofKind(r, ValueKind.textStyle);
 
   // There was a third detector here: "letterSpacing is not one broadcast
@@ -73,6 +73,18 @@ void main() {
   // reaching for — a fontSize that appears nowhere in the design — is real but
   // invisible from the ledger alone, which records no inventory of the design's
   // sizes. That one is caught by `provenance:"inferred"` and its gate.
+
+  test('every observation names where its value was read', () {
+    // A value with no source line cannot be re-checked against the design, so
+    // "measured" on it is a claim nobody can audit. Pin each one: the PWA file
+    // and line at a fixed commit, the Figma node, or the shipped app file.
+    final unsourced = [
+      for (final o in ledger.observations)
+        if (o.source == null || o.source!.trim().isEmpty) '${o.page}:${o.roleKey}',
+    ];
+    expect(unsourced, isEmpty,
+        reason: 'observations with no source: ${unsourced.join(', ')}');
+  });
 
   test('no text role binds its family with a bare fontFamily literal', () {
     // google_fonts registers under an internal family name, so a literal
@@ -124,4 +136,5 @@ Observation _obs(String role, ValueKind kind, String value) => Observation(
     value: value,
     page: 'base',
     provenance: Provenance.variable,
-    kind: kind);
+    kind: kind,
+    source: 'fixture');
