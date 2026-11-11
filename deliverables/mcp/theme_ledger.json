@@ -575,6 +575,14 @@
       "source": "neo-mcp-guide@55caf81:css/styles.css:324"
     },
     {
+      "roleKey": "card.pickerLineHeight",
+      "value": "1.1429",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "number",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:284"
+    },
+    {
       "roleKey": "card.thumbRadius",
       "value": "BorderRadius.all(Radius.circular(10))",
       "page": "base",
@@ -709,6 +717,22 @@
       "provenance": "measured",
       "kind": "number",
       "source": "neo-mcp-guide@55caf81:css/styles.css:412"
+    },
+    {
+      "roleKey": "header.compactLineHeight",
+      "value": "1.1429",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "number",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:309"
+    },
+    {
+      "roleKey": "header.compactSubtitleGap",
+      "value": "4",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "number",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:305"
     },
     {
       "roleKey": "steps.chipGap",
@@ -888,7 +912,7 @@
     },
     {
       "roleKey": "callout.toneSurfaces",
-      "value": "{'accent': Color(0x0D00F1A0)}",
+      "value": "{'accent': Color(0x0D00F1A0), 'warning': Color(0x0FFFC454)}",
       "page": "base",
       "provenance": "measured",
       "kind": "other",
@@ -901,6 +925,14 @@
       "provenance": "measured",
       "kind": "other",
       "source": "neo-mcp-guide@55caf81:css/styles.css:488"
+    },
+    {
+      "roleKey": "callout.toneBorders",
+      "value": "{'accent': BorderSide(color: Color(0x3300F1A0), width: 1), 'warning': BorderSide(color: Color(0x40FFC454), width: 1)}",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "other",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:495"
     },
     {
       "roleKey": "callout.radius",
@@ -984,7 +1016,7 @@
     },
     {
       "roleKey": "faq.answerPadding",
-      "value": "EdgeInsets.fromLTRB(18, 0, 18, 16)",
+      "value": "EdgeInsets.fromLTRB(0, 16, 0, 0)",
       "page": "base",
       "provenance": "measured",
       "kind": "other",
