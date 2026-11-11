@@ -42,7 +42,7 @@ Widget buildSteps(BuildContext context, BlockNode node) {
           carded ? CrossAxisAlignment.stretch : CrossAxisAlignment.start,
       children: [
         for (var i = 0; i < items.length; i++) ...[
-          if (i > 0) SizedBox(width: theme.spaceMd),
+          if (i > 0) SizedBox(width: theme.steps.chipGap ?? theme.spaceMd),
           Expanded(child: _cell(theme, i + 1, items[i], numberTone)),
         ],
       ],
@@ -54,7 +54,7 @@ Widget buildSteps(BuildContext context, BlockNode node) {
     children: [
       for (var i = 0; i < items.length; i++)
         Padding(
-          padding: EdgeInsets.only(bottom: i == items.length - 1 ? 0 : 12),
+          padding: EdgeInsets.only(bottom: i == items.length - 1 ? 0 : theme.steps.cardGap),
           child: _item(scope, i + 1, items[i], numberTone),
         ),
     ],
@@ -67,7 +67,7 @@ Widget buildSteps(BuildContext context, BlockNode node) {
 Widget _cell(NeoSduiTheme theme, int n, Map<String, Object?> item, String tone) {
   final cap = item['caption'];
   final caption = (cap is String || cap is List)
-      ? neoText(theme, cap, theme.body)
+      ? neoText(theme, cap, theme.steps.chipLabelStyle ?? theme.body)
       : Text('—', key: const Key('step-error'), style: theme.body);
   final detail = item['detail'];
   final content = Column(
@@ -86,13 +86,12 @@ Widget _cell(NeoSduiTheme theme, int n, Map<String, Object?> item, String tone) 
   // checklist), byte-identical to before.
   final bg = theme.stepCardColor;
   if (bg == null) return content;
+  final chipBorder = theme.steps.chipBorder ?? theme.stepCardBorderColor;
   return Container(
     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
     decoration: BoxDecoration(
       color: bg,
-      border: theme.stepCardBorderColor == null
-          ? null
-          : Border.all(color: theme.stepCardBorderColor!),
+      border: chipBorder == null ? null : Border.all(color: chipBorder),
       borderRadius: theme.radiusMd,
     ),
     child: content,
@@ -117,7 +116,9 @@ Widget _badge(NeoSduiTheme theme, int n, String tone) {
     // neoText's gradient path.
     // geometry: fits the digit to the 20px badge above — glyph metrics, not the
     // type scale. Not the theme's to set.
-    child: Text('$n', style: theme.caption.copyWith(color: c, fontSize: 11)),
+    child: Text('$n',
+        style: theme.steps.badgeStyle?.copyWith(color: c) ??
+            theme.caption.copyWith(color: c, fontSize: 11)),
   );
 }
 
@@ -221,7 +222,7 @@ Widget _cardedItem(NeoSduiScope scope, int n, Map<String, Object?> item, String 
   final cap = item['caption'];
   // Caption is white (not the muted body color), medium weight; a bare-string
   // caption also gets its URLs underlined (the figma link look).
-  final capStyle =
+  final capStyle = theme.steps.instructionStyle ??
       theme.body.copyWith(color: theme.textPrimary, fontWeight: FontWeight.w500);
   final detail = item['detail'];
   final code = item['code'];
@@ -252,8 +253,8 @@ Widget _cardedItem(NeoSduiScope scope, int n, Map<String, Object?> item, String 
   final body = Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      _stepLabel(theme, n - 1),
-      const SizedBox(height: 4),
+      _stepLabel(theme, n),
+      SizedBox(height: theme.steps.labelGap),
       caption,
       // The carded detail is the caption's muted sibling — same body size (the
       // figma "(This can be different…)" is 16px grey, NOT the 12px caption the
@@ -298,7 +299,7 @@ Widget _cardedItem(NeoSduiScope scope, int n, Map<String, Object?> item, String 
       border: theme.stepCardBorderColor == null
           ? null
           : Border.all(color: theme.stepCardBorderColor!),
-      boxShadow: theme.cardShadow,
+      boxShadow: theme.steps.cardShadow ?? theme.cardShadow,
     ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -315,8 +316,9 @@ Widget _cardedItem(NeoSduiScope scope, int n, Map<String, Object?> item, String 
 /// [NeoSduiTheme.titleGradient] role (shared with the section-header emboss);
 /// null theme -> the baked white->grey fallback, so the render is unchanged.
 Widget _stepLabel(NeoSduiTheme theme, int n) {
-  final style = theme.body
-      .copyWith(fontWeight: FontWeight.w500, color: const Color(0xFFFFFFFF));
+  final style = theme.steps.labelStyle ??
+      theme.body
+          .copyWith(fontWeight: FontWeight.w500, color: const Color(0xFFFFFFFF));
   final gradient = theme.titleGradient ??
       const LinearGradient(
         begin: Alignment.topCenter,
@@ -326,7 +328,7 @@ Widget _stepLabel(NeoSduiTheme theme, int n) {
   return ShaderMask(
     blendMode: BlendMode.srcIn,
     shaderCallback: gradient.createShader,
-    child: Text('Step $n:', style: style),
+    child: Text('Step ${n + theme.steps.labelNumberOffset}${theme.steps.labelSuffix}', style: style),
   );
 }
 
@@ -383,12 +385,14 @@ class _LinkedTextState extends State<_LinkedText> {
     // Rebuilt recognizers each build (theme/text can change) — dispose the old
     // set first so none dangles.
     _clearRecognizers();
-    final matches = _urlRe.allMatches(widget.text).toList();
+    final scope = NeoSduiScope.of(context);
+    final matches = scope.theme.steps.autoLinkUrls
+        ? _urlRe.allMatches(widget.text).toList()
+        : const <RegExpMatch>[];
     // No links and no trailing command -> a plain Text (golden-stable).
     if (matches.isEmpty && widget.trailing == null) {
       return Text(widget.text, style: widget.style);
     }
-    final scope = NeoSduiScope.of(context);
     final accent = scope.theme.accent;
     final linkStyle = widget.style.copyWith(
       color: accent,
@@ -469,6 +473,7 @@ Widget? _stepImage(NeoSduiTheme theme, Map<String, Object?> item, {bool clip = t
     ratio: ratio,
     alignment: Alignment.topCenter,
     radius: clip ? theme.radiusMd : null,
+    backdrop: theme.steps.imageBackdrop,
   );
 }
 
