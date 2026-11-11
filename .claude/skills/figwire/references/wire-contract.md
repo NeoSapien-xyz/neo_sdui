@@ -12,7 +12,7 @@ line has moved, grep the expression.
 
 - [The wire does not decide the look](#the-wire-does-not-decide-the-look) — read first
 - [Document shape](#document-shape)
-- [The 14 core block types](#the-14-core-block-types-allowlist)
+- [The 15 core block types](#the-14-core-block-types-allowlist)
 - [Fields, per block](#fields-per-block)
 - [The trigger index](#the-trigger-index) — every look that is **not** a plain wire field
 - [Silently dead inputs](#silently-dead-inputs)
@@ -61,15 +61,15 @@ Inputs 2 and 3 are not decoration on top of input 1, and you cannot see them in 
   without a `title` gets whatever bare chrome the host defaults to — this is the only wire field
   that reaches the app bar.
 
-**Block envelope:** `{ "type": "<one of the 14>", ...content fields }`. Optional `fallback` (a full
+**Block envelope:** `{ "type": "<one of the 15>", ...content fields }`. Optional `fallback` (a full
 block, rendered if the type is unknown/unsupported) and `requires` (`{feature: minVersion}`) — you
 will rarely emit these.
 
 **Reserved keys** a block may NOT use as content fields: `version`, `blocks`, `views`, `present`.
 
-## The 14 core block types (allowlist)
+## The 15 core block types (allowlist)
 
-`header · text · cta · callout · media · code · card · steps · faq · tabs · row · column · group · spacer`
+`header · text · cta · callout · media · code · card · steps · faq · accordion · tabs · row · column · group · spacer`
 
 Emitting any other `type` is a **hard error** — the renderer drops it and the block vanishes
 (`kCoreBlockTypes`, `validate_vocabulary.dart:43`).
@@ -90,6 +90,7 @@ Forks live in the [trigger index](#the-trigger-index); this table is vocabulary 
 | `card` | `title` (**string only** — runs render *empty*, `card.dart:75`) | `subtitle`, `action`, `actionLabel`, `thumb`, `variant:"tile"`, `ratio` (or `width`+`height`), `shape`, `emphasis`, `icon`, `tone` | `actionLabel` ("Open Guide →") replaces the default `›` caret. `icon`/`tone` are read **only** in the listed form (`card.dart:203`) — see [silently dead inputs](#silently-dead-inputs). |
 | `steps` | non-empty `items` | `tone` (number-badge hue), `layout:"row"` | `layout:"row"` = the compact 1·2·3 strip (badge over caption); default is the vertical checklist. **Item:** `caption` (string-or-runs, **required**), `detail` (string), `code` (string), `image` (url string), `ratio` (num>0), `emphasis:"high"`, `blocks` (block[] — composed content under the caption; the one place a step holds child blocks instead of a baked `image`). `layout:"row"` reads **only** `caption` + `detail` (`steps.dart:66-83`). |
 | `faq` | non-empty `items` | — | each item: `question` + `answer` — **plain strings only**; a non-string coerces to `''` (`faq.dart:15`). No runs, no gradient, no per-item action, no default-open. |
+| `accordion` | `title` (string-or-runs), non-empty `children` (block[]) | — | a collapsible section holding any blocks; **starts closed**, tap the head to open (client-owned state, no default-open). `children` are ordinary blocks (a nested `steps` keeps its look). Emit a `fallback` (a `column` of the same children) so an app without the type shows the content open instead of dropping it. |
 | `tabs` | non-empty `tabs` | `header` (block[]) | each tab: `label` (string), `blocks` (block[]). `header` is a shared block list rendered **above every tab** (`tabs.dart:20,148`). Tabs are `Expanded` — 5+ labels crush. |
 | `row` | non-empty `children` (block[]) | — | every child is `Expanded` → **equal width, always**. |
 | `column` | non-empty `children` (block[]) | `variant:"tight"` | `tight` → `spaceMd` gaps instead of `blockSpacing` (`layout.dart:34`) — the figma picker-card group. |

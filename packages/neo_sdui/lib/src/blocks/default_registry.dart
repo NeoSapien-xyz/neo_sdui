@@ -1,4 +1,5 @@
 import '../registry/block_registry.dart';
+import 'accordion.dart';
 import 'callout.dart';
 import 'card.dart';
 import 'code.dart';
@@ -23,6 +24,7 @@ BlockRegistry defaultRegistry() => BlockRegistry.empty()
   ..register('card', buildCard)
   ..register('steps', buildSteps)
   ..register('faq', buildFaq)
+  ..register('accordion', buildAccordion)
   ..register('tabs', buildTabs)
   ..register('row', buildRow)
   ..register('column', buildColumn)

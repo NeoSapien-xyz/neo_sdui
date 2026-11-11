@@ -41,10 +41,10 @@ class WireVocabIssue {
 /// core-only allowlist is correct for both core and add-on-composed engines.
 const Set<String> kCoreBlockTypes = {
   'header', 'text', 'cta', 'callout', 'media', 'code', 'card',
-  'steps', 'faq', 'tabs', 'row', 'column', 'group', 'spacer', //
+  'steps', 'faq', 'accordion', 'tabs', 'row', 'column', 'group', 'spacer', //
 };
 
-const Set<String> _layoutTypes = {'row', 'column', 'group'};
+const Set<String> _layoutTypes = {'row', 'column', 'group', 'accordion'};
 
 /// Check every block in a decoded document against the roster and required-field
 /// table. Recurses the real `BlockNode` carriers — top-level `blocks`, each
@@ -176,6 +176,12 @@ List<String> _missingRequired(String type, Map block) {
         }
       }
       return msgs;
+    case 'accordion':
+      return [
+        if (!_text(block, 'title')) '`accordion` needs a `title`',
+        if (!_nonEmptyList(block, 'children'))
+          '`accordion` needs non-empty `children`',
+      ];
     case 'row':
     case 'column':
     case 'group':

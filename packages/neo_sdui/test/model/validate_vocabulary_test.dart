@@ -15,7 +15,7 @@ void main() {
       expect(issues.single.path, 'blocks[0].type');
     });
 
-    test('a valid 14-type doc yields no issues', () {
+    test('a valid doc yields no issues', () {
       final issues = validateWireVocabulary({
         'version': 1,
         'blocks': [
@@ -181,8 +181,41 @@ void main() {
       expect(issues.single.isBlocking, isTrue);
     });
 
+    test('accordion: missing title or empty children warns', () {
+      final issues = validateWireVocabulary({
+        'version': 1,
+        'blocks': [
+          {'type': 'accordion', 'children': [{'type': 'text', 'body': 'x'}]},
+          {'type': 'accordion', 'title': 'T', 'children': []},
+        ],
+      });
+      expect(issues, hasLength(2));
+      expect(issues.every((i) => !i.isBlocking), isTrue);
+    });
+
+    test('accordion: unknown child type blocks, fallback is recursed', () {
+      final issues = validateWireVocabulary({
+        'version': 1,
+        'blocks': [
+          {
+            'type': 'accordion',
+            'title': 'T',
+            'children': [
+              {'type': 'nope'},
+            ],
+            'fallback': {'type': 'column', 'children': [{'type': 'nope2'}]},
+          },
+        ],
+      });
+      expect(issues.map((i) => i.path), [
+        'blocks[0].children[0].type',
+        'blocks[0].fallback.children[0].type',
+      ]);
+      expect(issues.every((i) => i.isBlocking), isTrue);
+    });
+
     test('kCoreBlockTypes matches the registered roster count', () {
-      expect(kCoreBlockTypes, hasLength(14));
+      expect(kCoreBlockTypes, hasLength(15));
     });
   });
 }

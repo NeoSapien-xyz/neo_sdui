@@ -90,7 +90,7 @@ frame/screenshot/asset yourself and hand agents the files. See
 
 ### 2. Classify + pull text (see `references/wire-contract.md`)
 
-Map each region of the page to exactly **one of the 14 block types**. A region that fits none gets
+Map each region of the page to exactly **one of the 15 block types**. A region that fits none gets
 reported, not force-fit into a wrapper. Pull each block's text as `string-or-runs`. Tag a
 deliberately-hued text with the **role name** its hue means — `tone:"accent"` for the brand green,
 `tone:"critical"`, `tone:"warning"`, or any `accents.<name>` the ledger declares — per
@@ -198,7 +198,7 @@ piece needs (republish / rebuild, above) and close on parity or on a written dif
 
 ## References
 
-- `references/wire-contract.md` — the 14 block types, their fields, the string-or-runs shape, enums,
+- `references/wire-contract.md` — the 15 block types, their fields, the string-or-runs shape, enums,
   action grammar, the forbidden-on-wire list, and a minimal document.
 - `references/accent-tones.md` — reading a color to choose a role *name*: the brand green → `tone:"accent"`, and any other deliberate hue → `critical`/`warning`/a ledger-declared `accents.<name>` (never the hex).
 - `references/ingestion.md` — MCP call order, REST, screenshot degrade, token handling.
