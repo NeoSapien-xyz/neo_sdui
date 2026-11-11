@@ -121,7 +121,14 @@ void _checkBlock(Object? block, String path, List<WireVocabIssue> out) {
     if (items is List) {
       for (var i = 0; i < items.length; i++) {
         final it = items[i];
-        if (it is Map) _checkChildList(it['blocks'], '$path.items[$i].blocks', out);
+        if (it is! Map) continue;
+        _checkChildList(it['blocks'], '$path.items[$i].blocks', out);
+        final link = it['link'];
+        if (link != null && !(link is Map && _str(link, 'url'))) {
+          out.add(WireVocabIssue('$path.items[$i].link',
+              '`link` needs a `url`; the step renders without a link row',
+              WireIssueSeverity.warn));
+        }
       }
     }
   }

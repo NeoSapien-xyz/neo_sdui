@@ -109,6 +109,47 @@ void main() {
       expect(issues, isEmpty);
     });
 
+    test('a step `link` that is not a map with a `url` warns', () {
+      for (final bad in <Object?>[
+        'x',
+        <String, Object?>{'label': 'no url'},
+        <String, Object?>{'url': ''},
+      ]) {
+        final issues = validateWireVocabulary({
+          'version': 1,
+          'blocks': [
+            {
+              'type': 'steps',
+              'items': [
+                {'caption': 'c', 'link': bad},
+              ],
+            },
+          ],
+        });
+        expect(issues, hasLength(1), reason: '$bad');
+        expect(issues.single.isBlocking, isFalse);
+        expect(issues.single.path, 'blocks[0].items[0].link');
+      }
+    });
+
+    test('a step `link` with a url is sound', () {
+      final issues = validateWireVocabulary({
+        'version': 1,
+        'blocks': [
+          {
+            'type': 'steps',
+            'items': [
+              {
+                'caption': 'c',
+                'link': {'url': 'https://a.b'},
+              },
+            ],
+          },
+        ],
+      });
+      expect(issues, isEmpty);
+    });
+
     test('an off-roster type inside a step item `blocks` is caught', () {
       final issues = validateWireVocabulary({
         'version': 1,

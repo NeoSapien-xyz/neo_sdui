@@ -216,35 +216,9 @@ Widget buildSpacer(BuildContext context, BlockNode node) {
     width: double.infinity,
     height: 1,
     child: CustomPaint(
-      painter: _DashedLinePainter(
+      painter: DashedLinePainter(
         theme.divider ?? theme.onSurface.withValues(alpha: 0.12),
       ),
     ),
   );
-}
-
-/// A 1px horizontal dashed hairline (figma's `border-dashed` rule). Kept here
-/// with [buildSpacer] — its only caller — rather than a shared file.
-class _DashedLinePainter extends CustomPainter {
-  const _DashedLinePainter(this.color);
-  final Color color;
-  static const double _dash = 3, _gap = 2.5;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = size.height;
-    final y = size.height / 2;
-    for (double x = 0; x < size.width; x += _dash + _gap) {
-      canvas.drawLine(
-        Offset(x, y),
-        Offset((x + _dash).clamp(0, size.width), y),
-        paint,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(_DashedLinePainter old) => old.color != color;
 }

@@ -10,6 +10,7 @@ import '../theme/neo_sdui_scope.dart';
 import '../theme/neo_sdui_theme.dart';
 import '_gradient_text.dart';
 import '_grid.dart';
+import '_icon.dart';
 import '_media_frame.dart';
 import '_motion.dart';
 import '_neumorphic.dart';
@@ -190,7 +191,8 @@ Widget _item(NeoSduiScope scope, int n, Map<String, Object?> item, String number
   // `code` command (the Claude-guide step-1 card). Both absent -> the row alone.
   final image = _stepImage(theme, item);
   final blocks = scope.buildBlocks(_stepBlocks(item));
-  if (image == null && blocks.isEmpty) return row;
+  final link = _stepLink(theme, item['link']);
+  if (image == null && blocks.isEmpty && link == null) return row;
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
@@ -203,6 +205,7 @@ Widget _item(NeoSduiScope scope, int n, Map<String, Object?> item, String number
           blocks[i],
         ],
       ],
+      ?link,
     ],
   );
 }
@@ -270,6 +273,7 @@ Widget _cardedItem(NeoSduiScope scope, int n, Map<String, Object?> item, String 
           blocks[i],
         ],
       ],
+      ?_stepLink(theme, item['link']),
     ],
   );
   final hero = promo
@@ -670,6 +674,158 @@ class _CommandCardState extends State<_CommandCard> {
       blendMode: BlendMode.srcIn,
       shaderCallback: (b) => vertical.createShader(b),
       child: Text(text, style: style.copyWith(color: const Color(0xFFFFFFFF))),
+    );
+  }
+}
+
+/// A step's optional `link: {url, label?}` as a row under the step: a dashed
+/// rule, the label (accent, taps open the url externally) and a copy button. Not
+/// a map with a non-empty `url` -> null (no row). Only http/https urls are
+/// tappable or copyable; any other scheme shows the label as plain text.
+Widget? _stepLink(NeoSduiTheme theme, Object? link) {
+  if (link is! Map) return null;
+  final url = link['url'];
+  if (url is! String || url.isEmpty) return null;
+  final label = link['label'] is String && (link['label'] as String).isNotEmpty
+      ? link['label'] as String
+      : url;
+  final uri = Uri.tryParse(url);
+  final safe =
+      uri != null &&
+      (uri.scheme == 'http' || uri.scheme == 'https') &&
+      uri.host.isNotEmpty;
+  return _StepLinkRow(url: url, uri: safe ? uri : null, label: label);
+}
+
+class _StepLinkRow extends StatefulWidget {
+  const _StepLinkRow({
+    required this.url,
+    required this.uri,
+    required this.label,
+  });
+
+  final String url;
+
+  /// Null when the url isn't http/https: the row is then inert plain text.
+  final Uri? uri;
+  final String label;
+
+  @override
+  State<_StepLinkRow> createState() => _StepLinkRowState();
+}
+
+class _StepLinkRowState extends State<_StepLinkRow> {
+  static const _confirmFor = Duration(seconds: 2);
+  bool _copied = false;
+  Timer? _timer;
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _copy() async {
+    await Clipboard.setData(ClipboardData(text: widget.url));
+    await HapticFeedback.selectionClick();
+    if (!mounted) return;
+    setState(() => _copied = true);
+    _timer?.cancel();
+    _timer = Timer(_confirmFor, () {
+      if (mounted) setState(() => _copied = false);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scope = NeoSduiScope.of(context);
+    final theme = scope.theme;
+    final s = theme.linkRow;
+    final uri = widget.uri;
+    final style = s.linkStyle ?? theme.caption.copyWith(color: theme.accent);
+    final label = Text(
+      widget.label,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: uri == null ? theme.caption : style,
+    );
+    return Padding(
+      padding: const EdgeInsets.only(top: 6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SizedBox(
+            height: 1,
+            child: CustomPaint(
+              painter: DashedLinePainter(
+                theme.divider ?? theme.onSurface.withValues(alpha: 0.12),
+              ),
+            ),
+          ),
+          // The label carries the row's top padding itself (so it centres on the
+          // button, whose tap target absorbs the same padding).
+          Row(
+            children: [
+              Expanded(
+                child: Padding(
+                  padding: EdgeInsets.only(top: s.topPadding),
+                  child: uri == null
+                      ? label
+                      : Semantics(
+                          container: true,
+                          link: true,
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () =>
+                                scope.dispatch(context, ExternalUrl(uri)),
+                            child: label,
+                          ),
+                        ),
+                ),
+              ),
+              if (uri != null) _copyButton(theme),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// The 28px copy tile. The hit area also covers the row's top padding and the
+  /// label gap (transparent padding inside the tap target), so the look stays
+  /// 1:1 while the target grows.
+  Widget _copyButton(NeoSduiTheme theme) {
+    final s = theme.linkRow;
+    final color = _copied ? theme.accent : (s.iconColor ?? theme.textMuted);
+    final glyph = _copied
+        ? (s.checkGlyph ?? (size, c) => NeoCheckIcon(size: size, color: c))
+        : (s.copyGlyph ?? (size, c) => NeoCopyIcon(size: size, color: c));
+    return Semantics(
+      container: true,
+      button: true,
+      liveRegion: _copied,
+      label: _copied ? 'Link copied' : 'Copy link',
+      excludeSemantics: true,
+      child: PressScale(
+        onTap: _copy,
+        scale: 0.9,
+        child: Padding(
+          padding: EdgeInsets.only(top: s.topPadding, left: s.gap),
+          child: Container(
+            width: s.copySize,
+            height: s.copySize,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              borderRadius: theme.radiusSm,
+              color: s.fill ?? theme.onSurface.withValues(alpha: 0.03),
+              border: Border.all(
+                color: s.border ?? theme.onSurface.withValues(alpha: 0.08),
+              ),
+            ),
+            child: glyph(15, color),
+          ),
+        ),
+      ),
     );
   }
 }

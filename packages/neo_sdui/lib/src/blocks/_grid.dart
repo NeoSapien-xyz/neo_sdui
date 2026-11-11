@@ -58,3 +58,28 @@ class GridPainter extends CustomPainter {
       old.stroke != stroke ||
       old.radius != radius;
 }
+
+/// A 1px horizontal dashed hairline (figma's `border-dashed` rule). Shared by the spacer and the step link row.
+class DashedLinePainter extends CustomPainter {
+  const DashedLinePainter(this.color);
+  final Color color;
+  static const double _dash = 3, _gap = 2.5;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = size.height;
+    final y = size.height / 2;
+    for (double x = 0; x < size.width; x += _dash + _gap) {
+      canvas.drawLine(
+        Offset(x, y),
+        Offset((x + _dash).clamp(0, size.width), y),
+        paint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(DashedLinePainter old) => old.color != color;
+}
