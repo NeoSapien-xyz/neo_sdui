@@ -344,7 +344,7 @@
     },
     {
       "roleKey": "footnote",
-      "value": "GoogleFonts.workSans(color: Color(0x66FFFFFF), fontSize: 13, height: 1.3846, fontWeight: FontWeight.w400)",
+      "value": "GoogleFonts.workSans(color: Color(0xCCFFFFFF), fontSize: 13, height: 1.3846, fontWeight: FontWeight.w400)",
       "page": "base",
       "provenance": "measured",
       "kind": "textStyle",
@@ -904,11 +904,11 @@
     },
     {
       "roleKey": "callout.fill",
-      "value": "0x05FFFFFF",
+      "value": "0xFF202423",
       "page": "base",
       "provenance": "measured",
       "kind": "color",
-      "source": "neo-mcp-guide@55caf81:css/styles.css:489"
+      "source": "neo-mcp-guide@55caf81:css/styles.css:299"
     },
     {
       "roleKey": "callout.toneSurfaces",
@@ -920,11 +920,11 @@
     },
     {
       "roleKey": "callout.border",
-      "value": "BorderSide(color: Color(0x14FFFFFF), width: 1)",
+      "value": "BorderSide(color: Color(0x0AFFFFFF), width: 1)",
       "page": "base",
       "provenance": "measured",
       "kind": "other",
-      "source": "neo-mcp-guide@55caf81:css/styles.css:488"
+      "source": "neo-mcp-guide@55caf81:css/styles.css:300"
     },
     {
       "roleKey": "callout.toneBorders",
@@ -1061,6 +1061,142 @@
       "provenance": "measured",
       "kind": "other",
       "source": "neo-mcp-guide@55caf81:css/styles.css:440"
+    },
+    {
+      "roleKey": "strong",
+      "value": "GoogleFonts.workSans(color: Color(0xFFFFFFFF), fontSize: 16, height: 1.35, fontWeight: FontWeight.w500, letterSpacing: -0.64)",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "textStyle",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:404"
+    },
+    {
+      "roleKey": "callout.neutralBody",
+      "value": "GoogleFonts.workSans(color: Color(0xFF868686), fontSize: 12, fontWeight: FontWeight.w500, letterSpacing: -0.48)",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "textStyle",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:320"
+    },
+    {
+      "roleKey": "faq.caretSize",
+      "value": "18",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "number",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:544"
+    },
+    {
+      "roleKey": "faq.caretBox",
+      "value": "18",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "number",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:544"
+    },
+    {
+      "roleKey": "steps.blocksOutsideCard",
+      "value": "true",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "other",
+      "source": "neo-mcp-guide@55caf81:js/app.js:272"
+    },
+    {
+      "roleKey": "code.fill",
+      "value": "0xFF0B0C0C",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "color",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:505"
+    },
+    {
+      "roleKey": "code.border",
+      "value": "BorderSide(color: Color(0x14FFFFFF), width: 1)",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "other",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:506"
+    },
+    {
+      "roleKey": "code.radius",
+      "value": "BorderRadius.all(Radius.circular(12))",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "other",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:507"
+    },
+    {
+      "roleKey": "code.padding",
+      "value": "EdgeInsets.fromLTRB(16, 14, 44, 14)",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "other",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:508"
+    },
+    {
+      "roleKey": "code.textStyle",
+      "value": "GoogleFonts.jetBrainsMono(color: Color(0xFFDFE8E4), fontSize: 12.5, height: 1.55, fontWeight: FontWeight.w400).copyWith(fontFamilyFallback: ['Menlo', 'monospace'])",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "textStyle",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:509"
+    },
+    {
+      "roleKey": "code.wrap",
+      "value": "false",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "other",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:514"
+    },
+    {
+      "roleKey": "code.copyGlyph",
+      "value": "(size, color) => SvgPicture.string('''<svg viewBox=\"0 0 24 24\" fill=\"none\"><rect x=\"9\" y=\"9\" width=\"11\" height=\"11\" rx=\"2\" stroke=\"currentColor\" stroke-width=\"1.7\"/><path d=\"M6 15H5a2 2 0 01-2-2V5a2 2 0 012-2h8a2 2 0 012 2v1\" stroke=\"currentColor\" stroke-width=\"1.7\"/></svg>''', width: size, height: size, colorFilter: ColorFilter.mode(color, BlendMode.srcIn))",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "other",
+      "source": "neo-mcp-guide@55caf81:js/app.js:17"
+    },
+    {
+      "roleKey": "code.copySize",
+      "value": "28",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "number",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:518"
+    },
+    {
+      "roleKey": "code.copyFill",
+      "value": "0x08FFFFFF",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "color",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:521"
+    },
+    {
+      "roleKey": "code.copyBorder",
+      "value": "BorderSide(color: Color(0x14FFFFFF), width: 1)",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "other",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:520"
+    },
+    {
+      "roleKey": "code.copyRadius",
+      "value": "BorderRadius.all(Radius.circular(8))",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "other",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:520"
+    },
+    {
+      "roleKey": "code.copyInset",
+      "value": "8",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "number",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:517"
     }
   ],
   "roleUsage": {
