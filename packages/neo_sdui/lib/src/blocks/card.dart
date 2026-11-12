@@ -177,7 +177,9 @@ Widget buildCard(BuildContext context, BlockNode node) {
             // the `details` row paints, on the theme's caption role.
             Text(
               actionLabel,
-              style: theme.emphasize(theme.caption).copyWith(color: theme.accent),
+              style: theme
+                  .emphasize(theme.caption)
+                  .copyWith(color: theme.accent),
             ),
           ],
         ],
@@ -279,7 +281,8 @@ Widget _surface(
 }) {
   // A gradient (neumorphic) card also takes figma's hairline border; a flat card
   // keeps its borderless shape, byte-identical to before.
-  final shaped = gradient != null && theme.stepCardBorderColor != null
+  final hairline = gradient != null && theme.stepCardBorderColor != null;
+  final shaped = hairline
       ? _withSide(shape, BorderSide(color: theme.stepCardBorderColor!))
       : shape;
   final Widget box = DecoratedBox(
@@ -289,7 +292,11 @@ Widget _surface(
       shape: shaped,
       shadows: shadows ?? theme.cardShadow,
     ),
-    child: child,
+    // The hairline takes layout space like a CSS border (box-sizing: border-box
+    // adds it to the card), so the card is its padding plus the border.
+    child: hairline
+        ? Padding(padding: const EdgeInsets.all(1), child: child)
+        : child,
   );
   if (theme.backdropBlur <= 0) return box;
   return ClipPath(

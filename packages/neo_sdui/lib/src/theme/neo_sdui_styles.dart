@@ -205,6 +205,10 @@ class NeoCalloutStyle {
     this.radius,
     this.padding,
     this.emphasizeFirstBullet = true,
+    this.bulletGap = 4,
+    this.listInset = 0,
+    this.bulletIndent = 11,
+    this.bulletDotGap = 8,
     this.neutralBody,
     this.neutralTitleColor,
   });
@@ -227,6 +231,19 @@ class NeoCalloutStyle {
 
   /// First bullet in full white, the rest dimmed.
   final bool emphasizeFirstBullet;
+
+  /// Space under each bullet.
+  final double bulletGap;
+
+  /// Space above and below a dotted list (two or more bullets), on top of the
+  /// title gap and the padding.
+  final double listInset;
+
+  /// Left edge of the bullet text, from the callout's content edge.
+  final double bulletIndent;
+
+  /// Dot-to-text gap; the dot sits that far (plus its 3 dp) left of the text.
+  final double bulletDotGap;
 
   /// Body style of a callout with no `tone`, used as is (its own colour, no
   /// dimming). Null -> `calloutBody`, dimmed.
@@ -324,7 +341,11 @@ class NeoAccordionStyle {
     this.headPadding = const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
     this.headGap = 12,
     this.bodyPadding = const EdgeInsets.fromLTRB(16, 4, 16, 20),
+    this.titleStyle,
   });
+
+  /// Head title style. Null -> `panelTitle`.
+  final TextStyle? titleStyle;
 
   /// Null -> the package-drawn chevron.
   final NeoGlyphBuilder? chevron;

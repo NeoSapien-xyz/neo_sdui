@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 
 import '../model/block_node.dart';
 import '../theme/neo_sdui_scope.dart';
+import '../theme/neo_sdui_styles.dart';
 import '../theme/neo_sdui_theme.dart';
 import '_gradient_text.dart';
 import '_icon.dart';
@@ -100,17 +101,24 @@ Widget buildCallout(BuildContext context, BlockNode node) {
           // first line is emphasized (full white — the primary fix), the rest at
           // 70% white. 2+ bullets get a leading dot in their own shade; a lone
           // supporting line stays dotless.
+          // A dotted list sits `listInset` clear of the title above and the
+          // padding below (a `<ul>` margin); a lone dotless line does not.
+          if (bullets.length > 1 && style.listInset > 0)
+            SizedBox(height: style.listInset),
           for (var i = 0; i < bullets.length; i++)
             Padding(
-              padding: const EdgeInsets.only(bottom: 4),
+              padding: EdgeInsets.only(bottom: style.bulletGap),
               child: _bullet(
                 theme,
+                style,
                 bullets[i],
                 dotted: bullets.length > 1,
                 emphasized: i == 0 && style.emphasizeFirstBullet,
                 own: tone == null ? style.neutralBody : null,
               ),
             ),
+          if (bullets.length > 1 && style.listInset > 0)
+            SizedBox(height: style.listInset),
         ],
       ),
     ),
@@ -121,7 +129,7 @@ Widget buildCallout(BuildContext context, BlockNode node) {
 /// first, primary line), else 70% white, with a leading dot in the same shade
 /// when [dotted]. Inline `tone` runs (a green "from NeoSapien") still resolve
 /// through neoText on top of this base color.
-Widget _bullet(NeoSduiTheme theme, Object? value,
+Widget _bullet(NeoSduiTheme theme, NeoCalloutStyle style, Object? value,
     {required bool dotted, required bool emphasized, TextStyle? own}) {
   final color = own?.color ?? (emphasized
       ? theme.textPrimary
@@ -132,8 +140,9 @@ Widget _bullet(NeoSduiTheme theme, Object? value,
   return Row(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
+      SizedBox(width: style.bulletIndent - style.bulletDotGap - 3),
       Container(
-        margin: const EdgeInsets.only(top: 6, right: 8),
+        margin: EdgeInsets.only(top: 6, right: style.bulletDotGap),
         width: 3,
         height: 3,
         decoration: BoxDecoration(color: color, shape: BoxShape.circle),

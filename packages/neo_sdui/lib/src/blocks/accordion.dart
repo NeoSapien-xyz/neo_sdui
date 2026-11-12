@@ -52,7 +52,8 @@ class _AccordionState extends State<_Accordion> {
                 child: neoText(
                   theme,
                   widget.title,
-                  theme.resolvedPanelTitle.copyWith(color: theme.textPrimary),
+                  (style.titleStyle ?? theme.resolvedPanelTitle)
+                      .copyWith(color: theme.textPrimary),
                 ),
               ),
               SizedBox(width: style.headGap),
