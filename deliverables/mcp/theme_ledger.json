@@ -64,11 +64,11 @@
     },
     {
       "roleKey": "calloutBody",
-      "value": "GoogleFonts.workSans(color: Color(0xFFFFFFFF), fontSize: 13, height: 1.4615, fontWeight: FontWeight.w400)",
+      "value": "GoogleFonts.workSans(color: Color(0xFFFFFFFF, letterSpacing: 0), fontSize: 13, height: 1.4615, fontWeight: FontWeight.w400)",
       "page": "base",
       "provenance": "measured",
       "kind": "textStyle",
-      "source": "neo-mcp-guide@55caf81:css/styles.css:487"
+      "source": "neo-mcp-guide@55caf81:css/styles.css:487 (.callout computed letter-spacing normal; stated 0 so Material DefaultTextStyle (+0.25) is not inherited)"
     },
     {
       "roleKey": "cardGradient",
@@ -136,11 +136,11 @@
     },
     {
       "roleKey": "mono",
-      "value": "GoogleFonts.jetBrainsMono(color: Color(0xFFDFE8E4), fontSize: 12.5, height: 1.55, fontWeight: FontWeight.w400).copyWith(fontFamilyFallback: ['Menlo', 'monospace'])",
+      "value": "GoogleFonts.jetBrainsMono(color: Color(0xFFDFE8E4), fontSize: 12.5, height: 1.55, fontWeight: FontWeight.w400, letterSpacing: 0).copyWith(fontFamilyFallback: ['Menlo', 'monospace'])",
       "page": "base",
       "provenance": "measured",
       "kind": "textStyle",
-      "source": "neo-mcp-guide@55caf81:css/styles.css:509"
+      "source": "neo-mcp-guide@55caf81:css/styles.css:509 (.code computed letter-spacing normal; stated 0 so Material DefaultTextStyle (+0.25) is not inherited)"
     },
     {
       "roleKey": "commandStyle",
@@ -232,11 +232,11 @@
     },
     {
       "roleKey": "subtitle",
-      "value": "GoogleFonts.workSans(color: Color(0x8AFFFFFF), fontSize: 13, height: 1.3846, fontWeight: FontWeight.w400)",
+      "value": "GoogleFonts.workSans(color: Color(0x8AFFFFFF, letterSpacing: 0), fontSize: 13, height: 1.3846, fontWeight: FontWeight.w400)",
       "page": "base",
       "provenance": "measured",
       "kind": "textStyle",
-      "source": "neo-mcp-guide@55caf81:css/styles.css:155"
+      "source": "neo-mcp-guide@55caf81:css/styles.css:155 (.qs-sub/.sub computed letter-spacing normal; stated 0 so Material DefaultTextStyle (+0.25) is not inherited)"
     },
     {
       "roleKey": "surface",
@@ -320,11 +320,11 @@
     },
     {
       "roleKey": "rowTitle",
-      "value": "GoogleFonts.workSans(color: Color(0xFFFFFFFF), fontSize: 14, fontWeight: FontWeight.w500, letterSpacing: -0.56)",
+      "value": "GoogleFonts.workSans(color: Color(0xFFFFFFFF), fontSize: 14, height: 1.1786, fontWeight: FontWeight.w500, letterSpacing: -0.56)",
       "page": "base",
       "provenance": "measured",
       "kind": "textStyle",
-      "source": "neo-mcp-guide@55caf81:css/styles.css:284"
+      "source": "neo-mcp-guide@55caf81:css/styles.css:284 (DOM .ai-option .name line-height normal = 16.5px over 14px)"
     },
     {
       "roleKey": "panelTitle",
@@ -344,19 +344,19 @@
     },
     {
       "roleKey": "footnote",
-      "value": "GoogleFonts.workSans(color: Color(0xCCFFFFFF), fontSize: 13, height: 1.3846, fontWeight: FontWeight.w400)",
+      "value": "GoogleFonts.workSans(color: Color(0xCCFFFFFF, letterSpacing: 0), fontSize: 13, height: 1.3846, fontWeight: FontWeight.w400)",
       "page": "base",
       "provenance": "measured",
       "kind": "textStyle",
-      "source": "neo-mcp-guide@55caf81:css/styles.css:293"
+      "source": "neo-mcp-guide@55caf81:css/styles.css:293 (.note-line computed letter-spacing normal; stated 0 so Material DefaultTextStyle (+0.25) is not inherited)"
     },
     {
       "roleKey": "subheading",
-      "value": "GoogleFonts.workSans(color: Color(0xFFFFFFFF), fontSize: 20, fontWeight: FontWeight.w500, letterSpacing: -0.8)",
+      "value": "GoogleFonts.workSans(color: Color(0xFFFFFFFF), fontSize: 20, height: 1.175, fontWeight: FontWeight.w500, letterSpacing: -0.8)",
       "page": "base",
       "provenance": "measured",
       "kind": "textStyle",
-      "source": "neo-mcp-guide@55caf81:css/styles.css:415"
+      "source": "neo-mcp-guide@55caf81:css/styles.css:415 (DOM .qs-title line-height normal = 23.5px over 20px)"
     },
     {
       "roleKey": "glyphs.help",
@@ -512,11 +512,11 @@
     },
     {
       "roleKey": "tabs.labelStyle",
-      "value": "GoogleFonts.workSans(color: Color(0xFF868686), fontSize: 15, fontWeight: FontWeight.w500, letterSpacing: -0.45)",
+      "value": "GoogleFonts.workSans(color: Color(0xFF868686), fontSize: 15, height: 1.1667, fontWeight: FontWeight.w500, letterSpacing: -0.45)",
       "page": "base",
       "provenance": "measured",
       "kind": "textStyle",
-      "source": "neo-mcp-guide@55caf81:css/styles.css:366"
+      "source": "neo-mcp-guide@55caf81:css/styles.css:366 (DOM .tab line-height normal = 17.5px over 15px)"
     },
     {
       "roleKey": "tabs.unselectedWeight",
@@ -576,11 +576,11 @@
     },
     {
       "roleKey": "card.pickerLineHeight",
-      "value": "1.1429",
+      "value": "1.1786",
       "page": "base",
       "provenance": "measured",
       "kind": "number",
-      "source": "neo-mcp-guide@55caf81:css/styles.css:284"
+      "source": "neo-mcp-guide@55caf81:css/styles.css:284 (DOM .ai-option .name line-height normal = 16.5px over 14px; card = 18+40+18 padding + 1px border each side = 78)"
     },
     {
       "roleKey": "card.thumbRadius",
@@ -752,11 +752,11 @@
     },
     {
       "roleKey": "steps.badgeStyle",
-      "value": "GoogleFonts.workSans(color: Color(0xFF00F1A0), fontSize: 10, fontWeight: FontWeight.w400)",
+      "value": "GoogleFonts.workSans(color: Color(0xFF00F1A0, letterSpacing: 0), fontSize: 10, height: 1.2, fontWeight: FontWeight.w400)",
       "page": "base",
       "provenance": "measured",
       "kind": "textStyle",
-      "source": "neo-mcp-guide@55caf81:css/styles.css:259"
+      "source": "neo-mcp-guide@55caf81:css/styles.css:259 (DOM .step-chip .n line-height normal = 12px over 10px)"
     },
     {
       "roleKey": "steps.chipLabelStyle",
@@ -781,6 +781,14 @@
       "provenance": "measured",
       "kind": "number",
       "source": "neo-mcp-guide@55caf81:css/styles.css:378"
+    },
+    {
+      "roleKey": "steps.autoLinkUrls",
+      "value": "false",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "other",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:405"
     },
     {
       "roleKey": "steps.imageBackdrop",
@@ -856,11 +864,11 @@
     },
     {
       "roleKey": "linkRow.linkStyle",
-      "value": "GoogleFonts.workSans(color: Color(0xFF00F1A0), fontSize: 13, fontWeight: FontWeight.w400, letterSpacing: -0.13)",
+      "value": "GoogleFonts.workSans(color: Color(0xFF00F1A0), fontSize: 13, height: 1.1538, fontWeight: FontWeight.w400, letterSpacing: -0.13)",
       "page": "base",
       "provenance": "measured",
       "kind": "textStyle",
-      "source": "neo-mcp-guide@55caf81:css/styles.css:454"
+      "source": "neo-mcp-guide@55caf81:css/styles.css:454 (DOM .step-link a line-height normal = 15px over 13px)"
     },
     {
       "roleKey": "linkRow.topPadding",
@@ -959,6 +967,38 @@
       "source": "neo-mcp-guide@55caf81:css/styles.css:494"
     },
     {
+      "roleKey": "callout.bulletGap",
+      "value": "0",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:487 (DOM .callout li pitch 19px = line-height, no li margin)",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "number"
+    },
+    {
+      "roleKey": "callout.listInset",
+      "value": "13",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:487 (DOM .callout .c-body ul margin 13px 0, UA 1em of 13px; title to first bullet 4 gap + 13 = 17 on top of the 19px title line)",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "number"
+    },
+    {
+      "roleKey": "callout.bulletIndent",
+      "value": "40",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:487 (DOM .callout ul padding-left 40px, UA default)",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "number"
+    },
+    {
+      "roleKey": "callout.bulletDotGap",
+      "value": "14.5",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:487 (DOM .callout li outside disc marker box 17.5px wide, less the 3dp dot)",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "number"
+    },
+    {
       "roleKey": "faq.itemDecoration",
       "value": "BoxDecoration(color: Color(0xFF202423), border: Border.fromBorderSide(BorderSide(color: Color(0x0AFFFFFF), width: 1)), borderRadius: BorderRadius.all(Radius.circular(12)))",
       "page": "base",
@@ -1008,11 +1048,11 @@
     },
     {
       "roleKey": "faq.answerStyle",
-      "value": "GoogleFonts.workSans(color: Color(0xADFFFFFF), fontSize: 13, height: 1.5385, fontWeight: FontWeight.w400)",
+      "value": "GoogleFonts.workSans(color: Color(0xADFFFFFF, letterSpacing: 0), fontSize: 13, height: 1.5385, fontWeight: FontWeight.w400)",
       "page": "base",
       "provenance": "measured",
       "kind": "textStyle",
-      "source": "neo-mcp-guide@55caf81:css/styles.css:550"
+      "source": "neo-mcp-guide@55caf81:css/styles.css:550 (.faq-a computed letter-spacing normal; stated 0 so Material DefaultTextStyle (+0.25) is not inherited)"
     },
     {
       "roleKey": "faq.answerPadding",
@@ -1063,6 +1103,14 @@
       "source": "neo-mcp-guide@55caf81:css/styles.css:440"
     },
     {
+      "roleKey": "accordion.titleStyle",
+      "value": "GoogleFonts.workSans(color: Color(0xFFFFFFFF), fontSize: 14, height: 1.1786, fontWeight: FontWeight.w500, letterSpacing: -0.28)",
+      "page": "base",
+      "provenance": "measured",
+      "kind": "textStyle",
+      "source": "neo-mcp-guide@55caf81:css/styles.css:435 (DOM .acc-head span line-height normal = 16.5px over 14px)"
+    },
+    {
       "roleKey": "strong",
       "value": "GoogleFonts.workSans(color: Color(0xFFFFFFFF), fontSize: 16, height: 1.35, fontWeight: FontWeight.w500, letterSpacing: -0.64)",
       "page": "base",
@@ -1072,11 +1120,11 @@
     },
     {
       "roleKey": "callout.neutralBody",
-      "value": "GoogleFonts.workSans(color: Color(0xFF868686), fontSize: 12, fontWeight: FontWeight.w500, letterSpacing: -0.48)",
+      "value": "GoogleFonts.workSans(color: Color(0xFF868686), fontSize: 12, height: 1.1667, fontWeight: FontWeight.w500, letterSpacing: -0.48)",
       "page": "base",
       "provenance": "measured",
       "kind": "textStyle",
-      "source": "neo-mcp-guide@55caf81:css/styles.css:320"
+      "source": "neo-mcp-guide@55caf81:css/styles.css:320 (DOM .usecase .desc line-height normal = 14px over 12px)"
     },
     {
       "roleKey": "faq.caretSize",
@@ -1136,11 +1184,11 @@
     },
     {
       "roleKey": "code.textStyle",
-      "value": "GoogleFonts.jetBrainsMono(color: Color(0xFFDFE8E4), fontSize: 12.5, height: 1.55, fontWeight: FontWeight.w400).copyWith(fontFamilyFallback: ['Menlo', 'monospace'])",
+      "value": "GoogleFonts.jetBrainsMono(color: Color(0xFFDFE8E4), fontSize: 12.5, height: 1.55, fontWeight: FontWeight.w400, letterSpacing: 0).copyWith(fontFamilyFallback: ['Menlo', 'monospace'])",
       "page": "base",
       "provenance": "measured",
       "kind": "textStyle",
-      "source": "neo-mcp-guide@55caf81:css/styles.css:509"
+      "source": "neo-mcp-guide@55caf81:css/styles.css:509 (.code computed letter-spacing normal; stated 0 so Material DefaultTextStyle (+0.25) is not inherited)"
     },
     {
       "roleKey": "code.wrap",
