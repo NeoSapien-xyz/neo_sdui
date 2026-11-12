@@ -406,6 +406,7 @@ class _LinkedTextState extends State<_LinkedText> {
       return Text(widget.text, style: widget.style);
     }
     final accent = scope.theme.accent;
+    final autoLink = scope.theme.steps.autoLinkUrls;
     final linkStyle = widget.style.copyWith(
       color: accent,
       decoration: TextDecoration.underline,
@@ -435,7 +436,9 @@ class _LinkedTextState extends State<_LinkedText> {
     // accent-underline link style; not tappable.
     if (widget.trailing != null) {
       spans.add(const TextSpan(text: ' '));
-      spans.add(TextSpan(text: widget.trailing, style: widget.trailingStyle ?? linkStyle));
+      spans.add(TextSpan(
+          text: widget.trailing,
+          style: widget.trailingStyle ?? (autoLink ? linkStyle : null)));
     }
     return Text.rich(TextSpan(style: widget.style, children: spans));
   }

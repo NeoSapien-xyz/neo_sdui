@@ -147,18 +147,24 @@ Widget _tabContent(
   List<BlockNode> header,
   _Tab tab,
 ) {
-  final blocks = [...buildBlocks(header), ...buildBlocks(tab.blocks)];
-  return HeadingScale(
-    level: HeadingLevel.subheading,
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        for (var i = 0; i < blocks.length; i++) ...[
-          if (i > 0) SizedBox(height: theme.blockSpacing),
-          blocks[i],
-        ],
+  // Only a header that opens the tab's own blocks is the quick-setup heading
+  // (subheading); a header further down is an ordinary section title.
+  final first = tab.blocks.isNotEmpty && tab.blocks.first.type == 'header';
+  final blocks = [
+    ...buildBlocks(header),
+    if (first)
+      for (final w in buildBlocks([tab.blocks.first]))
+        HeadingScale(level: HeadingLevel.subheading, child: w),
+    ...buildBlocks(first ? tab.blocks.skip(1).toList() : tab.blocks),
+  ];
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      for (var i = 0; i < blocks.length; i++) ...[
+        if (i > 0) SizedBox(height: theme.blockSpacing),
+        blocks[i],
       ],
-    ),
+    ],
   );
 }
 

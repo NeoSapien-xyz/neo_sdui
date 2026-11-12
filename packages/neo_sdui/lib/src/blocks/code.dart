@@ -83,10 +83,13 @@ class _CopyableCodeState extends State<_CopyableCode> {
     final theme = NeoSduiScope.of(context).theme;
     final s = theme.code;
     final mono = s.textStyle ?? theme.mono.copyWith(color: theme.textPrimary);
+    final glyph = s.copyGlyph;
+    // A chip with an overlaid copy button wraps rather than scrolls, so no part
+    // of the command is ever left hidden behind the button.
+    final wrap = s.wrap || glyph != null;
     final text = widget.body?.call(mono) ??
         Text(widget.content,
-            style: mono, softWrap: s.wrap, maxLines: s.wrap ? null : 1);
-    final glyph = s.copyGlyph;
+            style: mono, softWrap: wrap, maxLines: wrap ? null : 1);
     return DecoratedBox(
       decoration: BoxDecoration(
         color: s.fill ?? theme.surface,
@@ -107,7 +110,10 @@ class _CopyableCodeState extends State<_CopyableCode> {
           : Stack(
               children: [
                 Padding(
-                  padding: s.padding ?? EdgeInsets.all(theme.spaceMd),
+                  // Text never runs under the copy button: right padding is at
+                  // least the button's width plus its inset on both sides.
+                  padding: _clearOfButton(
+                      s.padding ?? EdgeInsets.all(theme.spaceMd), s),
                   child: _scrolled(s, text),
                 ),
                 Positioned(
@@ -137,7 +143,13 @@ class _CopyableCodeState extends State<_CopyableCode> {
     );
   }
 
-  Widget _scrolled(NeoCodeStyle s, Widget text) => s.wrap
+  EdgeInsets _clearOfButton(EdgeInsetsGeometry p, NeoCodeStyle s) {
+    final e = p.resolve(TextDirection.ltr);
+    final min = s.copySize + 2 * s.copyInset;
+    return e.right >= min ? e : e.copyWith(right: min);
+  }
+
+  Widget _scrolled(NeoCodeStyle s, Widget text) => s.wrap || s.copyGlyph != null
       ? text
       : SingleChildScrollView(scrollDirection: Axis.horizontal, child: text);
 }

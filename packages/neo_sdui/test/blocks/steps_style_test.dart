@@ -127,6 +127,25 @@ void main() {
     );
   });
 
+  testWidgets('autoLinkUrls false keeps an echoed command plain', (tester) async {
+    await _pump(tester, [
+      _steps([
+        {'caption': 'Run it', 'code': 'npm install neo'},
+      ]),
+    ], _carded(steps: const NeoStepsStyle(autoLinkUrls: false)));
+    final rich = tester
+        .widgetList<RichText>(find.byType(RichText))
+        .firstWhere((r) => r.text.toPlainText().contains('npm install neo'));
+    var underlined = false;
+    rich.text.visitChildren((s) {
+      if (s is TextSpan && s.style?.decoration == TextDecoration.underline) {
+        underlined = true;
+      }
+      return true;
+    });
+    expect(underlined, isFalse);
+  });
+
   testWidgets('autoLinkUrls false leaves a bare domain plain', (tester) async {
     Future<List<InlineSpan>> spansFor(bool auto) async {
       await _pump(tester, [

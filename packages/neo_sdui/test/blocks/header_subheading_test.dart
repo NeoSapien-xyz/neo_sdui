@@ -63,6 +63,28 @@ void main() {
     expect(_style(t, 'Quick setup'), _sub);
   });
 
+  testWidgets('a header further down a tab is a section title', (t) async {
+    await _pump(
+      t,
+      {
+        'type': 'tabs',
+        'tabs': [
+          {
+            'label': 'One',
+            'blocks': [
+              _header(),
+              {'type': 'header', 'title': 'Later title'},
+            ],
+          },
+          {'label': 'Two', 'blocks': []},
+        ],
+      },
+      subheading: _sub,
+    );
+    expect(_style(t, 'Quick setup'), _sub);
+    expect(_style(t, 'Later title'), NeoSduiTheme.fallback().title);
+  });
+
   testWidgets('without a subheading it matches a top-level header', (t) async {
     await _pump(t, _tabs(_header()));
     final inTab = _style(t, 'Quick setup');

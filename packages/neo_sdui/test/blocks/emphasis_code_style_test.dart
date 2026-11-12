@@ -100,9 +100,13 @@ void main() {
     final d = box.decoration as BoxDecoration;
     expect(d.color, fill);
     expect(d.borderRadius, BorderRadius.circular(12));
-    // single line: the text is as tall as one 12.5 * 1.55 line
-    final h = tester.getSize(find.textContaining('https://api')).height;
-    expect(h, lessThan(25));
+    // wraps instead of scrolling: the whole string is laid out and its right
+    // edge stays left of the copy button (44 = 28 button + 2 * 8 inset).
+    final text = find.textContaining('https://api');
+    expect(tester.getSize(text).height, greaterThan(25));
+    expect(find.byType(SingleChildScrollView), findsNothing);
+    expect(tester.getTopRight(text).dx,
+        lessThanOrEqualTo(tester.getTopLeft(find.byKey(const Key('glyph'))).dx));
   });
 
   testWidgets('steps blocksOutsideCard lifts an item block out of its card',
