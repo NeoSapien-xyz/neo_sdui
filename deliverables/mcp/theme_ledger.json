@@ -64,7 +64,7 @@
     },
     {
       "roleKey": "calloutBody",
-      "value": "GoogleFonts.workSans(color: Color(0xFFFFFFFF, letterSpacing: 0), fontSize: 13, height: 1.4615, fontWeight: FontWeight.w400)",
+      "value": "GoogleFonts.workSans(color: Color(0xFFFFFFFF), letterSpacing: 0, fontSize: 13, height: 1.4615, fontWeight: FontWeight.w400)",
       "page": "base",
       "provenance": "measured",
       "kind": "textStyle",
@@ -232,7 +232,7 @@
     },
     {
       "roleKey": "subtitle",
-      "value": "GoogleFonts.workSans(color: Color(0x8AFFFFFF, letterSpacing: 0), fontSize: 13, height: 1.3846, fontWeight: FontWeight.w400)",
+      "value": "GoogleFonts.workSans(color: Color(0x8AFFFFFF), letterSpacing: 0, fontSize: 13, height: 1.3846, fontWeight: FontWeight.w400)",
       "page": "base",
       "provenance": "measured",
       "kind": "textStyle",
@@ -344,7 +344,7 @@
     },
     {
       "roleKey": "footnote",
-      "value": "GoogleFonts.workSans(color: Color(0xCCFFFFFF, letterSpacing: 0), fontSize: 13, height: 1.3846, fontWeight: FontWeight.w400)",
+      "value": "GoogleFonts.workSans(color: Color(0xCCFFFFFF), letterSpacing: 0, fontSize: 13, height: 1.3846, fontWeight: FontWeight.w400)",
       "page": "base",
       "provenance": "measured",
       "kind": "textStyle",
@@ -752,7 +752,7 @@
     },
     {
       "roleKey": "steps.badgeStyle",
-      "value": "GoogleFonts.workSans(color: Color(0xFF00F1A0, letterSpacing: 0), fontSize: 10, height: 1.2, fontWeight: FontWeight.w400)",
+      "value": "GoogleFonts.workSans(color: Color(0xFF00F1A0), letterSpacing: 0, fontSize: 10, height: 1.2, fontWeight: FontWeight.w400)",
       "page": "base",
       "provenance": "measured",
       "kind": "textStyle",
@@ -1048,7 +1048,7 @@
     },
     {
       "roleKey": "faq.answerStyle",
-      "value": "GoogleFonts.workSans(color: Color(0xADFFFFFF, letterSpacing: 0), fontSize: 13, height: 1.5385, fontWeight: FontWeight.w400)",
+      "value": "GoogleFonts.workSans(color: Color(0xADFFFFFF), letterSpacing: 0, fontSize: 13, height: 1.5385, fontWeight: FontWeight.w400)",
       "page": "base",
       "provenance": "measured",
       "kind": "textStyle",
