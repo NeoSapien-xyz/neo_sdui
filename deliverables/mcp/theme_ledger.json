@@ -328,11 +328,11 @@
     },
     {
       "roleKey": "panelTitle",
-      "value": "GoogleFonts.workSans(color: Color(0xFFFFFFFF), fontSize: 14, fontWeight: FontWeight.w500, letterSpacing: -0.28)",
+      "value": "GoogleFonts.workSans(color: Color(0xFFFFFFFF), fontSize: 14, height: 1.3571, fontWeight: FontWeight.w500, letterSpacing: -0.28)",
       "page": "base",
       "provenance": "measured",
       "kind": "textStyle",
-      "source": "neo-mcp-guide@55caf81:css/styles.css:491"
+      "source": "neo-mcp-guide@55caf81:css/styles.css:491 (line-height 19 over 14px, measure.json .callout .c-title lh 19)"
     },
     {
       "roleKey": "paragraph",
@@ -440,11 +440,11 @@
     },
     {
       "roleKey": "tabs.trackColor",
-      "value": "0xE6101211",
+      "value": "0xFF101211",
       "page": "base",
       "provenance": "measured",
       "kind": "color",
-      "source": "neo-mcp-guide@55caf81:css/styles.css:353"
+      "source": "neo-mcp-guide@55caf81:css/styles.css:353 (90% track made opaque in place of the 12px backdrop blur)"
     },
     {
       "roleKey": "tabs.trackBorder",
@@ -552,11 +552,11 @@
     },
     {
       "roleKey": "tabs.contentGap",
-      "value": "24",
+      "value": "16",
       "page": "base",
       "provenance": "measured",
       "kind": "number",
-      "source": "neo-mcp-guide@55caf81:css/styles.css:343"
+      "source": "neo-mcp-guide@55caf81:css/styles.css:343 (.tabgroup gap 24) minus the 8dp bottom gutter of the pinned strip (68 extent vs 52 pill)"
     },
     {
       "roleKey": "card.shadow",
