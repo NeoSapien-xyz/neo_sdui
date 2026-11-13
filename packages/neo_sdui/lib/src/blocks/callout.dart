@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 
 import '../model/block_node.dart';
 import '../theme/neo_sdui_scope.dart';
+import '../theme/neo_sdui_styles.dart';
 import '../theme/neo_sdui_theme.dart';
 import '_gradient_text.dart';
 import '_icon.dart';
@@ -15,10 +16,12 @@ import '_shape.dart';
 /// an inline accent phrase (e.g. a gradient "from NeoSapien") rides a bullet.
 Widget buildCallout(BuildContext context, BlockNode node) {
   final theme = NeoSduiScope.of(context).theme;
+  final style = theme.callout;
   final tone = node.stringOr('tone');
   final title = node.fields['title'];
   final hasTitle = title is String || title is List;
-  final icon = leadingIcon(theme, node.stringOr('icon'), tone, size: 16);
+  final icon = leadingIcon(theme, node.stringOr('icon'), tone,
+      size: 16, color: tone == null ? style.neutralTitleColor : null);
   final rawBullets = node.fields['bullets'];
   // Each bullet may be a plain string or a run list (for an inline accent span).
   final bullets = rawBullets is List
@@ -32,32 +35,48 @@ Widget buildCallout(BuildContext context, BlockNode node) {
   // Accent/default sit on the theme's card surface (the figma "use case" card —
   // a subtle dark gradient when the theme sets one, else flat surface); only
   // critical tints its box. The wire names the tone; the surface is the theme's.
-  final bg = tone == 'critical' ? theme.toneSurface('critical') : theme.surface;
-  final grad = tone == 'critical' ? null : theme.cardGradient;
+  // `toneSurfaces` tints a named tone and wins over `callout.fill`, which
+  // replaces surface and gradient for every other tone; otherwise only critical tints.
+  final toneFill = style.toneSurfaces[tone];
+  final fill = toneFill ?? style.fill;
+  final bg = fill ??
+      (tone == 'critical' ? theme.toneSurface('critical') : theme.surface);
+  final grad = fill != null || tone == 'critical' ? null : theme.cardGradient;
+  final radius = style.radius ?? theme.radiusLg;
+  final shape = node.stringOr('shape');
+  final border = style.toneBorders[tone] ?? style.border;
   // Flat tone color on the title (the figma card titles are solid accent, not
   // the accent gradient); run-level tones inside the title still resolve.
   final titleColor = switch (tone) {
     'accent' => theme.accent,
     'critical' => theme.danger,
-    _ => theme.onSurface,
+    'warning' => theme.warning,
+    _ => style.neutralTitleColor ?? theme.onSurface,
   };
-  final titleStyle =
-      theme.body.copyWith(fontWeight: FontWeight.w500, color: titleColor);
+  final titleStyle = theme.resolvedPanelTitle.copyWith(color: titleColor);
   final titleWidget = neoText(theme, title, titleStyle);
   return DecoratedBox(
-    decoration: shapeDecoration(
-      node.stringOr('shape'),
-      // The figma "use case" card is the theme's large card radius (16), not the
-      // medium chip radius — a callout IS a card, so it takes the card roles.
-      theme.radiusLg,
-      fallback: 'rounded',
-      color: bg,
-      gradient: grad,
-    ),
+    decoration: border == null
+        ? shapeDecoration(
+            shape,
+            // The figma "use case" card is the theme's large card radius (16),
+            // not the medium chip radius — a callout IS a card.
+            radius,
+            fallback: 'rounded',
+            color: bg,
+            gradient: grad,
+          )
+        : ShapeDecoration(
+            color: grad == null ? bg : null,
+            gradient: grad,
+            shape: (shapeBorder(shape, radius, fallback: 'rounded')
+                    as OutlinedBorder)
+                .copyWith(side: border),
+          ),
     child: Padding(
       // Card insets (20h / 18v), not the tight `spaceMd` box — the figma callout
       // breathes like every other card, not like an inline chip.
-      padding: theme.cardPadding,
+      padding: style.padding ?? theme.cardPadding,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -82,16 +101,24 @@ Widget buildCallout(BuildContext context, BlockNode node) {
           // first line is emphasized (full white — the primary fix), the rest at
           // 70% white. 2+ bullets get a leading dot in their own shade; a lone
           // supporting line stays dotless.
+          // A dotted list sits `listInset` clear of the title above and the
+          // padding below (a `<ul>` margin); a lone dotless line does not.
+          if (bullets.length > 1 && style.listInset > 0)
+            SizedBox(height: style.listInset),
           for (var i = 0; i < bullets.length; i++)
             Padding(
-              padding: const EdgeInsets.only(bottom: 4),
+              padding: EdgeInsets.only(bottom: style.bulletGap),
               child: _bullet(
                 theme,
+                style,
                 bullets[i],
                 dotted: bullets.length > 1,
-                emphasized: i == 0,
+                emphasized: i == 0 && style.emphasizeFirstBullet,
+                own: tone == null ? style.neutralBody : null,
               ),
             ),
+          if (bullets.length > 1 && style.listInset > 0)
+            SizedBox(height: style.listInset),
         ],
       ),
     ),
@@ -102,18 +129,20 @@ Widget buildCallout(BuildContext context, BlockNode node) {
 /// first, primary line), else 70% white, with a leading dot in the same shade
 /// when [dotted]. Inline `tone` runs (a green "from NeoSapien") still resolve
 /// through neoText on top of this base color.
-Widget _bullet(NeoSduiTheme theme, Object? value,
-    {required bool dotted, required bool emphasized}) {
-  final color = emphasized
+Widget _bullet(NeoSduiTheme theme, NeoCalloutStyle style, Object? value,
+    {required bool dotted, required bool emphasized, TextStyle? own}) {
+  final color = own?.color ?? (emphasized
       ? theme.textPrimary
-      : theme.textPrimary.withValues(alpha: 0.7);
-  final text = neoText(theme, value, theme.resolvedCalloutBody.copyWith(color: color));
+      : theme.textPrimary.withValues(alpha: 0.7));
+  final text = neoText(theme, value,
+      own ?? theme.resolvedCalloutBody.copyWith(color: color));
   if (!dotted) return text;
   return Row(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
+      SizedBox(width: style.bulletIndent - style.bulletDotGap - 3),
       Container(
-        margin: const EdgeInsets.only(top: 6, right: 8),
+        margin: EdgeInsets.only(top: 6, right: style.bulletDotGap),
         width: 3,
         height: 3,
         decoration: BoxDecoration(color: color, shape: BoxShape.circle),

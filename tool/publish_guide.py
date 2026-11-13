@@ -7,9 +7,10 @@ live counterpart. This script never keeps one: it re-pulls the live template on
 every run and edits exactly one parameter, so the blast radius is that parameter
 and nothing else. `remoteconfig.template.json` is regenerated scratch, gitignored.
 
-    tool/publish_guide.py dev                    # publish mcp_alpha.json -> guide_mcp
+    tool/publish_guide.py dev                    # publish mcp_alpha.json -> guide_mcp_v2 (old builds keep guide_mcp)
     tool/publish_guide.py dev --dry-run          # pull + diff, publish nothing
     tool/publish_guide.py prod --yes             # prod requires the explicit flag
+    tool/publish_guide.py dev --create           # first publish: add guide_mcp_v2
 """
 import argparse
 import json
@@ -36,10 +37,12 @@ def main():
     ap.add_argument('alias', choices=['dev', 'prod'], help='the .firebaserc project alias')
     ap.add_argument('--wire', default='deliverables/mcp/mcp_alpha.json',
                     help='wire JSON to publish (default: %(default)s)')
-    ap.add_argument('--param', default='guide_mcp',
+    ap.add_argument('--param', default='guide_mcp_v2',
                     help='Remote Config parameter to overwrite (default: %(default)s)')
     ap.add_argument('--dry-run', action='store_true', help='pull and diff, but do not publish')
     ap.add_argument('--yes', action='store_true', help='required to publish to prod')
+    ap.add_argument('--create', action='store_true',
+                    help='add --param if missing, typed like guide_mcp (one-time, per project)')
     args = ap.parse_args()
 
     if args.alias == 'prod' and not args.yes and not args.dry_run:
@@ -56,21 +59,31 @@ def main():
     with open(TEMPLATE, encoding='utf-8') as f:
         tpl = json.load(f)
 
-    params = tpl.get('parameters') or {}
+    # Bind to the template's own dict (create it if absent) so --create lands in what deploys.
+    params = tpl['parameters'] = tpl.get('parameters') or {}
+    created = False
+    if args.param not in params and args.create:
+        # Clone guide_mcp's type and description so the new key looks like its sibling.
+        src = params.get('guide_mcp', {})
+        params[args.param] = {k: src[k] for k in ('valueType', 'description') if k in src}
+        params[args.param]['defaultValue'] = {'value': ''}
+        created = True
     if args.param not in params:
         sys.exit(f'{args.param!r} is not in the live {args.alias} template — refusing to '
-                 f'create it (a typo here would publish a dead parameter).\n'
+                 f'create it (a typo here would publish a dead parameter; '
+                 f'pass --create to add it on purpose).\n'
                  f'present: {", ".join(sorted(params))}')
 
-    before_count = len(params)
+    before_count = len(params) - created
     old = params[args.param].get('defaultValue', {}).get('value', '')
     params[args.param]['defaultValue'] = {'value': value}
-    assert len(params) == before_count, 'parameter count changed — aborting'
+    assert len(params) == before_count + created, 'parameter count changed — aborting'
 
     version = tpl.get('version', {})
     print(f'project    {args.alias}')
     print(f'template   v{version.get("versionNumber")} @ {version.get("updateTime")}')
-    print(f'parameters {before_count} (untouched except {args.param!r})')
+    print(f'parameters {before_count} (untouched except {args.param!r}'
+          f'{", created" if created else ""})')
     print(f'{args.param:<10} {len(old)} -> {len(value)} bytes'
           f'{"  (no change)" if old == value else ""}')
 

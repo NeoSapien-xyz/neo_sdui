@@ -5,19 +5,24 @@ import '../theme/neo_sdui_scope.dart';
 import '_gradient_text.dart';
 import '_icon.dart';
 
-/// Heading scale for a subtree. A `group` (a card) pushes [compact]=true so its
+/// Heading level for a subtree. `section` is a top-level header; `compact` is
+/// an item-scale sub-heading; `subheading` is a header inside a tab panel.
+enum HeadingLevel { section, subheading, compact }
+
+/// Heading level for a subtree. A `group` (a card) pushes `compact` so its
 /// child headers render as item-scale sub-headings — the "Here's what it does"
 /// use-case rows are `header`s nested in a group, and read at ~body size, not
-/// the 24px section title a top-level header gets. A document-outline rule
-/// (nesting sets level), not per-guide code: the wire still names only `header`.
+/// the 24px section title a top-level header gets. A `tabs` panel pushes
+/// `subheading`. The innermost scope wins. A document-outline rule (nesting
+/// sets level), not per-guide code: the wire still names only `header`.
 class HeadingScale extends InheritedWidget {
-  const HeadingScale({required this.compact, required super.child, super.key});
-  final bool compact;
-  static bool of(BuildContext context) =>
-      context.dependOnInheritedWidgetOfExactType<HeadingScale>()?.compact ??
-      false;
+  const HeadingScale({required this.level, required super.child, super.key});
+  final HeadingLevel level;
+  static HeadingLevel of(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<HeadingScale>()?.level ??
+      HeadingLevel.section;
   @override
-  bool updateShouldNotify(HeadingScale old) => compact != old.compact;
+  bool updateShouldNotify(HeadingScale old) => level != old.level;
 }
 
 /// header: optional leading `icon` + title + optional subtitle. `tone:
@@ -37,25 +42,36 @@ Widget buildHeader(BuildContext context, BlockNode node) {
   final hasSubtitle = subtitleValue is String || subtitleValue is List;
   final centered = node.stringOr('align') == 'center';
   // Section title (top-level) vs item title (inside a group card).
-  final compact = HeadingScale.of(context);
+  final level = HeadingScale.of(context);
+  final compact = level == HeadingLevel.compact;
+  final sub = level == HeadingLevel.subheading;
   // A compact (in-card) heading still reads as a heading — primary (white), not
   // the muted body color; a `tone` overrides. A section title keeps theme.title.
   // The two scales are the theme's two roles (title vs body): the item title is
   // *body at heading weight*, never a size baked here — a block that pins a
   // fontSize/letterSpacing puts that value out of the theme's reach forever.
   final base = compact
-      ? theme.body
-          .copyWith(fontWeight: FontWeight.w500, color: theme.textPrimary)
-      : theme.title;
+      ? theme.rowTitle ??
+          theme.emphasize(theme.body).copyWith(color: theme.textPrimary)
+      : sub
+          ? theme.resolvedSubheading
+          : theme.title;
+  final lineHeight = compact ? theme.header.compactLineHeight : null;
   final subtitleStyle = compact
-      ? theme.caption.copyWith(fontWeight: FontWeight.w500)
+      ? theme.emphasize(theme.caption).copyWith(height: lineHeight)
       : theme.subtitle;
   final accent = theme.accentFor(tone);
-  final titleStyle = accent == null ? base : base.copyWith(color: accent.color);
+  final titleStyle = (accent == null ? base : base.copyWith(color: accent.color))
+      .copyWith(height: lineHeight);
   // A compact accent title takes the gradient across the full row width (figma's
   // flex-1 element), so a short label ends brighter instead of at the full stop.
   Widget title =
       neoText(theme, node.fields['title'], titleStyle, tone: tone, stretch: compact);
+  // A wrapped title centers line by line, like the subtitle (a Text only aligns
+  // inside its own box, and the column's cross-axis centring places the box).
+  if (centered) {
+    title = DefaultTextStyle.merge(textAlign: TextAlign.center, child: title);
+  }
   // A plain section title takes the heading emboss — but the *mirror* of the
   // "Step n:" label: dark (grey) at the top fading to white at the foot, not the
   // label's white->grey. Same `titleGradient` role, same stops, reversed
@@ -80,7 +96,9 @@ Widget buildHeader(BuildContext context, BlockNode node) {
     );
   }
   final icon = leadingIcon(theme, node.stringOr('icon'), tone,
-      size: base.fontSize ?? 20);
+      size: (compact ? theme.header.compactIconSize : null) ??
+          base.fontSize ??
+          20);
   final column = Column(
     crossAxisAlignment:
         centered ? CrossAxisAlignment.center : CrossAxisAlignment.start,
@@ -95,14 +113,20 @@ Widget buildHeader(BuildContext context, BlockNode node) {
               compact ? CrossAxisAlignment.center : CrossAxisAlignment.start,
           children: [
             icon,
-            SizedBox(width: theme.spaceSm),
+            SizedBox(
+                width: (compact ? theme.header.compactIconGap : null) ??
+                    theme.spaceSm),
             if (centered) title else Expanded(child: title),
           ],
         )
       else
         title,
       if (hasSubtitle) ...[
-        const SizedBox(height: 4),
+        SizedBox(
+            height: sub
+                ? theme.header.subheadingGap ?? theme.header.subtitleGap
+                : (compact ? theme.header.compactSubtitleGap : null) ??
+                    theme.header.subtitleGap),
         // Figma's item subtitle is Work Sans Medium (w500), not the flat caption
         // weight — the "Summarise everything I said today." rows.
         if (subtitleValue is List)
@@ -118,5 +142,11 @@ Widget buildHeader(BuildContext context, BlockNode node) {
   );
   // A centered heading stretches full width so it centers within the card;
   // otherwise it hugs its content at the leading edge (unchanged).
-  return centered ? SizedBox(width: double.infinity, child: column) : column;
+  final out =
+      centered ? SizedBox(width: double.infinity, child: column) : column;
+  return sub && theme.header.subheadingTopInset > 0
+      ? Padding(
+          padding: EdgeInsets.only(top: theme.header.subheadingTopInset),
+          child: out)
+      : out;
 }

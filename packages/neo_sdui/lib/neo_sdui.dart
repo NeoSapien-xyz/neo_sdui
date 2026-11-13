@@ -10,6 +10,7 @@ export 'src/model/validation.dart';
 export 'src/model/view.dart';
 
 // Registry
+export 'src/blocks/code.dart' show neoCodeSurface;
 export 'src/blocks/default_registry.dart';
 export 'src/registry/block_registry.dart';
 
@@ -22,7 +23,9 @@ export 'src/compose/neo_sdui_addon.dart';
 export 'src/action/neo_action.dart';
 
 // Theme
+export 'src/theme/neo_css_angle.dart';
 export 'src/theme/neo_sdui_scope.dart';
+export 'src/theme/neo_sdui_styles.dart';
 export 'src/theme/neo_sdui_theme.dart';
 
 // Authoring (figwire theme-companion: ledger → compile → lint)

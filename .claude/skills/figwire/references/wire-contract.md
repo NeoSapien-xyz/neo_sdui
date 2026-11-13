@@ -12,7 +12,7 @@ line has moved, grep the expression.
 
 - [The wire does not decide the look](#the-wire-does-not-decide-the-look) — read first
 - [Document shape](#document-shape)
-- [The 14 core block types](#the-14-core-block-types-allowlist)
+- [The 15 core block types](#the-15-core-block-types-allowlist)
 - [Fields, per block](#fields-per-block)
 - [The trigger index](#the-trigger-index) — every look that is **not** a plain wire field
 - [Silently dead inputs](#silently-dead-inputs)
@@ -61,15 +61,15 @@ Inputs 2 and 3 are not decoration on top of input 1, and you cannot see them in 
   without a `title` gets whatever bare chrome the host defaults to — this is the only wire field
   that reaches the app bar.
 
-**Block envelope:** `{ "type": "<one of the 14>", ...content fields }`. Optional `fallback` (a full
+**Block envelope:** `{ "type": "<one of the 15>", ...content fields }`. Optional `fallback` (a full
 block, rendered if the type is unknown/unsupported) and `requires` (`{feature: minVersion}`) — you
 will rarely emit these.
 
 **Reserved keys** a block may NOT use as content fields: `version`, `blocks`, `views`, `present`.
 
-## The 14 core block types (allowlist)
+## The 15 core block types (allowlist)
 
-`header · text · cta · callout · media · code · card · steps · faq · tabs · row · column · group · spacer`
+`header · text · cta · callout · media · code · card · steps · faq · accordion · tabs · row · column · group · spacer`
 
 Emitting any other `type` is a **hard error** — the renderer drops it and the block vanishes
 (`kCoreBlockTypes`, `validate_vocabulary.dart:43`).
@@ -82,14 +82,15 @@ Forks live in the [trigger index](#the-trigger-index); this table is vocabulary 
 | type | required | optional | notes |
 |---|---|---|---|
 | `header` | `title` (string-or-runs) | `subtitle` (**string only**), `tone`, `icon`, `align:"center"` | `align:"center"` centers title+subtitle across the card (`header.dart:34`) — the "Still having issues?" footer. There is no right-align. |
-| `text` | `body` (string-or-runs) | `emphasis`, `tone`, `variant:"footnote"` | `variant:"footnote"` = caption scale, muted (`text.dart:14`) — the figma "Note: …" disclaimer. **This is a dimmed line, not a card**; do not force-fit a `card`/`callout` for it. |
+| `text` | `body` (string-or-runs) | `emphasis`, `tone`, `variant:"footnote"` | `variant:"footnote"` = caption scale, muted (`text.dart:14`) — the figma "Note: …" disclaimer. **This is a dimmed line, not a card**; do not force-fit a `card`/`callout` for it. A run `{"text":…,"tone":"strong"}` renders white at the client's emphasis weight (w500); the wire names emphasis, never the weight. |
 | `cta` | `label` (**string only**) | `action`, `emphasis`, `shape`, `align:"center"` | `align:"center"` hugs the label and centers the pill (`cta.dart:31`); default stretches to the column width. No icon; no runs label. |
 | `callout` | `title` OR non-empty `bullets` | `tone`, `shape`, `icon` | `bullets` is **string-or-runs per entry** (`callout.dart:22-29`), not `string[]` — an inline accent phrase rides a bullet. Bullet styling is **positional and unwireable**: `bullets[0]` renders emphasized (full white), the rest at 70%; dots appear only when `bullets.length > 1` (`callout.dart:81-89`). |
 | `media` | `url` | `ratio` (num>0) **or** `width`+`height` (ints), `shape` | add-on `neo_sdui_media` also reads `kind:"image"\|"video"`, `loop`, `mute`, `autoplay` (`media_addon.dart:20,39-41`); **core ignores all four**. |
 | `code` | `content` (**verbatim**) | `label` | add-on `neo_sdui_syntax` also reads `language` (`syntax_code.dart:16`); **core ignores it**. |
 | `card` | `title` (**string only** — runs render *empty*, `card.dart:75`) | `subtitle`, `action`, `actionLabel`, `thumb`, `variant:"tile"`, `ratio` (or `width`+`height`), `shape`, `emphasis`, `icon`, `tone` | `actionLabel` ("Open Guide →") replaces the default `›` caret. `icon`/`tone` are read **only** in the listed form (`card.dart:203`) — see [silently dead inputs](#silently-dead-inputs). |
-| `steps` | non-empty `items` | `tone` (number-badge hue), `layout:"row"` | `layout:"row"` = the compact 1·2·3 strip (badge over caption); default is the vertical checklist. **Item:** `caption` (string-or-runs, **required**), `detail` (string), `code` (string), `image` (url string), `ratio` (num>0), `emphasis:"high"`, `blocks` (block[] — composed content under the caption; the one place a step holds child blocks instead of a baked `image`). `layout:"row"` reads **only** `caption` + `detail` (`steps.dart:66-83`). |
+| `steps` | non-empty `items` | `tone` (number-badge hue), `layout:"row"` | `layout:"row"` = the compact 1·2·3 strip (badge over caption); default is the vertical checklist. **Item:** `caption` (string-or-runs, **required**), `detail` (string), `code` (string), `image` (url string), `ratio` (num>0), `emphasis:"high"`, `blocks` (block[] — composed content under the caption; the one place a step holds child blocks instead of a baked `image`). `link` (`{url, label?}` — a row under the step: dashed rule, the `label` (else the url) in accent that opens the url externally, and a copy button. Only `http`/`https` urls are tappable or copyable; any other scheme shows the label as plain text. A `link` that isn't a map with a non-empty `url` renders no row and validation warns.) `layout:"row"` reads **only** `caption` + `detail` (`steps.dart:66-83`). |
 | `faq` | non-empty `items` | — | each item: `question` + `answer` — **plain strings only**; a non-string coerces to `''` (`faq.dart:15`). No runs, no gradient, no per-item action, no default-open. |
+| `accordion` | `title` (string-or-runs), non-empty `children` (block[]) | — | a collapsible section holding any blocks; **starts closed**, tap the head to open (client-owned state, no default-open). `children` are ordinary blocks (a nested `steps` keeps its look). Emit a `fallback` (a `column` of the same children) so an app without the type shows the content open instead of dropping it. |
 | `tabs` | non-empty `tabs` | `header` (block[]) | each tab: `label` (string), `blocks` (block[]). `header` is a shared block list rendered **above every tab** (`tabs.dart:20,148`). Tabs are `Expanded` — 5+ labels crush. |
 | `row` | non-empty `children` (block[]) | — | every child is `Expanded` → **equal width, always**. |
 | `column` | non-empty `children` (block[]) | `variant:"tight"` | `tight` → `spaceMd` gaps instead of `blockSpacing` (`layout.dart:34`) — the figma picker-card group. |
@@ -121,6 +122,7 @@ look does not appear. "—" = that input plays no part.
 | **Title white→grey emboss** | `header` with **no** `tone` | `titleGradient != null` | **not** nested in a `group` | `header.dart:55-56` |
 | **"Step n:" emboss** | (as carded step) | `titleGradient`, **else a baked white→#999 fallback** | — | `steps.dart:302-307` — ⚠ a missing `titleGradient` degrades **differently here than in `header`**: the header goes flat, the step label stays embossed on baked stops. Same role, two degrade paths. |
 | **Compact heading** (sub-heading scale, not section scale) | `header` | — | **nested under a `group`** — but **not** a `variant:"list"` group | `header.dart:36,42-45`, `layout.dart:101` — top-level → `theme.title`; nested → `theme.body` at w500. ⚠ the list branch returns at `layout.dart:65-87`, *before* the `HeadingScale` wrap, so a `header` inside a list group stays at **section** scale. |
+| **Tab subheading** (the quick-setup heading) | `header` | `theme.subheading` (null falls back to `title`), `header.subheadingGap`, `header.subheadingTopInset` | **inside a `tabs` panel**; a header in a group inside a tab stays compact (innermost scope wins) | `header.dart` `HeadingLevel.subheading`, set by `tabs.dart` around tab content |
 | **Pinned floating tab strip** (stays under the app bar, transparent gutters) | `tabs` | — | **top-level block only** | `neo_sdui_view.dart:101,114,182`, `tabs.dart:139` |
 | **Boxed tab strip** (scrolls away with its content) | `tabs` | — | **nested** (in a group / tab / step) | `tabs.dart:19` |
 | **Tappable underlined links** (URLs + bare domains auto-linked) | carded step whose `caption` is a **plain String** | `stepCardColor != null` | — | `steps.dart:227-232` (the `cap is String` fork), `:319-322` (the matcher: schemes + bare `.com\|.ai\|.xyz\|.io\|.org\|.net\|.dev`) — ⚠ **runs kill it**: a `caption` written as a run list silently loses every link |

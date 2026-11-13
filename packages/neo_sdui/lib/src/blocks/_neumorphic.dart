@@ -21,12 +21,13 @@ class Inset {
 /// pill, the command-card Copy button). Flutter's [BoxShadow] only casts
 /// *outward*, so the inner shadows are a foreground [CustomPaint] clipped to the
 /// box. Pass [gradient] for a graduated fill, else [color] fills flat; [border]
-/// draws the optional hairline edge.
+/// draws the optional hairline edge, [shadows] cast outward.
 Widget neumorphic({
   required BorderRadius radius,
   Color? color,
   Gradient? gradient,
   Border? border,
+  List<BoxShadow>? shadows,
   required List<Inset> insets,
   required Widget child,
 }) =>
@@ -36,11 +37,15 @@ Widget neumorphic({
         gradient: gradient,
         borderRadius: radius,
         border: border,
+        boxShadow: shadows,
       ),
-      child: CustomPaint(
-        foregroundPainter: InsetShadowPainter(radius, insets),
-        child: child,
-      ),
+      // No insets, no painter: a flat control skips the extra paint layer.
+      child: insets.isEmpty
+          ? child
+          : CustomPaint(
+              foregroundPainter: InsetShadowPainter(radius, insets),
+              child: child,
+            ),
     );
 
 /// Paints [insets] as inner shadows inside the [radius] rounded rect: clip to

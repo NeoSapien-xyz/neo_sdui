@@ -36,8 +36,13 @@ coverage/
 # Flutter golden-test failure diffs (regenerated on mismatch); any package depth
 **/test/golden/failures/
 
-# figwire deliverables — CDN staging (wire JSON + exported assets); reviewed then uploaded, never committed
-deliverables/
+# figwire deliverables — CDN staging (wire JSON + exported assets); reviewed then uploaded, never committed.
+# Each family's theme ledger is the exception: it is the source of record for the
+# app's theme file and holds no assets or secrets.
+deliverables/*
+!deliverables/*/
+deliverables/*/*
+!deliverables/*/theme_ledger.json
 
 # Remote Config: re-pulled live on every publish (tool/publish_guide.py), never a committed baseline
 remoteconfig.template.json

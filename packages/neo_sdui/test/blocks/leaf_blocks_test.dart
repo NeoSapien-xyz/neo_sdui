@@ -2,6 +2,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:neo_sdui/neo_sdui.dart';
+import 'package:neo_sdui/src/blocks/_icon.dart';
 
 final _theme = NeoSduiTheme.fallback();
 
@@ -235,5 +236,146 @@ void main() {
     expect(find.text('Copy'), findsOneWidget);
     tester.binding.defaultBinaryMessenger
         .setMockMethodCallHandler(SystemChannels.platform, null);
+  });
+
+  group('glyphs', () {
+    Future<void> pumpIcon(WidgetTester t, NeoSduiTheme theme) => t.pumpWidget(
+          Directionality(
+            textDirection: TextDirection.ltr,
+            child: Center(child: leadingIcon(theme, 'help', 'accent', size: 20)),
+          ),
+        );
+
+    testWidgets('a theme glyph wins over the default icon and gets size + colour',
+        (t) async {
+      double? gotSize;
+      Color? gotColor;
+      final theme = _theme.copyWith(glyphs: {
+        'help': (size, color) {
+          gotSize = size;
+          gotColor = color;
+          return SizedBox.square(key: const Key('mine'), dimension: size);
+        },
+      });
+      await pumpIcon(t, theme);
+      expect(find.byKey(const Key('mine')), findsOneWidget);
+      expect(find.byType(Icon), findsNothing);
+      expect(gotSize, 20);
+      expect(gotColor, theme.toneColor('accent'));
+    });
+
+    testWidgets('no glyph entry: help still renders the Material icon',
+        (t) async {
+      await pumpIcon(t, _theme);
+      expect(t.widget<Icon>(find.byType(Icon)).icon, kDefaultIcons['help']);
+    });
+
+    for (final (key, build) in <(String, Widget Function(Color))>[
+      ('icon-chevron-down', (c) => NeoChevronDownIcon(size: 24, color: c)),
+      ('icon-copy', (c) => NeoCopyIcon(size: 24, color: c)),
+      ('icon-check', (c) => NeoCheckIcon(size: 24, color: c)),
+    ]) {
+      testWidgets('$key paints inside its square in the given colour',
+          (t) async {
+        const c = Color(0xFF123456);
+        await t.pumpWidget(Directionality(
+            textDirection: TextDirection.ltr, child: Center(child: build(c))));
+        final f = find.byKey(Key(key));
+        expect(t.getSize(f), const Size.square(24));
+        expect(t.renderObject<RenderBox>(f).paintBounds,
+            const Rect.fromLTWH(0, 0, 24, 24));
+        expect(f, paints..path(color: c));
+      });
+    }
+  });
+
+  group('header and text roles', () {
+    Future<void> pumpThemed(
+        WidgetTester t, NeoSduiTheme theme, Map<String, Object?> block) =>
+        t.pumpWidget(Directionality(
+          textDirection: TextDirection.ltr,
+          child: MediaQuery(
+            data: const MediaQueryData(),
+            child: NeoSduiView(
+              document:
+                  NeoDocument.fromJson({'version': 1, 'blocks': [block]}),
+              theme: theme,
+              onAction: (_, _) {},
+            ),
+          ),
+        ));
+    TextStyle? styleOf(WidgetTester t, String s) =>
+        t.widget<Text>(find.text(s)).style;
+
+    testWidgets('footnote uses the footnote role when set', (t) async {
+      const role = TextStyle(fontSize: 11, color: Color(0xFF123456));
+      await pumpThemed(t, _theme.copyWith(footnote: role),
+          {'type': 'text', 'body': 'Note', 'variant': 'footnote'});
+      expect(styleOf(t, 'Note')!.fontSize, 11);
+      expect(styleOf(t, 'Note')!.color, const Color(0xFF123456));
+    });
+
+    testWidgets('footnote unset keeps the muted caption', (t) async {
+      await pumpThemed(t, _theme,
+          {'type': 'text', 'body': 'Note', 'variant': 'footnote'});
+      expect(styleOf(t, 'Note')!.fontSize, _theme.caption.fontSize);
+      expect(styleOf(t, 'Note')!.color, _theme.textMuted);
+    });
+
+    testWidgets('paragraph role styles normal text', (t) async {
+      const role = TextStyle(fontSize: 17, color: Color(0xFF654321));
+      await pumpThemed(t, _theme.copyWith(paragraph: role),
+          {'type': 'text', 'body': 'Body'});
+      expect(styleOf(t, 'Body')!.fontSize, 17);
+    });
+
+    testWidgets('low emphasis stays muted body with a paragraph role',
+        (t) async {
+      await pumpThemed(
+          t,
+          _theme.copyWith(paragraph: const TextStyle(fontSize: 17)),
+          {'type': 'text', 'body': 'Low', 'emphasis': 'low'});
+      expect(styleOf(t, 'Low')!.color, _theme.textMuted);
+    });
+
+    Map<String, Object?> compactHeader() => {
+          'type': 'group',
+          'children': [
+            {
+              'type': 'header',
+              'title': 'H',
+              'subtitle': 'S',
+              'icon': 'check',
+            },
+          ],
+        };
+
+    testWidgets('compact header uses rowTitle, icon size/gap, subtitle gap',
+        (t) async {
+      const role = TextStyle(fontSize: 19, color: Color(0xFF0000FF));
+      final themed = _theme.copyWith(
+        rowTitle: role,
+        header: const NeoHeaderStyle(
+            subtitleGap: 10, compactIconSize: 30, compactIconGap: 14),
+      );
+      await pumpThemed(t, themed, compactHeader());
+      expect(styleOf(t, 'H')!.fontSize, 19);
+      final h = t.getRect(find.text('H'));
+      final s = t.getRect(find.text('S'));
+      expect(s.top - h.bottom, greaterThanOrEqualTo(10));
+      final icon = t.getRect(find.byType(Icon).first);
+      expect(icon.width, 30);
+      expect(h.left - icon.right, 14);
+    });
+
+    testWidgets('compact header default: body at w500 primary, gap 4',
+        (t) async {
+      await pumpThemed(t, _theme, compactHeader());
+      expect(styleOf(t, 'H')!.fontSize, _theme.body.fontSize);
+      expect(styleOf(t, 'H')!.fontWeight, FontWeight.w500);
+      final icon = t.getRect(find.byType(Icon).first);
+      expect(icon.width, _theme.body.fontSize);
+      expect(t.getRect(find.text('H')).left - icon.right, _theme.spaceSm);
+    });
   });
 }

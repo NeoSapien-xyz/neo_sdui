@@ -40,17 +40,22 @@ class _FaqState extends State<_Faq> {
   /// One accordion row: a question row (white question + a chevron affordance)
   /// that toggles the muted answer open, with a hairline divider under every
   /// item but the last (the figma FAQ list). All look is theme roles.
-  Widget _row(NeoSduiTheme theme, int i, Map<String, Object?> item,
-      {required bool last}) {
+  Widget _row(
+    NeoSduiTheme theme,
+    int i,
+    Map<String, Object?> item, {
+    required bool last,
+  }) {
+    final style = theme.faq;
     final isOpen = _open.contains(i);
-    return Column(
+    final row = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         PressScale(
           onTap: () => setState(() => isOpen ? _open.remove(i) : _open.add(i)),
           scale: 0.994,
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 20),
+            padding: style.questionPadding,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -61,24 +66,22 @@ class _FaqState extends State<_Faq> {
                         _str(item['question']),
                         // A question reads as a heading — primary (white),
                         // medium — not the muted body color.
-                        style: theme.body.copyWith(
-                          color: theme.textPrimary,
-                          fontWeight: FontWeight.w500,
-                        ),
+                        style: style.questionStyle ??
+                            theme.resolvedPanelTitle.copyWith(
+                              color: theme.textPrimary,
+                            ),
                       ),
                     ),
                     const SizedBox(width: 12),
                     _caret(theme, isOpen),
                   ],
                 ),
-                AnimatedSize(
-                  duration:
-                      theme.reduceMotion ? Duration.zero : theme.swapDuration,
-                  curve: theme.motionCurve,
-                  alignment: Alignment.topLeft,
+                _expand(
+                  theme,
                   child: isOpen
                       ? Padding(
-                          padding: EdgeInsets.only(top: theme.spaceSm),
+                          padding: style.answerPadding ??
+                              EdgeInsets.only(top: theme.spaceSm),
                           // The answer fades in *with* the expand rather than
                           // riding it fully opaque — text sliding out from under
                           // the question at full strength reads as a reveal.
@@ -96,8 +99,10 @@ class _FaqState extends State<_Faq> {
                                 Opacity(opacity: opacity, child: child),
                             // Answer sits in the muted body role (the figma
                             // #868686 paragraph) — the theme owns the exact hue.
-                            child:
-                                Text(_str(item['answer']), style: theme.body),
+                            child: Text(
+                              _str(item['answer']),
+                              style: style.answerStyle ?? theme.body,
+                            ),
                           ),
                         )
                       : const SizedBox(width: double.infinity),
@@ -106,49 +111,58 @@ class _FaqState extends State<_Faq> {
             ),
           ),
         ),
-        if (!last)
+        if (!last && style.itemDecoration == null)
           Container(
             height: 1,
             color: theme.divider ?? theme.onSurface.withValues(alpha: 0.1),
           ),
       ],
     );
+    final decoration = style.itemDecoration;
+    if (decoration == null) return row;
+    return Padding(
+      padding: EdgeInsets.only(bottom: last ? 0 : style.itemGap),
+      child: DecoratedBox(decoration: decoration, child: row),
+    );
   }
 
-  /// The row's chevron: points right + primary when collapsed; rotates down +
-  /// turns accent when open (the figma affordance). A plain `›` glyph — its
-  /// size is a UI constant like an icon's, its colors are theme roles.
+  /// Animates the answer's height. Reduced motion skips the AnimatedSize: a
+  /// zero-duration one finishes inside its own layout and trips a debug assert.
+  Widget _expand(NeoSduiTheme theme, {required Widget child}) =>
+      theme.reduceMotion
+          ? child
+          : AnimatedSize(
+              duration: theme.swapDuration,
+              curve: theme.motionCurve,
+              alignment: Alignment.topLeft,
+              child: child,
+            );
+
+  /// The row's chevron: points right + [NeoFaqStyle.caretColor] when collapsed;
+  /// turns [NeoFaqStyle.openTurns] + accent when open. A plain `›` unless the
+  /// theme supplies a glyph — its size is a UI constant like an icon's, its
+  /// colors are theme roles.
   Widget _caret(NeoSduiTheme theme, bool open) {
-    // Rotated + tinted over the same beat as the expand, so the affordance and
-    // the answer arrive together. A RotatedBox would snap: it re-lays-out at a
-    // fixed quarter turn rather than animating through one.
-    final duration = theme.reduceMotion ? Duration.zero : theme.swapDuration;
-    return SizedBox(
-      width: 24,
-      height: 24,
-      child: Center(
-        child: AnimatedRotation(
-          turns: open ? 0.25 : 0,
-          duration: duration,
-          curve: theme.motionCurve,
-          child: TweenAnimationBuilder<Color?>(
-            tween: ColorTween(end: open ? theme.accent : theme.textPrimary),
-            duration: duration,
-            curve: theme.motionCurve,
-            builder: (context, color, child) => Text(
-              '›',
-              // geometry: sizes the '›' glyph inside its 24px box — icon
-              // metrics, not the type scale. Not the theme's to set.
-              style: theme.body.copyWith(
-                color: color,
-                fontSize: 22,
-                fontWeight: FontWeight.w400,
-                height: 1,
-              ),
+    final style = theme.faq;
+    return TurningCaret(
+      open: open,
+      openTurns: style.openTurns,
+      box: style.caretBox,
+      closedColor: style.caretColor ?? theme.textPrimary,
+      openColor: theme.accent,
+      glyph: (color) =>
+          style.caretGlyph?.call(style.caretSize, color) ??
+          Text(
+            '›',
+            // geometry: sizes the '›' glyph inside its 24px box — icon
+            // metrics, not the type scale. Not the theme's to set.
+            style: theme.body.copyWith(
+              color: color,
+              fontSize: 22,
+              fontWeight: FontWeight.w400,
+              height: 1,
             ),
           ),
-        ),
-      ),
     );
   }
 }

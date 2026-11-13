@@ -184,3 +184,50 @@ class SwapFade extends StatelessWidget {
     );
   }
 }
+
+/// A 24px affordance that turns [openTurns] and tints from [closedColor] to
+/// [openColor] over the same beat as the expand it accompanies, so the caret
+/// and the content arrive together. [glyph] draws the mark in the animated
+/// colour. A RotatedBox would snap (a fixed quarter turn re-lays-out); this
+/// animates through the turn.
+class TurningCaret extends StatelessWidget {
+  const TurningCaret({
+    required this.open,
+    required this.openTurns,
+    this.box = 24,
+    required this.closedColor,
+    required this.openColor,
+    required this.glyph,
+    super.key,
+  });
+
+  final bool open;
+  final double openTurns;
+  final double box;
+  final Color closedColor;
+  final Color openColor;
+  final Widget Function(Color color) glyph;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = NeoSduiScope.of(context).theme;
+    final duration = theme.reduceMotion ? Duration.zero : theme.swapDuration;
+    return SizedBox(
+      width: box,
+      height: box,
+      child: Center(
+        child: AnimatedRotation(
+          turns: open ? openTurns : 0,
+          duration: duration,
+          curve: theme.motionCurve,
+          child: TweenAnimationBuilder<Color?>(
+            tween: ColorTween(end: open ? openColor : closedColor),
+            duration: duration,
+            curve: theme.motionCurve,
+            builder: (context, color, child) => glyph(color!),
+          ),
+        ),
+      ),
+    );
+  }
+}

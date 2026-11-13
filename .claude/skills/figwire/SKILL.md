@@ -90,7 +90,7 @@ frame/screenshot/asset yourself and hand agents the files. See
 
 ### 2. Classify + pull text (see `references/wire-contract.md`)
 
-Map each region of the page to exactly **one of the 14 block types**. A region that fits none gets
+Map each region of the page to exactly **one of the 15 block types**. A region that fits none gets
 reported, not force-fit into a wrapper. Pull each block's text as `string-or-runs`. Tag a
 deliberately-hued text with the **role name** its hue means — `tone:"accent"` for the brand green,
 `tone:"critical"`, `tone:"warning"`, or any `accents.<name>` the ledger declares — per
@@ -169,7 +169,8 @@ instead of it. One command, from the repo root:
 ```bash
 python3 tool/publish_guide.py dev            # or: prod --yes
 python3 tool/publish_guide.py dev --dry-run  # pull + byte diff, publish nothing
-#   --wire  deliverables/<family>/<family>.json   --param  <rc_key>
+python3 tool/publish_guide.py dev --create   # first publish only: adds the missing key, typed like guide_mcp
+#   --wire  deliverables/<family>/<family>.json   --param  <rc_key> (default guide_mcp_v2)
 ```
 
 **Never `firebase deploy --only remoteconfig` by hand, and never commit a template file.** That
@@ -177,7 +178,7 @@ deploy replaces the *whole* Remote Config template, so any parameter stale in yo
 overwrites live and anything added via the console since your pull is deleted. `publish_guide.py`
 exists to make that impossible: it re-pulls the live template every run and edits exactly one
 parameter. Its guards run before the deploy call — malformed wire, or a `--param` that isn't already
-live, aborts rather than publishes.
+live without `--create`, aborts rather than publishes.
 
 Publishing needs a valid CLI token, and it expires. `firebase login --reauth` **cannot** run from a
 tool call or a `!` prefix (non-interactive) — the user runs it in their own terminal. The Firebase
@@ -198,7 +199,7 @@ piece needs (republish / rebuild, above) and close on parity or on a written dif
 
 ## References
 
-- `references/wire-contract.md` — the 14 block types, their fields, the string-or-runs shape, enums,
+- `references/wire-contract.md` — the 15 block types, their fields, the string-or-runs shape, enums,
   action grammar, the forbidden-on-wire list, and a minimal document.
 - `references/accent-tones.md` — reading a color to choose a role *name*: the brand green → `tone:"accent"`, and any other deliberate hue → `critical`/`warning`/a ledger-declared `accents.<name>` (never the hex).
 - `references/ingestion.md` — MCP call order, REST, screenshot degrade, token handling.
@@ -214,4 +215,4 @@ Package tools these call (in `packages/neo_sdui/`):
 - `test/tools/compile_theme_test.dart` — `NEO_THEME_LEDGER=<ledger> [NEO_THEME_OUT=<theme.dart>] [NEO_THEME_BASE_PAGE=<page>] fvm flutter test test/tools/compile_theme_test.dart` → paste-in `NeoSduiTheme` + coverage report + role-drift lint (`NEO_THEME_BASE_PAGE` pins that page's look as the base).
 
 Repo-root tool (in `neo_sdui/`, not the package):
-- `tool/publish_guide.py` — `python3 tool/publish_guide.py <dev|prod> [--wire <path>] [--param <key>] [--dry-run] [--yes]` → re-pulls the live Remote Config template, overwrites one parameter, deploys. The **only** sanctioned push path (step 7). Must run from the repo root — `.firebaserc` lives there, so the `dev`/`prod` aliases don't resolve from anywhere else.
+- `tool/publish_guide.py` — `python3 tool/publish_guide.py <dev|prod> [--wire <path>] [--param <key>] [--dry-run] [--yes] [--create]` → re-pulls the live Remote Config template, overwrites one parameter, deploys. The **only** sanctioned push path (step 7). Must run from the repo root — `.firebaserc` lives there, so the `dev`/`prod` aliases don't resolve from anywhere else.

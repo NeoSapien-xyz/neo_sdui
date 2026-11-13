@@ -15,7 +15,7 @@ void main() {
       expect(issues.single.path, 'blocks[0].type');
     });
 
-    test('a valid 14-type doc yields no issues', () {
+    test('a valid doc yields no issues', () {
       final issues = validateWireVocabulary({
         'version': 1,
         'blocks': [
@@ -109,6 +109,47 @@ void main() {
       expect(issues, isEmpty);
     });
 
+    test('a step `link` that is not a map with a `url` warns', () {
+      for (final bad in <Object?>[
+        'x',
+        <String, Object?>{'label': 'no url'},
+        <String, Object?>{'url': ''},
+      ]) {
+        final issues = validateWireVocabulary({
+          'version': 1,
+          'blocks': [
+            {
+              'type': 'steps',
+              'items': [
+                {'caption': 'c', 'link': bad},
+              ],
+            },
+          ],
+        });
+        expect(issues, hasLength(1), reason: '$bad');
+        expect(issues.single.isBlocking, isFalse);
+        expect(issues.single.path, 'blocks[0].items[0].link');
+      }
+    });
+
+    test('a step `link` with a url is sound', () {
+      final issues = validateWireVocabulary({
+        'version': 1,
+        'blocks': [
+          {
+            'type': 'steps',
+            'items': [
+              {
+                'caption': 'c',
+                'link': {'url': 'https://a.b'},
+              },
+            ],
+          },
+        ],
+      });
+      expect(issues, isEmpty);
+    });
+
     test('an off-roster type inside a step item `blocks` is caught', () {
       final issues = validateWireVocabulary({
         'version': 1,
@@ -181,8 +222,41 @@ void main() {
       expect(issues.single.isBlocking, isTrue);
     });
 
+    test('accordion: missing title or empty children warns', () {
+      final issues = validateWireVocabulary({
+        'version': 1,
+        'blocks': [
+          {'type': 'accordion', 'children': [{'type': 'text', 'body': 'x'}]},
+          {'type': 'accordion', 'title': 'T', 'children': []},
+        ],
+      });
+      expect(issues, hasLength(2));
+      expect(issues.every((i) => !i.isBlocking), isTrue);
+    });
+
+    test('accordion: unknown child type blocks, fallback is recursed', () {
+      final issues = validateWireVocabulary({
+        'version': 1,
+        'blocks': [
+          {
+            'type': 'accordion',
+            'title': 'T',
+            'children': [
+              {'type': 'nope'},
+            ],
+            'fallback': {'type': 'column', 'children': [{'type': 'nope2'}]},
+          },
+        ],
+      });
+      expect(issues.map((i) => i.path), [
+        'blocks[0].children[0].type',
+        'blocks[0].fallback.children[0].type',
+      ]);
+      expect(issues.every((i) => i.isBlocking), isTrue);
+    });
+
     test('kCoreBlockTypes matches the registered roster count', () {
-      expect(kCoreBlockTypes, hasLength(14));
+      expect(kCoreBlockTypes, hasLength(15));
     });
   });
 }

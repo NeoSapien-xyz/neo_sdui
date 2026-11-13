@@ -30,6 +30,8 @@ Future<void> _pump(
   NeoDocument doc, {
   NeoDocument? defaultDoc,
   NeoActionHandler? onAction,
+  NeoSduiTheme? theme,
+  BlockRegistry? registry,
 }) async {
   await tester.pumpWidget(
     Directionality(
@@ -42,8 +44,8 @@ Future<void> _pump(
             height: 800,
             child: NeoSduiView(
               document: doc,
-              theme: NeoSduiTheme.fallback(),
-              registry: _testRegistry(),
+              theme: theme ?? NeoSduiTheme.fallback(),
+              registry: registry ?? _testRegistry(),
               defaultDocument: defaultDoc,
               onAction: onAction ?? (_, _) {},
             ),
@@ -165,5 +167,126 @@ void main() {
     await tester.tap(find.text('Go'));
     expect(got, isA<ExternalUrl>());
     expect((got as ExternalUrl).url.host, 'neo.xyz');
+  });
+
+  group('view rhythm and backdrop', () {
+    final two = [
+      {'type': 'text', 'body': 'A'},
+      {'type': 'text', 'body': 'B'},
+    ];
+    double gap(WidgetTester t) =>
+        t.getRect(find.text('B')).top - t.getRect(find.text('A')).bottom;
+
+    testWidgets('default theme: padding and separators equal blockSpacing',
+        (tester) async {
+      final theme = NeoSduiTheme.fallback().copyWith(reduceMotion: true);
+      await _pump(tester, _doc(two), theme: theme);
+      expect(gap(tester), theme.blockSpacing);
+      expect(tester.getRect(find.text('A')).top, theme.blockSpacing);
+    });
+
+    testWidgets('sectionSpacing separates top-level blocks only',
+        (tester) async {
+      final theme =
+          NeoSduiTheme.fallback().copyWith(sectionSpacing: 36, blockSpacing: 20, reduceMotion: true);
+      await _pump(tester, _doc(two), theme: theme);
+      expect(gap(tester), 36);
+      expect(tester.getRect(find.text('A')).top, 20);
+    });
+
+    testWidgets('sectionSpacing applies in the tabbed path, tab gaps stay',
+        (tester) async {
+      final theme = NeoSduiTheme.fallback()
+          .copyWith(sectionSpacing: 36, blockSpacing: 20, reduceMotion: true);
+      await _pump(
+        tester,
+        _doc([
+          {'type': 'text', 'body': 'A'},
+          {'type': 'text', 'body': 'B'},
+          {
+            'type': 'tabs',
+            'tabs': [
+              {
+                'label': 'T',
+                'blocks': [
+                  {'type': 'text', 'body': 'X'},
+                  {'type': 'text', 'body': 'Y'},
+                ],
+              },
+            ],
+          },
+        ]),
+        theme: theme,
+        registry: defaultRegistry(),
+      );
+      await tester.pumpAndSettle();
+      expect(gap(tester), 36);
+      expect(
+          tester.getRect(find.text('Y')).top - tester.getRect(find.text('X')).bottom,
+          20);
+    });
+
+    for (final tabbed in [false, true]) {
+      testWidgets('viewPadding top 4 / bottom 48 (tabbed: $tabbed)',
+          (tester) async {
+        final theme = NeoSduiTheme.fallback().copyWith(
+            viewPadding: const EdgeInsets.only(top: 4, bottom: 48),
+            reduceMotion: true);
+        await _pump(
+          tester,
+          _doc([
+            {'type': 'text', 'body': 'First'},
+            if (tabbed)
+              {
+                'type': 'tabs',
+                'tabs': [
+                  {
+                    'label': 'T',
+                    'blocks': [
+                      for (var i = 0; i < 80; i++)
+                        {'type': 'text', 'body': 'z$i'},
+                    ],
+                  },
+                ],
+              }
+            else
+              for (var i = 0; i < 80; i++) {'type': 'text', 'body': 'z$i'},
+            {'type': 'text', 'body': 'Last'},
+          ]),
+          theme: theme,
+          registry: defaultRegistry(),
+        );
+        await tester.pumpAndSettle();
+        expect(tester.getRect(find.text('First')).top, 4);
+        final scroll = tester.state<ScrollableState>(find.byType(Scrollable));
+        for (var i = 0; i < 3; i++) {
+          scroll.position.jumpTo(scroll.position.maxScrollExtent);
+          await tester.pump();
+        }
+        expect(tester.getRect(find.text('Last')).bottom,
+            tester.getRect(find.byType(Scrollable)).bottom - 48);
+      });
+    }
+
+    testWidgets('backgroundOverlay adds a second decorated layer',
+        (tester) async {
+      int layers() => find
+          .descendant(
+              of: find.byType(NeoSduiView), matching: find.byType(DecoratedBox))
+          .evaluate()
+          .length;
+      final grad = const LinearGradient(colors: [Color(0xFF000000), Color(0xFF111111)]);
+      await _pump(tester, _doc(two),
+          theme: NeoSduiTheme.fallback().copyWith(backgroundGradient: grad));
+      final one = layers();
+      await _pump(
+          tester,
+          _doc(two),
+          theme: NeoSduiTheme.fallback().copyWith(
+              backgroundGradient: grad,
+              backgroundOverlay: (c) => const DecoratedBox(
+                  decoration: BoxDecoration(color: Color(0x33FF0000)))));
+      expect(layers(), one + 1);
+    });
   });
 }

@@ -41,10 +41,10 @@ class WireVocabIssue {
 /// core-only allowlist is correct for both core and add-on-composed engines.
 const Set<String> kCoreBlockTypes = {
   'header', 'text', 'cta', 'callout', 'media', 'code', 'card',
-  'steps', 'faq', 'tabs', 'row', 'column', 'group', 'spacer', //
+  'steps', 'faq', 'accordion', 'tabs', 'row', 'column', 'group', 'spacer', //
 };
 
-const Set<String> _layoutTypes = {'row', 'column', 'group'};
+const Set<String> _layoutTypes = {'row', 'column', 'group', 'accordion'};
 
 /// Check every block in a decoded document against the roster and required-field
 /// table. Recurses the real `BlockNode` carriers — top-level `blocks`, each
@@ -121,7 +121,27 @@ void _checkBlock(Object? block, String path, List<WireVocabIssue> out) {
     if (items is List) {
       for (var i = 0; i < items.length; i++) {
         final it = items[i];
-        if (it is Map) _checkChildList(it['blocks'], '$path.items[$i].blocks', out);
+        if (it is! Map) continue;
+        _checkChildList(it['blocks'], '$path.items[$i].blocks', out);
+        final link = it['link'];
+        if (link != null && !(link is Map && _webUrl(link['url']))) {
+          out.add(WireVocabIssue('$path.items[$i].link',
+              '`link` needs an http(s) `url`; the step renders without a link row',
+              WireIssueSeverity.warn));
+        }
+        // An inline caption run's `link` (the PWA's `<a>`) must be http(s) too,
+        // or it renders as plain, untappable text.
+        final cap = it['caption'];
+        if (cap is List) {
+          for (var j = 0; j < cap.length; j++) {
+            final r = cap[j];
+            if (r is Map && r.containsKey('link') && !_webUrl(r['link'])) {
+              out.add(WireVocabIssue('$path.items[$i].caption[$j].link',
+                  'run `link` needs an http(s) url; the run renders untappable',
+                  WireIssueSeverity.warn));
+            }
+          }
+        }
       }
     }
   }
@@ -176,6 +196,12 @@ List<String> _missingRequired(String type, Map block) {
         }
       }
       return msgs;
+    case 'accordion':
+      return [
+        if (!_text(block, 'title')) '`accordion` needs a `title`',
+        if (!_nonEmptyList(block, 'children'))
+          '`accordion` needs non-empty `children`',
+      ];
     case 'row':
     case 'column':
     case 'group':
@@ -206,3 +232,11 @@ bool _text(Map m, String k) =>
     (m[k] is List && (m[k] as List).isNotEmpty);
 
 bool _nonEmptyList(Map m, String k) => m[k] is List && (m[k] as List).isNotEmpty;
+
+/// An http/https URL with a host — the only links the renderer makes tappable.
+bool _webUrl(Object? v) {
+  final uri = v is String ? Uri.tryParse(v) : null;
+  return uri != null &&
+      (uri.scheme == 'http' || uri.scheme == 'https') &&
+      uri.host.isNotEmpty;
+}

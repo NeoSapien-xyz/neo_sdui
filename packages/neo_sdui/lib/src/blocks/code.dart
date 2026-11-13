@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 
 import '../model/block_node.dart';
 import '../theme/neo_sdui_scope.dart';
+import '../theme/neo_sdui_styles.dart';
 import '_motion.dart';
 
 /// code: monospace content with a tap-to-copy affordance — the zero-dependency
@@ -36,13 +37,20 @@ Widget buildCode(BuildContext context, BlockNode node) {
 /// block wraps, so the two share look and copy behavior.
 Widget codeChip(String content) => _CopyableCode(content: content);
 
+/// The same themed surface with a caller-supplied body — for add-ons that
+/// re-register `code` (syntax highlighting) and must keep `theme.code`'s box,
+/// padding, wrap and copy button. [body] receives the resolved text style.
+Widget neoCodeSurface(String content, Widget Function(TextStyle base) body) =>
+    _CopyableCode(content: content, body: body);
+
 /// The copyable surface: mono content + a Copy chip that flips to a "Copied"
 /// confirmation for [_confirmFor] after a tap. Stateful only for that transient
 /// acknowledgement (a short, bounded timer — KTD9).
 class _CopyableCode extends StatefulWidget {
-  const _CopyableCode({required this.content});
+  const _CopyableCode({required this.content, this.body});
 
   final String content;
+  final Widget Function(TextStyle base)? body;
 
   @override
   State<_CopyableCode> createState() => _CopyableCodeState();
@@ -73,21 +81,77 @@ class _CopyableCodeState extends State<_CopyableCode> {
   @override
   Widget build(BuildContext context) {
     final theme = NeoSduiScope.of(context).theme;
-    final mono = theme.mono.copyWith(color: theme.textPrimary);
+    final s = theme.code;
+    final mono = s.textStyle ?? theme.mono.copyWith(color: theme.textPrimary);
+    final glyph = s.copyGlyph;
+    // A chip with an overlaid copy button wraps rather than scrolls, so no part
+    // of the command is ever left hidden behind the button.
+    final wrap = s.wrap || glyph != null;
+    final text = widget.body?.call(mono) ??
+        Text(widget.content,
+            style: mono, softWrap: wrap, maxLines: wrap ? null : 1);
     return DecoratedBox(
-      decoration: BoxDecoration(color: theme.surface, borderRadius: theme.radiusMd),
-      child: Padding(
-        padding: EdgeInsets.all(theme.spaceMd),
-        child: Row(
-          children: [
-            Expanded(child: Text(widget.content, style: mono)),
-            SizedBox(width: theme.spaceSm),
-            _CopyChip(copied: _copied, onTap: _copy),
-          ],
-        ),
+      decoration: BoxDecoration(
+        color: s.fill ?? theme.surface,
+        border: s.border == null ? null : Border.fromBorderSide(s.border!),
+        borderRadius: s.radius ?? theme.radiusMd,
       ),
+      child: glyph == null
+          ? Padding(
+              padding: s.padding ?? EdgeInsets.all(theme.spaceMd),
+              child: Row(
+                children: [
+                  Expanded(child: _scrolled(s, text)),
+                  SizedBox(width: theme.spaceSm),
+                  _CopyChip(copied: _copied, onTap: _copy),
+                ],
+              ),
+            )
+          : Stack(
+              children: [
+                Padding(
+                  // Text never runs under the copy button: right padding is at
+                  // least the button's width plus its inset on both sides.
+                  padding: _clearOfButton(
+                      s.padding ?? EdgeInsets.all(theme.spaceMd), s),
+                  child: _scrolled(s, text),
+                ),
+                Positioned(
+                  top: s.copyInset,
+                  right: s.copyInset,
+                  child: PressScale(
+                    onTap: _copy,
+                    scale: 0.9,
+                    child: Container(
+                      key: const Key('code-copy'),
+                      width: s.copySize,
+                      height: s.copySize,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: s.copyFill,
+                        border: s.copyBorder == null
+                            ? null
+                            : Border.fromBorderSide(s.copyBorder!),
+                        borderRadius: s.copyRadius ?? theme.radiusSm,
+                      ),
+                      child: glyph(15, _copied ? theme.accent : theme.textMuted),
+                    ),
+                  ),
+                ),
+              ],
+            ),
     );
   }
+
+  EdgeInsets _clearOfButton(EdgeInsetsGeometry p, NeoCodeStyle s) {
+    final e = p.resolve(TextDirection.ltr);
+    final min = s.copySize + 2 * s.copyInset;
+    return e.right >= min ? e : e.copyWith(right: min);
+  }
+
+  Widget _scrolled(NeoCodeStyle s, Widget text) => s.wrap || s.copyGlyph != null
+      ? text
+      : SingleChildScrollView(scrollDirection: Axis.horizontal, child: text);
 }
 
 /// Accent-tinted pill: "Copy" -> "Copied" after a tap. Fill and text derive from

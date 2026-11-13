@@ -244,4 +244,52 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.text('ok'), findsOneWidget);
   });
+
+  group('a strong run carries the emphasis weight', () {
+    TextSpan spanOf(WidgetTester tester, String text) {
+      final root = tester.widget<Text>(find.byType(Text).first).textSpan! as TextSpan;
+      return root.children!.cast<TextSpan>().firstWhere((s) => s.text == text);
+    }
+
+    testWidgets('inside a muted caption it renders white at w500', (tester) async {
+      await _pump(tester, {
+        'type': 'text',
+        'body': ['Open ', {'text': 'Connectors', 'tone': 'strong'}, ' next.'],
+      }, _gradTheme);
+      final strong = spanOf(tester, 'Connectors');
+      expect(strong.style!.fontWeight, FontWeight.w500);
+      expect(strong.style!.color, _gradTheme.accentFor('strong')!.color);
+      expect(spanOf(tester, 'Open ').style!.fontWeight, isNot(FontWeight.w500));
+    });
+
+    testWidgets('inside a w500 subtitle it stays w500 and white', (tester) async {
+      await _pump(tester, {
+        'type': 'header',
+        'title': 'Title',
+        'subtitle': ['Use ', {'text': 'Claude', 'tone': 'strong'}],
+      }, _gradTheme);
+      final strong = tester
+          .widgetList<Text>(find.byType(Text))
+          .map((t) => t.textSpan)
+          .whereType<TextSpan>()
+          .expand((s) => s.children!.cast<TextSpan>())
+          .firstWhere((s) => s.text == 'Claude');
+      expect(strong.style!.fontWeight, FontWeight.w500);
+      expect(strong.style!.color, _gradTheme.accentFor('strong')!.color);
+    });
+
+    testWidgets('combined with mono it keeps the mono style at w500', (tester) async {
+      await _pump(tester, {
+        'type': 'text',
+        'body': [
+          'Run ',
+          {'text': 'claude', 'mono': true, 'tone': 'strong'},
+        ],
+      }, _gradTheme);
+      final run = spanOf(tester, 'claude');
+      expect(run.style!.fontWeight, FontWeight.w500);
+      expect(run.style!.fontSize, _gradTheme.mono.fontSize);
+      expect(run.style!.fontFamilyFallback, _gradTheme.mono.fontFamilyFallback);
+    });
+  });
 }

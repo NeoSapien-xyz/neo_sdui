@@ -26,4 +26,8 @@ void main() {
       ..register('cta', other);
     expect(r.builderFor('cta'), same(other));
   });
+
+  test('the default registry carries the accordion', () {
+    expect(defaultRegistry().contains('accordion'), isTrue);
+  });
 }

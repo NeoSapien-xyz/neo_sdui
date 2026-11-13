@@ -802,7 +802,7 @@ void main() {
         NeoSduiTheme.fallback().copyWith(divider: line));
     final rule = tester.widget<CustomPaint>(find.byWidgetPredicate((w) =>
         w is CustomPaint &&
-        w.painter.runtimeType.toString() == '_DashedLinePainter'));
+        w.painter.runtimeType.toString() == 'DashedLinePainter'));
     expect((rule.painter as dynamic).color, line);
   });
 

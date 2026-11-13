@@ -27,6 +27,7 @@ const _viewSource = 'lib/src/model/view.dart';
 /// The wire type(s) each block source implements — the contract row(s) its keys
 /// are checked against. Held to `default_registry.dart` by the guard test below.
 const _typesByFile = <String, List<String>>{
+  'accordion.dart': ['accordion'],
   'callout.dart': ['callout'],
   'card.dart': ['card'],
   'code.dart': ['code'],

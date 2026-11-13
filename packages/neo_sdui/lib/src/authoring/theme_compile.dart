@@ -15,6 +15,8 @@
 /// theme the app quietly replaces with the system font.
 library;
 
+import 'dart:convert';
+
 import 'package:flutter/widgets.dart';
 
 import '../theme/neo_sdui_theme.dart';
@@ -27,8 +29,17 @@ typedef LiveApply = NeoSduiTheme Function(NeoSduiTheme base, String value);
 /// preview actually paints) how it lands on a live theme.
 @immutable
 class RoleSlot {
-  const RoleSlot(this.kind, [this.live]);
+  const RoleSlot(this.kind, [this.live]) : isInt = false;
+
+  /// A number slot whose theme field is `int`, not `double`.
+  const RoleSlot.integer()
+      : kind = ValueKind.number,
+        live = null,
+        isInt = true;
   final ValueKind kind;
+
+  /// Only an integer literal may fill this slot (`2.0` would not compile).
+  final bool isInt;
 
   /// Applies this role to a live theme for the preview; null for the
   /// textStyle/gradient/other roles the structural preview leaves at fallback —
@@ -100,6 +111,7 @@ final Map<String, RoleSlot> kRoleSlots = Map.unmodifiable({
   'caption': RoleSlot(ValueKind.textStyle),
   'mono': RoleSlot(ValueKind.textStyle),
   'commandStyle': RoleSlot(ValueKind.textStyle),
+  'strong': RoleSlot(ValueKind.textStyle),
   'calloutBody': RoleSlot(ValueKind.textStyle),
   'cardGradient': RoleSlot(ValueKind.gradient),
   'groupGradient': RoleSlot(ValueKind.gradient),
@@ -121,7 +133,144 @@ final Map<String, RoleSlot> kRoleSlots = Map.unmodifiable({
   'entranceDuration': RoleSlot(ValueKind.other),
   'entranceCurve': RoleSlot(ValueKind.other),
   'reduceMotion': RoleSlot(ValueKind.other),
+  // Component style fields — one slot per field, grouped into `<group>: <Class>(...)`
+  // on emit (see kStyleGroups). No live painter: the preview keeps fallback.
+  'tabs.trackColor': RoleSlot(ValueKind.color),
+  'tabs.trackBorder': RoleSlot(ValueKind.other),
+  'tabs.trackRadius': RoleSlot(ValueKind.other),
+  'tabs.trackPadding': RoleSlot(ValueKind.other),
+  'tabs.gap': RoleSlot(ValueKind.number),
+  'tabs.neumorphic': RoleSlot(ValueKind.other),
+  'tabs.pillColor': RoleSlot(ValueKind.color),
+  'tabs.pillShadow': RoleSlot(ValueKind.other),
+  'tabs.pillBorder': RoleSlot(ValueKind.other),
+  'tabs.labelStyle': RoleSlot(ValueKind.textStyle),
+  'tabs.unselectedWeight': RoleSlot(ValueKind.other),
+  'tabs.labelPadding': RoleSlot(ValueKind.other),
+  'tabs.unselectedColor': RoleSlot(ValueKind.color),
+  'tabs.labelMaxLines': RoleSlot.integer(),
+  'tabs.contentGap': RoleSlot(ValueKind.number),
+  'card.thumbRadius': RoleSlot(ValueKind.other),
+  'card.titleGap': RoleSlot(ValueKind.number),
+  'card.actionGap': RoleSlot(ValueKind.number),
+  'card.listSeparator': RoleSlot(ValueKind.other),
+  'card.listIconColor': RoleSlot(ValueKind.color),
+  'card.listIconGap': RoleSlot(ValueKind.number),
+  'card.listCaret': RoleSlot(ValueKind.other),
+  'card.listCaretGap': RoleSlot(ValueKind.number),
+  'card.shadow': RoleSlot(ValueKind.other),
+  'card.listShadow': RoleSlot(ValueKind.other),
+  'card.pickerLineHeight': RoleSlot(ValueKind.number),
+  'group.border': RoleSlot(ValueKind.other),
+  'group.rowInset': RoleSlot(ValueKind.number),
+  'group.padding': RoleSlot(ValueKind.number),
+  'group.gap': RoleSlot(ValueKind.number),
+  'steps.chipGap': RoleSlot(ValueKind.number),
+  'steps.chipBorder': RoleSlot(ValueKind.color),
+  'steps.badgeStyle': RoleSlot(ValueKind.textStyle),
+  'steps.chipLabelStyle': RoleSlot(ValueKind.textStyle),
+  'steps.cardShadow': RoleSlot(ValueKind.other),
+  'steps.cardGap': RoleSlot(ValueKind.number),
+  'steps.imageBackdrop': RoleSlot(ValueKind.color),
+  'steps.labelStyle': RoleSlot(ValueKind.textStyle),
+  'steps.labelGap': RoleSlot(ValueKind.number),
+  'steps.instructionStyle': RoleSlot(ValueKind.textStyle),
+  'steps.labelNumberOffset': RoleSlot.integer(),
+  'steps.labelSuffix': RoleSlot(ValueKind.other),
+  'steps.autoLinkUrls': RoleSlot(ValueKind.other),
+  'steps.blocksOutsideCard': RoleSlot(ValueKind.other),
+  'callout.fill': RoleSlot(ValueKind.color),
+  'callout.toneSurfaces': RoleSlot(ValueKind.other),
+  'callout.border': RoleSlot(ValueKind.other),
+  'callout.toneBorders': RoleSlot(ValueKind.other),
+  'callout.radius': RoleSlot(ValueKind.other),
+  'callout.padding': RoleSlot(ValueKind.other),
+  'callout.emphasizeFirstBullet': RoleSlot(ValueKind.other),
+  'callout.bulletGap': RoleSlot(ValueKind.number),
+  'callout.listInset': RoleSlot(ValueKind.number),
+  'callout.bulletIndent': RoleSlot(ValueKind.number),
+  'callout.bulletDotGap': RoleSlot(ValueKind.number),
+  'callout.neutralBody': RoleSlot(ValueKind.textStyle),
+  'callout.neutralTitleColor': RoleSlot(ValueKind.color),
+  'faq.itemDecoration': RoleSlot(ValueKind.other),
+  'faq.itemGap': RoleSlot(ValueKind.number),
+  'faq.questionPadding': RoleSlot(ValueKind.other),
+  'faq.caretGlyph': RoleSlot(ValueKind.other),
+  'faq.openTurns': RoleSlot(ValueKind.number),
+  'faq.caretColor': RoleSlot(ValueKind.color),
+  'faq.caretSize': RoleSlot(ValueKind.number),
+  'faq.caretBox': RoleSlot(ValueKind.number),
+  'faq.answerStyle': RoleSlot(ValueKind.textStyle),
+  'faq.questionStyle': RoleSlot(ValueKind.textStyle),
+  'faq.answerPadding': RoleSlot(ValueKind.other),
+  'header.subtitleGap': RoleSlot(ValueKind.number),
+  'header.compactIconSize': RoleSlot(ValueKind.number),
+  'header.compactIconGap': RoleSlot(ValueKind.number),
+  'header.subheadingGap': RoleSlot(ValueKind.number),
+  'header.subheadingTopInset': RoleSlot(ValueKind.number),
+  'header.compactLineHeight': RoleSlot(ValueKind.number),
+  'header.compactSubtitleGap': RoleSlot(ValueKind.number),
+  'accordion.chevron': RoleSlot(ValueKind.other),
+  'accordion.chevronSize': RoleSlot(ValueKind.number),
+  'accordion.headPadding': RoleSlot(ValueKind.other),
+  'accordion.headGap': RoleSlot(ValueKind.number),
+  'accordion.bodyPadding': RoleSlot(ValueKind.other),
+  'accordion.titleStyle': RoleSlot(ValueKind.textStyle),
+  'linkRow.border': RoleSlot(ValueKind.color),
+  'linkRow.fill': RoleSlot(ValueKind.color),
+  'linkRow.iconColor': RoleSlot(ValueKind.color),
+  'linkRow.linkStyle': RoleSlot(ValueKind.textStyle),
+  'linkRow.topPadding': RoleSlot(ValueKind.number),
+  'linkRow.gap': RoleSlot(ValueKind.number),
+  'linkRow.copySize': RoleSlot(ValueKind.number),
+  'linkRow.copyGlyph': RoleSlot(ValueKind.other),
+  'linkRow.checkGlyph': RoleSlot(ValueKind.other),
+  'code.fill': RoleSlot(ValueKind.color),
+  'code.border': RoleSlot(ValueKind.other),
+  'code.radius': RoleSlot(ValueKind.other),
+  'code.padding': RoleSlot(ValueKind.other),
+  'code.textStyle': RoleSlot(ValueKind.textStyle),
+  'code.wrap': RoleSlot(ValueKind.other),
+  'code.copyGlyph': RoleSlot(ValueKind.other),
+  'code.copySize': RoleSlot(ValueKind.number),
+  'code.copyFill': RoleSlot(ValueKind.color),
+  'code.copyBorder': RoleSlot(ValueKind.other),
+  'code.copyRadius': RoleSlot(ValueKind.other),
+  'code.copyInset': RoleSlot(ValueKind.number),
+  'sectionSpacing': RoleSlot(ValueKind.number),
+  'viewPadding': RoleSlot(ValueKind.other),
+  'rowTitle': RoleSlot(ValueKind.textStyle),
+  'panelTitle': RoleSlot(ValueKind.textStyle),
+  'paragraph': RoleSlot(ValueKind.textStyle),
+  'footnote': RoleSlot(ValueKind.textStyle),
+  'subheading': RoleSlot(ValueKind.textStyle),
+  'backgroundOverlay': RoleSlot(ValueKind.other),
 });
+
+/// Style-group prefix -> style class. A ledger key `tabs.gap` is one field of the
+/// `tabs` group; the emit gathers a group's keys into one `tabs: NeoTabsStyle(...)`
+/// argument, so each field keeps its own kind, provenance and source in the
+/// ledger. The group names are `NeoSduiTheme` params.
+const Map<String, String> kStyleGroups = {
+  'tabs': 'NeoTabsStyle',
+  'card': 'NeoCardStyle',
+  'group': 'NeoGroupStyle',
+  'steps': 'NeoStepsStyle',
+  'callout': 'NeoCalloutStyle',
+  'faq': 'NeoFaqStyle',
+  'header': 'NeoHeaderStyle',
+  'accordion': 'NeoAccordionStyle',
+  'linkRow': 'NeoLinkRowStyle',
+  'code': 'NeoCodeStyle',
+};
+
+/// The style group a dotted role key belongs to (`tabs.gap` -> `tabs`), or null.
+String? _styleGroupOf(String key) {
+  final dot = key.indexOf('.');
+  if (dot < 0) return null;
+  final group = key.substring(0, dot);
+  return kStyleGroups.containsKey(group) ? group : null;
+}
 
 /// The [NeoSduiTheme] fields [kRoleSlots] deliberately has no slot for, each with
 /// its reason. Every *other* constructor param must be a registered slot:
@@ -129,11 +278,27 @@ final Map<String, RoleSlot> kRoleSlots = Map.unmodifiable({
 /// a field added to the theme can never again reach the compile as a passive
 /// `// TODO(theme): unsupported role` — which is exactly how `titleGradient`
 /// shipped as a field two blocks read and the compile could not place.
+const String _styleGroupReason = 'style group — observed per field as '
+    '`<group>.<field>`, grouped into one style constructor call by kStyleGroups, '
+    'never as a whole-object slot.';
+
 const Map<String, String> kRoleSlotsIntentionallyAbsent = {
+  'tabs': _styleGroupReason,
+  'card': _styleGroupReason,
+  'group': _styleGroupReason,
+  'steps': _styleGroupReason,
+  'callout': _styleGroupReason,
+  'faq': _styleGroupReason,
+  'header': _styleGroupReason,
+  'accordion': _styleGroupReason,
+  'linkRow': _styleGroupReason,
+  'code': _styleGroupReason,
   'accents': 'map-typed — observed per entry as `accents.<name>`, matched by '
       '$kAccentsPrefix in _isKnownRole/_emitRoles, never as a whole-map slot.',
   'icons': 'map-typed — observed per entry as `icons.<name>`, matched by '
       '$kIconsPrefix (and spread over kDefaultIcons on emit).',
+  'glyphs': 'map-typed — observed per entry as `glyphs.<name>`, a verbatim '
+      'NeoGlyphBuilder literal, matched by $kGlyphsPrefix (no default to spread).',
 };
 
 /// A roleKey the compile knows how to place: a registered scalar slot or a
@@ -141,7 +306,8 @@ const Map<String, String> kRoleSlotsIntentionallyAbsent = {
 bool _isKnownRole(String key) =>
     kRoleSlots.containsKey(key) ||
     key.startsWith(kAccentsPrefix) ||
-    key.startsWith(kIconsPrefix);
+    key.startsWith(kIconsPrefix) ||
+    key.startsWith(kGlyphsPrefix);
 
 /// A live [NeoSduiTheme] from a reconciled ledger, for U4's render preview.
 ///
@@ -182,12 +348,78 @@ const List<String> _fixedImports = [
   'package:neo_sdui/neo_sdui.dart',
 ];
 
-/// The paste-in Dart source: a `base` theme plus a named `copyWith` per divergent
-/// page. Always starts from `NeoSduiTheme.fallback().copyWith(...)`.
-String emitTheme(Reconciled r) {
-  final b = StringBuffer()
-    ..writeln('// Generated by figwire theme-compile — review every '
-        '`confirm` and `todo` marker before shipping.');
+/// The lint suppressions an emitted theme needs: the literals are written the
+/// way the ledger records them, not the way the analyzer would prefer.
+const String _ignoreForFile = '// ignore_for_file: prefer_const_constructors, '
+    'avoid_redundant_argument_values';
+
+const String _checksumTag = '// checksum: fnv1a64:';
+
+/// The Dart source for a theme: a [name]d theme (default `base`) plus a named
+/// `copyWith` per divergent page. Always starts from
+/// `NeoSduiTheme.fallback().copyWith(...)`.
+///
+/// The output is meant to be written straight into the app (`NEO_THEME_OUT`),
+/// so it opens with a comment header carrying a checksum of everything after
+/// it. [themeChecksumMatches] reads that back, which lets the app hold the
+/// file against hand edits without the ledger being present.
+String emitTheme(Reconciled r, {String name = 'base'}) {
+  final body = _emitBody(r, name);
+  return '// Generated by figwire theme-compile — review every `confirm` and '
+      '`todo` marker before shipping.\n'
+      '// Do not edit by hand: change the theme ledger and recompile.\n'
+      '$_checksumTag${_fnv1a64(body)}\n'
+      '$_ignoreForFile\n'
+      '$body';
+}
+
+/// Whether [source]'s header checksum matches the code under it. False when
+/// the file was edited by hand after the compile, or carries no checksum.
+bool themeChecksumMatches(String source) {
+  final lines = source.split('\n');
+  var bodyStart = 0;
+  String? recorded;
+  while (bodyStart < lines.length && lines[bodyStart].startsWith('//')) {
+    final line = lines[bodyStart];
+    if (line.startsWith(_checksumTag)) {
+      recorded = line.substring(_checksumTag.length).trim();
+    }
+    bodyStart++;
+  }
+  if (recorded == null) return false;
+  return recorded == _fnv1a64(lines.skip(bodyStart).join('\n'));
+}
+
+/// Null when [actual] is exactly [expected]; otherwise a short summary naming
+/// the first line that differs, for the compile tool's check mode.
+String? themeSourceDrift({required String expected, required String actual}) {
+  if (expected == actual) return null;
+  final e = expected.split('\n'), a = actual.split('\n');
+  var i = 0;
+  while (i < e.length && i < a.length && e[i] == a[i]) {
+    i++;
+  }
+  String at(List<String> l) => i < l.length ? l[i] : '<end of file>';
+  return 'theme file differs from a fresh compile at line ${i + 1}:\n'
+      '  compile: ${at(e)}\n'
+      '  file:    ${at(a)}\n'
+      'Recompile from the ledger instead of editing the file.';
+}
+
+/// 64-bit FNV-1a over the UTF-8 bytes, as 16 hex digits. Enough to notice an
+/// edit; not a security check.
+String _fnv1a64(String s) {
+  var hash = -3750763034362895579; // 0xcbf29ce484222325 as a signed 64-bit int
+  for (final byte in utf8.encode(s)) {
+    hash = (hash ^ byte) * 0x100000001b3;
+  }
+  // Two 32-bit halves: a negative int's toRadixString keeps the sign.
+  String half(int v) => (v & 0xFFFFFFFF).toRadixString(16).padLeft(8, '0');
+  return half(hash >> 32) + half(hash);
+}
+
+String _emitBody(Reconciled r, String name) {
+  final b = StringBuffer();
   // The fixed pair, then the ledger's own (deduped against them, sorted) — so a
   // ledger literal that names a symbol outside dart:core/widgets/neo_sdui
   // (`GoogleFonts.workSans`, `Icons.iosShare`, an app-owned grain overlay) is
@@ -199,7 +431,7 @@ String emitTheme(Reconciled r) {
   }
   b
     ..writeln()
-    ..writeln('final base = NeoSduiTheme.fallback().copyWith(');
+    ..writeln('final $name = NeoSduiTheme.fallback().copyWith(');
   final skipped = _emitRoles(b, r.base);
   b.writeln(');');
 
@@ -220,13 +452,31 @@ String emitTheme(Reconciled r) {
   }
 
   final pages = r.overridesByPage.keys.toList()..sort();
-  final usedIdents = <String>{'base'}; // reserve the base variable name
+  final usedIdents = <String>{name}; // reserve the base variable name
   for (final page in pages) {
     b
       ..writeln()
-      ..writeln('final ${_uniqueIdent(page, usedIdents)} = base.copyWith(');
-    final skippedOverride = _emitRoles(b, r.overridesByPage[page]!, isOverride: true);
+      ..writeln('final ${_uniqueIdent(page, usedIdents)} = $name.copyWith(');
+    final skippedOverride =
+        _emitRoles(b, r.overridesByPage[page]!, isOverride: true, base: name);
     b.writeln(');');
+    final styleKeys = r.overridesByPage[page]!.keys
+        .where((k) => _styleGroupOf(k) != null)
+        .toList()
+      ..sort();
+    final unknownStyleKeys =
+        styleKeys.where((k) => !kRoleSlots.containsKey(k)).toList();
+    styleKeys.removeWhere(unknownStyleKeys.contains);
+    if (unknownStyleKeys.isNotEmpty) {
+      b.writeln('// TODO(theme): unsupported role(s) '
+          '${unknownStyleKeys.join(', ')} on override "$page" — not a '
+          'NeoSduiTheme field; extend kRoleSlots or fix the ledger.');
+    }
+    if (styleKeys.isNotEmpty) {
+      b.writeln('// TODO(theme): unsupported role(s) ${styleKeys.join(', ')} '
+          'on override "$page" — style classes have no copyWith; set them on '
+          'the base theme.');
+    }
     if (skippedOverride.isNotEmpty) {
       b.writeln('// TODO(theme): unresolved ${(skippedOverride..sort()).join(', ')} '
           'on override "$page" — ledger kind/value did not match the registry '
@@ -254,6 +504,17 @@ String coverageReport(Reconciled r) {
     ..write(line(Provenance.measured))
     ..write(line(Provenance.inferred))
     ..write(line(Provenance.todo));
+  final keys = r.base.keys.toList()..sort();
+  final sourced = [
+    for (final k in keys)
+      if (r.base[k]!.source != null) '  $k <- ${r.base[k]!.source}',
+  ];
+  final unsourced = [
+    for (final k in keys)
+      if (r.base[k]!.source == null) k,
+  ];
+  if (sourced.isNotEmpty) b.writeln('Sources:\n${sourced.join('\n')}');
+  if (unsourced.isNotEmpty) b.writeln('Unsourced: ${unsourced.join(', ')}');
   if (r.conflictRoles.isNotEmpty) {
     b.writeln('Conflicts (base-vs-override): ${r.conflictRoles.join(', ')}');
   }
@@ -314,17 +575,31 @@ String? inferredRoleGate(Reconciled r, {required bool allow}) {
 /// (kind/value could not be vouched for) so the caller can flag them; `todo`
 /// roles are also skipped but reported separately via [_uncovered].
 List<String> _emitRoles(StringBuffer b, Map<String, ResolvedRole> roles,
-    {bool isOverride = false}) {
+    {bool isOverride = false, String base = 'base'}) {
   final accents = <String, ResolvedRole>{};
   final icons = <String, ResolvedRole>{};
+  final glyphs = <String, ResolvedRole>{};
+  final styles = <String, List<String>>{};
   final simple = <String>[];
   for (final key in roles.keys) {
+    final styleGroup = _styleGroupOf(key);
+    if (styleGroup != null) {
+      // Style fields group into one constructor call on the base; an override
+      // has no copyWith for them, so the caller flags them instead.
+      if (!isOverride && kRoleSlots.containsKey(key)) {
+        (styles[styleGroup] ??= <String>[]).add(key);
+      }
+      continue;
+    }
     final accentName = stripRolePrefix(key, kAccentsPrefix);
     final iconName = stripRolePrefix(key, kIconsPrefix);
+    final glyphName = stripRolePrefix(key, kGlyphsPrefix);
     if (accentName != null) {
       accents[accentName] = roles[key]!;
     } else if (iconName != null) {
       icons[iconName] = roles[key]!;
+    } else if (glyphName != null) {
+      glyphs[glyphName] = roles[key]!;
     } else if (kRoleSlots.containsKey(key)) {
       simple.add(key); // unknown scalar roles are skipped — emitTheme TODOs them
     }
@@ -349,9 +624,30 @@ List<String> _emitRoles(StringBuffer b, Map<String, ResolvedRole> roles,
         role.provenance == Provenance.inferred ? '  // confirm:' : '';
     b.writeln('  $key: $expr,$confirm');
   }
+  for (final group in kStyleGroups.keys) {
+    final keys = styles[group];
+    if (keys == null) continue;
+    final lines = <String>[];
+    for (final key in keys..sort()) {
+      final role = roles[key]!;
+      if (role.provenance == Provenance.todo) continue;
+      final expr = _scalarExpr(kRoleSlots[key]!, role);
+      if (expr == null) {
+        skipped.add(key);
+        continue;
+      }
+      final confirm =
+          role.provenance == Provenance.inferred ? '  // confirm:' : '';
+      lines.add('    ${key.substring(group.length + 1)}: $expr,$confirm');
+    }
+    if (lines.isEmpty) continue;
+    b.writeln('  $group: ${kStyleGroups[group]}(');
+    lines.forEach(b.writeln);
+    b.writeln('  ),');
+  }
   if (accents.isNotEmpty) {
     b.writeln('  accents: {');
-    if (isOverride) b.writeln('    ...base.accents,');
+    if (isOverride) b.writeln('    ...$base.accents,');
     for (final name in accents.keys.toList()..sort()) {
       b.writeln("    '$name': ${_accentExpr(accents[name]!)},");
     }
@@ -359,10 +655,25 @@ List<String> _emitRoles(StringBuffer b, Map<String, ResolvedRole> roles,
   }
   if (icons.isNotEmpty) {
     b.writeln('  icons: {');
-    b.writeln(isOverride ? '    ...base.icons,' : '    ...kDefaultIcons,');
+    b.writeln(isOverride ? '    ...$base.icons,' : '    ...kDefaultIcons,');
     for (final name in icons.keys.toList()..sort()) {
       b.writeln("    '$name': ${_expr(icons[name]!)},");
     }
+    b.writeln('  },');
+  }
+  // Only a builder literal (`other`) can be a glyph; anything else is flagged.
+  final glyphLines = <String>[];
+  for (final name in glyphs.keys.toList()..sort()) {
+    if (glyphs[name]!.kind != ValueKind.other) {
+      skipped.add('$kGlyphsPrefix$name');
+      continue;
+    }
+    glyphLines.add("    '$name': ${_expr(glyphs[name]!)},");
+  }
+  if (glyphLines.isNotEmpty) {
+    b.writeln('  glyphs: {');
+    if (isOverride) b.writeln('    ...$base.glyphs,');
+    glyphLines.forEach(b.writeln);
     b.writeln('  },');
   }
   return skipped;
@@ -389,7 +700,10 @@ String? _scalarExpr(RoleSlot slot, ResolvedRole role) {
     case ValueKind.color:
       return parseColorHex(role.value) == null ? null : 'Color(${role.value})';
     case ValueKind.number:
-      return double.tryParse(role.value) == null ? null : role.value;
+      final ok = slot.isInt
+          ? int.tryParse(role.value) != null
+          : double.tryParse(role.value) != null;
+      return ok ? role.value : null;
     default:
       return role.value;
   }

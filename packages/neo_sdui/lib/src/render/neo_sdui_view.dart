@@ -158,10 +158,9 @@ class _NeoSduiViewState extends State<NeoSduiView> {
       content = _buildBlocks(widget.defaultDocument!.blocks);
     }
     return ListView.separated(
-      padding: theme.contentPadding +
-          EdgeInsets.symmetric(vertical: theme.blockSpacing),
+      padding: theme.contentPadding + theme.resolvedViewPadding,
       itemCount: content.length,
-      separatorBuilder: (_, _) => SizedBox(height: theme.blockSpacing),
+      separatorBuilder: (_, _) => SizedBox(height: theme.resolvedSectionSpacing),
       // Only a *top-level* block stages its entrance. Blocks nested inside a tab
       // or group arrive with their parent, which already animated.
       itemBuilder: (_, i) =>
@@ -175,7 +174,8 @@ class _NeoSduiViewState extends State<NeoSduiView> {
   Widget _tabbedScroll(
       BuildContext context, NeoSduiTheme theme, List<BlockNode> nodes) {
     final slivers = <Widget>[
-      SliverToBoxAdapter(child: SizedBox(height: theme.blockSpacing)),
+      SliverToBoxAdapter(
+          child: SizedBox(height: theme.resolvedViewPadding.top)),
     ];
     final run = <Widget>[];
     // Entrance index counts only *rendered* top-level blocks (matching
@@ -192,9 +192,9 @@ class _NeoSduiViewState extends State<NeoSduiView> {
           padding: theme.contentPadding,
           sliver: SliverList(
             delegate: SliverChildBuilderDelegate(
-              // Interleave `blockSpacing` separators between items (index odd).
+              // Interleave section-spacing separators between items (index odd).
               (_, i) => i.isOdd
-                  ? SizedBox(height: theme.blockSpacing)
+                  ? SizedBox(height: theme.resolvedSectionSpacing)
                   : items[i ~/ 2],
               childCount: items.length * 2 - 1,
             ),
@@ -208,8 +208,8 @@ class _NeoSduiViewState extends State<NeoSduiView> {
       if (_isPinnableTabs(node)) {
         flushRun();
         if (slivers.length > 1) {
-          slivers
-              .add(SliverToBoxAdapter(child: SizedBox(height: theme.blockSpacing)));
+          slivers.add(SliverToBoxAdapter(
+              child: SizedBox(height: theme.resolvedSectionSpacing)));
         }
         slivers.addAll(
           tabsPinnedSlivers(
@@ -221,7 +221,8 @@ class _NeoSduiViewState extends State<NeoSduiView> {
       }
     }
     flushRun();
-    slivers.add(SliverToBoxAdapter(child: SizedBox(height: theme.blockSpacing)));
+    slivers.add(SliverToBoxAdapter(
+        child: SizedBox(height: theme.resolvedViewPadding.bottom)));
 
     return CustomScrollView(slivers: slivers);
   }
@@ -233,9 +234,18 @@ class _NeoSduiViewState extends State<NeoSduiView> {
   Widget _backdrop(NeoSduiTheme theme, {required Widget child}) {
     final gradient = theme.backgroundGradient;
     if (gradient == null) return ColoredBox(color: theme.background, child: child);
+    final overlay = theme.backgroundOverlay;
     return DecoratedBox(
       decoration: BoxDecoration(gradient: gradient),
-      child: child,
+      child: overlay == null
+          ? child
+          : Stack(
+              fit: StackFit.expand,
+              children: [
+                Positioned.fill(child: IgnorePointer(child: Builder(builder: overlay))),
+                child,
+              ],
+            ),
     );
   }
 

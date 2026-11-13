@@ -25,6 +25,7 @@ Widget neoNetworkImage(
   required double ratio,
   BorderRadius? radius,
   Alignment alignment = Alignment.center,
+  Color? backdrop,
 }) {
   final image = Image.network(
     url,
@@ -50,7 +51,10 @@ Widget neoNetworkImage(
             );
       // Reserved on the first (frame==null) call, so the card holds this height
       // through the whole load — no expand-on-arrival.
-      return AspectRatio(aspectRatio: ratio, child: content);
+      return AspectRatio(
+        aspectRatio: ratio,
+        child: backdrop == null ? content : ColoredBox(color: backdrop, child: content),
+      );
     },
   );
   return radius == null ? image : ClipRRect(borderRadius: radius, child: image);

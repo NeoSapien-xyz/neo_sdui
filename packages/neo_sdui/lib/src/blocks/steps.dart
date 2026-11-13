@@ -10,6 +10,7 @@ import '../theme/neo_sdui_scope.dart';
 import '../theme/neo_sdui_theme.dart';
 import '_gradient_text.dart';
 import '_grid.dart';
+import '_icon.dart';
 import '_media_frame.dart';
 import '_motion.dart';
 import '_neumorphic.dart';
@@ -42,7 +43,7 @@ Widget buildSteps(BuildContext context, BlockNode node) {
           carded ? CrossAxisAlignment.stretch : CrossAxisAlignment.start,
       children: [
         for (var i = 0; i < items.length; i++) ...[
-          if (i > 0) SizedBox(width: theme.spaceMd),
+          if (i > 0) SizedBox(width: theme.steps.chipGap ?? theme.spaceMd),
           Expanded(child: _cell(theme, i + 1, items[i], numberTone)),
         ],
       ],
@@ -54,7 +55,7 @@ Widget buildSteps(BuildContext context, BlockNode node) {
     children: [
       for (var i = 0; i < items.length; i++)
         Padding(
-          padding: EdgeInsets.only(bottom: i == items.length - 1 ? 0 : 12),
+          padding: EdgeInsets.only(bottom: i == items.length - 1 ? 0 : theme.steps.cardGap),
           child: _item(scope, i + 1, items[i], numberTone),
         ),
     ],
@@ -67,7 +68,7 @@ Widget buildSteps(BuildContext context, BlockNode node) {
 Widget _cell(NeoSduiTheme theme, int n, Map<String, Object?> item, String tone) {
   final cap = item['caption'];
   final caption = (cap is String || cap is List)
-      ? neoText(theme, cap, theme.body)
+      ? neoText(theme, cap, theme.steps.chipLabelStyle ?? theme.body)
       : Text('—', key: const Key('step-error'), style: theme.body);
   final detail = item['detail'];
   final content = Column(
@@ -86,13 +87,12 @@ Widget _cell(NeoSduiTheme theme, int n, Map<String, Object?> item, String tone) 
   // checklist), byte-identical to before.
   final bg = theme.stepCardColor;
   if (bg == null) return content;
+  final chipBorder = theme.steps.chipBorder ?? theme.stepCardBorderColor;
   return Container(
     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
     decoration: BoxDecoration(
       color: bg,
-      border: theme.stepCardBorderColor == null
-          ? null
-          : Border.all(color: theme.stepCardBorderColor!),
+      border: chipBorder == null ? null : Border.all(color: chipBorder),
       borderRadius: theme.radiusMd,
     ),
     child: content,
@@ -117,7 +117,9 @@ Widget _badge(NeoSduiTheme theme, int n, String tone) {
     // neoText's gradient path.
     // geometry: fits the digit to the 20px badge above — glyph metrics, not the
     // type scale. Not the theme's to set.
-    child: Text('$n', style: theme.caption.copyWith(color: c, fontSize: 11)),
+    child: Text('$n',
+        style: theme.steps.badgeStyle?.copyWith(color: c) ??
+            theme.caption.copyWith(color: c, fontSize: 11)),
   );
 }
 
@@ -189,7 +191,8 @@ Widget _item(NeoSduiScope scope, int n, Map<String, Object?> item, String number
   // `code` command (the Claude-guide step-1 card). Both absent -> the row alone.
   final image = _stepImage(theme, item);
   final blocks = scope.buildBlocks(_stepBlocks(item));
-  if (image == null && blocks.isEmpty) return row;
+  final link = _stepLink(theme, item['link']);
+  if (image == null && blocks.isEmpty && link == null) return row;
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
@@ -202,6 +205,7 @@ Widget _item(NeoSduiScope scope, int n, Map<String, Object?> item, String number
           blocks[i],
         ],
       ],
+      ?link,
     ],
   );
 }
@@ -221,8 +225,8 @@ Widget _cardedItem(NeoSduiScope scope, int n, Map<String, Object?> item, String 
   final cap = item['caption'];
   // Caption is white (not the muted body color), medium weight; a bare-string
   // caption also gets its URLs underlined (the figma link look).
-  final capStyle =
-      theme.body.copyWith(color: theme.textPrimary, fontWeight: FontWeight.w500);
+  final capStyle = theme.steps.instructionStyle ??
+      theme.emphasize(theme.body).copyWith(color: theme.textPrimary);
   final detail = item['detail'];
   final code = item['code'];
   final image = _stepImage(theme, item, clip: false);
@@ -249,11 +253,12 @@ Widget _cardedItem(NeoSduiScope scope, int n, Map<String, Object?> item, String 
           ? neoText(theme, cap, capStyle)
           : Text('—', key: const Key('step-error'), style: capStyle));
   final blocks = scope.buildBlocks(_stepBlocks(item));
+  final outside = theme.steps.blocksOutsideCard;
   final body = Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      _stepLabel(theme, n - 1),
-      const SizedBox(height: 4),
+      _stepLabel(theme, n),
+      SizedBox(height: theme.steps.labelGap),
       caption,
       // The carded detail is the caption's muted sibling — same body size (the
       // figma "(This can be different…)" is 16px grey, NOT the 12px caption the
@@ -262,13 +267,14 @@ Widget _cardedItem(NeoSduiScope scope, int n, Map<String, Object?> item, String 
         const SizedBox(height: 4),
         Text(detail, style: capStyle.copyWith(color: theme.textMuted)),
       ],
-      if (blocks.isNotEmpty) ...[
+      if (blocks.isNotEmpty && !outside) ...[
         SizedBox(height: theme.spaceSm),
         for (var i = 0; i < blocks.length; i++) ...[
           if (i > 0) SizedBox(height: theme.blockSpacing),
           blocks[i],
         ],
       ],
+      ?_stepLink(theme, item['link']),
     ],
   );
   final hero = promo
@@ -290,7 +296,7 @@ Widget _cardedItem(NeoSduiScope scope, int n, Map<String, Object?> item, String 
               ),
               child: image,
             ));
-  return Container(
+  final card = Container(
     clipBehavior: Clip.antiAlias,
     decoration: BoxDecoration(
       color: theme.surface,
@@ -298,7 +304,7 @@ Widget _cardedItem(NeoSduiScope scope, int n, Map<String, Object?> item, String 
       border: theme.stepCardBorderColor == null
           ? null
           : Border.all(color: theme.stepCardBorderColor!),
-      boxShadow: theme.cardShadow,
+      boxShadow: theme.steps.cardShadow ?? theme.cardShadow,
     ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -308,6 +314,14 @@ Widget _cardedItem(NeoSduiScope scope, int n, Map<String, Object?> item, String 
       ],
     ),
   );
+  if (!outside || blocks.isEmpty) return card;
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      card,
+      for (final b in blocks) ...[SizedBox(height: theme.steps.cardGap), b],
+    ],
+  );
 }
 
 /// The "Step n:" label: a white->grey vertical gradient (the figma detail head),
@@ -315,8 +329,8 @@ Widget _cardedItem(NeoSduiScope scope, int n, Map<String, Object?> item, String 
 /// [NeoSduiTheme.titleGradient] role (shared with the section-header emboss);
 /// null theme -> the baked white->grey fallback, so the render is unchanged.
 Widget _stepLabel(NeoSduiTheme theme, int n) {
-  final style = theme.body
-      .copyWith(fontWeight: FontWeight.w500, color: const Color(0xFFFFFFFF));
+  final style = theme.steps.labelStyle ??
+      theme.emphasize(theme.body).copyWith(color: const Color(0xFFFFFFFF));
   final gradient = theme.titleGradient ??
       const LinearGradient(
         begin: Alignment.topCenter,
@@ -326,7 +340,7 @@ Widget _stepLabel(NeoSduiTheme theme, int n) {
   return ShaderMask(
     blendMode: BlendMode.srcIn,
     shaderCallback: gradient.createShader,
-    child: Text('Step $n:', style: style),
+    child: Text('Step ${n + theme.steps.labelNumberOffset}${theme.steps.labelSuffix}', style: style),
   );
 }
 
@@ -383,13 +397,16 @@ class _LinkedTextState extends State<_LinkedText> {
     // Rebuilt recognizers each build (theme/text can change) — dispose the old
     // set first so none dangles.
     _clearRecognizers();
-    final matches = _urlRe.allMatches(widget.text).toList();
+    final scope = NeoSduiScope.of(context);
+    final matches = scope.theme.steps.autoLinkUrls
+        ? _urlRe.allMatches(widget.text).toList()
+        : const <RegExpMatch>[];
     // No links and no trailing command -> a plain Text (golden-stable).
     if (matches.isEmpty && widget.trailing == null) {
       return Text(widget.text, style: widget.style);
     }
-    final scope = NeoSduiScope.of(context);
     final accent = scope.theme.accent;
+    final autoLink = scope.theme.steps.autoLinkUrls;
     final linkStyle = widget.style.copyWith(
       color: accent,
       decoration: TextDecoration.underline,
@@ -419,7 +436,9 @@ class _LinkedTextState extends State<_LinkedText> {
     // accent-underline link style; not tappable.
     if (widget.trailing != null) {
       spans.add(const TextSpan(text: ' '));
-      spans.add(TextSpan(text: widget.trailing, style: widget.trailingStyle ?? linkStyle));
+      spans.add(TextSpan(
+          text: widget.trailing,
+          style: widget.trailingStyle ?? (autoLink ? linkStyle : null)));
     }
     return Text.rich(TextSpan(style: widget.style, children: spans));
   }
@@ -469,6 +488,7 @@ Widget? _stepImage(NeoSduiTheme theme, Map<String, Object?> item, {bool clip = t
     ratio: ratio,
     alignment: Alignment.topCenter,
     radius: clip ? theme.radiusMd : null,
+    backdrop: theme.steps.imageBackdrop,
   );
 }
 
@@ -652,7 +672,7 @@ class _CommandCardState extends State<_CommandCard> {
   /// the use-case titles paint with). No theme gradient -> flat accent.
   Widget _copyLabel(NeoSduiTheme theme) {
     final text = _copied ? 'Copied' : 'Copy Command';
-    final style = theme.caption.copyWith(fontWeight: FontWeight.w500);
+    final style = theme.emphasize(theme.caption);
     final ag = theme.accentGradient;
     if (ag is! LinearGradient) return neoText(theme, text, style, tone: 'accent');
     final vertical = LinearGradient(
@@ -665,6 +685,158 @@ class _CommandCardState extends State<_CommandCard> {
       blendMode: BlendMode.srcIn,
       shaderCallback: (b) => vertical.createShader(b),
       child: Text(text, style: style.copyWith(color: const Color(0xFFFFFFFF))),
+    );
+  }
+}
+
+/// A step's optional `link: {url, label?}` as a row under the step: a dashed
+/// rule, the label (accent, taps open the url externally) and a copy button. Not
+/// a map with a non-empty `url` -> null (no row). Only http/https urls are
+/// tappable or copyable; any other scheme shows the label as plain text.
+Widget? _stepLink(NeoSduiTheme theme, Object? link) {
+  if (link is! Map) return null;
+  final url = link['url'];
+  if (url is! String || url.isEmpty) return null;
+  final label = link['label'] is String && (link['label'] as String).isNotEmpty
+      ? link['label'] as String
+      : url;
+  final uri = Uri.tryParse(url);
+  final safe =
+      uri != null &&
+      (uri.scheme == 'http' || uri.scheme == 'https') &&
+      uri.host.isNotEmpty;
+  return _StepLinkRow(url: url, uri: safe ? uri : null, label: label);
+}
+
+class _StepLinkRow extends StatefulWidget {
+  const _StepLinkRow({
+    required this.url,
+    required this.uri,
+    required this.label,
+  });
+
+  final String url;
+
+  /// Null when the url isn't http/https: the row is then inert plain text.
+  final Uri? uri;
+  final String label;
+
+  @override
+  State<_StepLinkRow> createState() => _StepLinkRowState();
+}
+
+class _StepLinkRowState extends State<_StepLinkRow> {
+  static const _confirmFor = Duration(seconds: 2);
+  bool _copied = false;
+  Timer? _timer;
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _copy() async {
+    await Clipboard.setData(ClipboardData(text: widget.url));
+    await HapticFeedback.selectionClick();
+    if (!mounted) return;
+    setState(() => _copied = true);
+    _timer?.cancel();
+    _timer = Timer(_confirmFor, () {
+      if (mounted) setState(() => _copied = false);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scope = NeoSduiScope.of(context);
+    final theme = scope.theme;
+    final s = theme.linkRow;
+    final uri = widget.uri;
+    final style = s.linkStyle ?? theme.caption.copyWith(color: theme.accent);
+    final label = Text(
+      widget.label,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: uri == null ? theme.caption : style,
+    );
+    return Padding(
+      padding: const EdgeInsets.only(top: 6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SizedBox(
+            height: 1,
+            child: CustomPaint(
+              painter: DashedLinePainter(
+                theme.divider ?? theme.onSurface.withValues(alpha: 0.12),
+              ),
+            ),
+          ),
+          // The label carries the row's top padding itself (so it centres on the
+          // button, whose tap target absorbs the same padding).
+          Row(
+            children: [
+              Expanded(
+                child: Padding(
+                  padding: EdgeInsets.only(top: s.topPadding),
+                  child: uri == null
+                      ? label
+                      : Semantics(
+                          container: true,
+                          link: true,
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () =>
+                                scope.dispatch(context, ExternalUrl(uri)),
+                            child: label,
+                          ),
+                        ),
+                ),
+              ),
+              if (uri != null) _copyButton(theme),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// The 28px copy tile. The hit area also covers the row's top padding and the
+  /// label gap (transparent padding inside the tap target), so the look stays
+  /// 1:1 while the target grows.
+  Widget _copyButton(NeoSduiTheme theme) {
+    final s = theme.linkRow;
+    final color = _copied ? theme.accent : (s.iconColor ?? theme.textMuted);
+    final glyph = _copied
+        ? (s.checkGlyph ?? (size, c) => NeoCheckIcon(size: size, color: c))
+        : (s.copyGlyph ?? (size, c) => NeoCopyIcon(size: size, color: c));
+    return Semantics(
+      container: true,
+      button: true,
+      liveRegion: _copied,
+      label: _copied ? 'Link copied' : 'Copy link',
+      excludeSemantics: true,
+      child: PressScale(
+        onTap: _copy,
+        scale: 0.9,
+        child: Padding(
+          padding: EdgeInsets.only(top: s.topPadding, left: s.gap),
+          child: Container(
+            width: s.copySize,
+            height: s.copySize,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              borderRadius: theme.radiusSm,
+              color: s.fill ?? theme.onSurface.withValues(alpha: 0.03),
+              border: Border.all(
+                color: s.border ?? theme.onSurface.withValues(alpha: 0.08),
+              ),
+            ),
+            child: glyph(15, color),
+          ),
+        ),
+      ),
     );
   }
 }

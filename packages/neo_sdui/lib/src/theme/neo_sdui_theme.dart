@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart' show Icons;
 import 'package:flutter/widgets.dart';
 
+import 'neo_sdui_styles.dart';
+
 /// Default named-icon glyphs. The wire names a role ("download"); this resolves
 /// it to a glyph. A client swaps its own set (its AppIcons); an unmapped name
 /// falls back to a package-drawn glyph ([kDrawnIcons]) or draws nothing —
@@ -14,11 +16,17 @@ const Map<String, IconData> kDefaultIcons = {
   'chat': Icons.chat_bubble_outline,
 };
 
+/// A theme-supplied icon glyph: paints the wire icon name it is keyed under at
+/// [size] in the resolved tone [color]. Lets an app draw icons a font
+/// [IconData] cannot (an SVG string, a custom painter) without the package
+/// taking a dependency on how it is drawn.
+typedef NeoGlyphBuilder = Widget Function(double size, Color color);
+
 /// Wire icon names the package paints itself (a `CustomPaint` glyph in
 /// `_icon.dart`) rather than resolving to a font [IconData] — the figma brand
 /// marks a Material glyph can't match. `sparkle` is the two-pointed NeoSapien
 /// star; `export` is the figma up-arrow-out-of-a-tray (a share-sheet `ios_share`
-/// glyph read wrong). A theme's `icons.<name>` entry still wins (an app override beats the
+/// glyph read wrong). A theme's `glyphs.<name>` / `icons.<name>` entry still wins (an app override beats the
 /// drawn default); absent that, [leadingIcon] paints these. Exported so the
 /// role-drift lint counts them as resolvable, same as [kDefaultIcons].
 const Set<String> kDrawnIcons = {'sparkle', 'export'};
@@ -106,6 +114,26 @@ class NeoSduiTheme {
     this.titleGradient,
     this.accents = const {},
     this.icons = kDefaultIcons,
+    this.glyphs = const {},
+    this.tabs = const NeoTabsStyle(),
+    this.card = const NeoCardStyle(),
+    this.group = const NeoGroupStyle(),
+    this.steps = const NeoStepsStyle(),
+    this.callout = const NeoCalloutStyle(),
+    this.faq = const NeoFaqStyle(),
+    this.header = const NeoHeaderStyle(),
+    this.accordion = const NeoAccordionStyle(),
+    this.linkRow = const NeoLinkRowStyle(),
+    this.code = const NeoCodeStyle(),
+    this.sectionSpacing,
+    this.viewPadding,
+    this.rowTitle,
+    this.panelTitle,
+    this.strong,
+    this.paragraph,
+    this.footnote,
+    this.subheading,
+    this.backgroundOverlay,
   });
 
   // Role colors.
@@ -279,6 +307,74 @@ class NeoSduiTheme {
   /// swaps its own set; an unmapped name resolves to null and no icon is drawn.
   final Map<String, IconData> icons;
 
+  /// Named-icon → glyph *builder* map; wins over [icons] and [kDrawnIcons] for
+  /// the same name. Client-owned, empty by default.
+  final Map<String, NeoGlyphBuilder> glyphs;
+
+  // Per-block component styles: each defaults to its block's current look and
+  // nothing paints from them until the block reads its style.
+  final NeoTabsStyle tabs;
+  final NeoCardStyle card;
+  final NeoGroupStyle group;
+  final NeoStepsStyle steps;
+  final NeoCalloutStyle callout;
+  final NeoFaqStyle faq;
+  final NeoHeaderStyle header;
+  final NeoAccordionStyle accordion;
+  final NeoLinkRowStyle linkRow;
+  final NeoCodeStyle code;
+
+  /// Gap between top-level blocks. Null -> [blockSpacing].
+  final double? sectionSpacing;
+
+  /// Padding around the scrolling block list, on top of [contentPadding]. Null
+  /// -> `blockSpacing` above and below.
+  final EdgeInsets? viewPadding;
+
+  /// Picker, list-row and use-case titles. Null -> `body` at weight 500 in
+  /// `onSurface`.
+  final TextStyle? rowTitle;
+
+  /// Callout, FAQ and accordion titles. Null -> `body` at weight 500.
+  final TextStyle? panelTitle;
+
+  /// The emphasis (w500) face of the body family. A google_fonts style names the
+  /// font *file* of the one weight it was built with (`WorkSans_regular`), so a
+  /// later `copyWith(fontWeight: w500)` keeps the regular file; this style
+  /// carries the w500 file's family so [emphasize] can borrow it. Null -> a plain
+  /// weight change (right for a system or variable font).
+  final TextStyle? strong;
+
+  /// The `text` block's default style. Null -> `body`.
+  final TextStyle? paragraph;
+
+  /// The `text` block's footnote variant. Null -> `caption` in `textMuted`.
+  final TextStyle? footnote;
+
+  /// A header inside a tab panel. Null -> [title].
+  final TextStyle? subheading;
+
+  /// Painted over the backdrop, under the content. Null -> nothing.
+  final WidgetBuilder? backgroundOverlay;
+
+  double get resolvedSectionSpacing => sectionSpacing ?? blockSpacing;
+  EdgeInsets get resolvedViewPadding =>
+      viewPadding ?? EdgeInsets.symmetric(vertical: blockSpacing);
+  /// [style] at the emphasis weight (w500): the [strong] role's font file when the
+  /// theme sets one, else the weight alone.
+  TextStyle emphasize(TextStyle style) => style.copyWith(
+        fontWeight: FontWeight.w500,
+        fontFamily: strong?.fontFamily,
+        fontFamilyFallback: strong?.fontFamilyFallback,
+      );
+  TextStyle get resolvedRowTitle =>
+      rowTitle ?? emphasize(body).copyWith(color: onSurface);
+  TextStyle get resolvedPanelTitle => panelTitle ?? emphasize(body);
+  TextStyle get resolvedParagraph => paragraph ?? body;
+  TextStyle get resolvedFootnote =>
+      footnote ?? caption.copyWith(color: textMuted);
+  TextStyle get resolvedSubheading => subheading ?? title;
+
   // Derivation (KTD11): wire sends emphasis/tone, these turn it into pixels.
 
   /// The glyph for a wire icon name, or null when unnamed/unmapped (draw nothing).
@@ -427,6 +523,26 @@ class NeoSduiTheme {
     Gradient? titleGradient,
     Map<String, NeoAccent>? accents,
     Map<String, IconData>? icons,
+    Map<String, NeoGlyphBuilder>? glyphs,
+    NeoTabsStyle? tabs,
+    NeoCardStyle? card,
+    NeoGroupStyle? group,
+    NeoStepsStyle? steps,
+    NeoCalloutStyle? callout,
+    NeoFaqStyle? faq,
+    NeoHeaderStyle? header,
+    NeoAccordionStyle? accordion,
+    NeoLinkRowStyle? linkRow,
+    NeoCodeStyle? code,
+    double? sectionSpacing,
+    EdgeInsets? viewPadding,
+    TextStyle? rowTitle,
+    TextStyle? panelTitle,
+    TextStyle? strong,
+    TextStyle? paragraph,
+    TextStyle? footnote,
+    TextStyle? subheading,
+    WidgetBuilder? backgroundOverlay,
   }) {
     return NeoSduiTheme(
       accent: accent ?? this.accent,
@@ -478,6 +594,26 @@ class NeoSduiTheme {
       titleGradient: titleGradient ?? this.titleGradient,
       accents: accents ?? this.accents,
       icons: icons ?? this.icons,
+      glyphs: glyphs ?? this.glyphs,
+      tabs: tabs ?? this.tabs,
+      card: card ?? this.card,
+      group: group ?? this.group,
+      steps: steps ?? this.steps,
+      callout: callout ?? this.callout,
+      faq: faq ?? this.faq,
+      header: header ?? this.header,
+      accordion: accordion ?? this.accordion,
+      linkRow: linkRow ?? this.linkRow,
+      code: code ?? this.code,
+      sectionSpacing: sectionSpacing ?? this.sectionSpacing,
+      viewPadding: viewPadding ?? this.viewPadding,
+      rowTitle: rowTitle ?? this.rowTitle,
+      panelTitle: panelTitle ?? this.panelTitle,
+      strong: strong ?? this.strong,
+      paragraph: paragraph ?? this.paragraph,
+      footnote: footnote ?? this.footnote,
+      subheading: subheading ?? this.subheading,
+      backgroundOverlay: backgroundOverlay ?? this.backgroundOverlay,
     );
   }
 }

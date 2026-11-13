@@ -7,16 +7,20 @@ import '../theme/neo_sdui_theme.dart';
 /// carries only the icon *name* (e.g. `"sparkle"`); the glyph, size and tone
 /// color are the theme's (KTD9). `tone` tints it via [NeoSduiTheme.toneColor] —
 /// accent → the accent green, critical → danger, else onSurface. Resolution is:
-/// a theme `icons.<name>` glyph first (an app's own AppIcons override wins),
-/// then a package-drawn glyph ([kDrawnIcons], e.g. the brand `sparkle`), else
-/// null.
+/// a theme `glyphs.<name>` builder first, then a theme `icons.<name>` glyph (an
+/// app's own AppIcons override wins), then a package-drawn glyph
+/// ([kDrawnIcons], e.g. the brand `sparkle`), else null. A non-null [color]
+/// overrides the tone's colour (the glyph builders receive it too).
 Widget? leadingIcon(
   NeoSduiTheme theme,
   String? name,
   String? tone, {
   double size = 16,
+  Color? color,
 }) {
-  final color = theme.toneColor(tone);
+  color ??= theme.toneColor(tone);
+  final glyph = name == null ? null : theme.glyphs[name];
+  if (glyph != null) return glyph(size, color);
   final data = theme.iconFor(name);
   if (data != null) return Icon(data, size: size, color: color);
   if (name != null && kDrawnIcons.contains(name)) {
@@ -168,4 +172,97 @@ class _ExportPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_ExportPainter old) => old.color != color;
+}
+
+/// Stroked package defaults, drawn in the sparkle's style for the accordion and
+/// copy-link row. Not wired to a wire icon name: reach them as widgets. Authored
+/// in a 16-unit box, scaled to [size], stroked in [color] with round caps.
+class _StrokeIcon extends StatelessWidget {
+  const _StrokeIcon(this.iconKey, this.draw, this.size, this.color, {super.key});
+
+  final String iconKey;
+  final void Function(Canvas canvas, Paint paint) draw;
+  final double size;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) => CustomPaint(
+        key: Key(iconKey),
+        size: Size.square(size),
+        painter: _StrokePainter(draw, color),
+      );
+}
+
+class _StrokePainter extends CustomPainter {
+  const _StrokePainter(this.draw, this.color);
+
+  final void Function(Canvas canvas, Paint paint) draw;
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final s = size.width / 16;
+    canvas.scale(s);
+    draw(
+      canvas,
+      Paint()
+        ..color = color
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round
+        ..isAntiAlias = true,
+    );
+  }
+
+  // The draw callbacks are top-level constants, so identity + colour is enough.
+  @override
+  bool shouldRepaint(_StrokePainter old) =>
+      old.color != color || old.draw != draw;
+}
+
+void _drawChevronDown(Canvas c, Paint p) => c.drawPath(
+    Path()
+      ..moveTo(3.5, 6)
+      ..lineTo(8, 10.5)
+      ..lineTo(12.5, 6),
+    p);
+
+void _drawCopy(Canvas c, Paint p) {
+  c.drawPath(
+      Path()..addRRect(RRect.fromLTRBR(5.5, 5.5, 13, 13, const Radius.circular(2))),
+      p);
+  c.drawPath(
+      Path()
+        ..moveTo(10.5, 3.5)
+        ..lineTo(5, 3.5)
+        ..arcToPoint(const Offset(3, 5.5),
+            radius: const Radius.circular(2), clockwise: false)
+        ..lineTo(3, 11),
+      p);
+}
+
+void _drawCheck(Canvas c, Paint p) => c.drawPath(
+    Path()
+      ..moveTo(3, 8.5)
+      ..lineTo(6.5, 12)
+      ..lineTo(13, 4.5),
+    p);
+
+/// A downward chevron (accordion expand marker).
+class NeoChevronDownIcon extends _StrokeIcon {
+  const NeoChevronDownIcon({required double size, required Color color, super.key})
+      : super('icon-chevron-down', _drawChevronDown, size, color);
+}
+
+/// Two overlapping rounded squares (copy to clipboard).
+class NeoCopyIcon extends _StrokeIcon {
+  const NeoCopyIcon({required double size, required Color color, super.key})
+      : super('icon-copy', _drawCopy, size, color);
+}
+
+/// A plain check mark (copied confirmation).
+class NeoCheckIcon extends _StrokeIcon {
+  const NeoCheckIcon({required double size, required Color color, super.key})
+      : super('icon-check', _drawCheck, size, color);
 }

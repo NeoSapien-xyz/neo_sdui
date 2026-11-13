@@ -312,6 +312,90 @@ void main() {
     expect(RoleLedger.fromJson({'imports': ['ok', 7]}).imports, ['ok']);
   });
 
+  group('emitting straight into an app file', () {
+    Reconciled twoPages() => (RoleLedger()
+          ..observe(_color('accent', '0xFF00F1A0', 'a'))
+          ..observe(_color('accent', '0xFF00F1A0', 'b'))
+          ..observe(_color('accent', '0xFFFF0000', 'c')))
+        .reconcile();
+
+    test('a named emit declares that variable and overrides copy from it', () {
+      final src = emitTheme(twoPages(), name: 'mcpGuideTheme');
+      expect(src,
+          contains('final mcpGuideTheme = NeoSduiTheme.fallback().copyWith('));
+      expect(src, contains('= mcpGuideTheme.copyWith('));
+      expect(src, isNot(contains('final base =')));
+    });
+
+    test('the default emit still declares base', () {
+      expect(emitTheme(twoPages()),
+          contains('final base = NeoSduiTheme.fallback().copyWith('));
+    });
+
+    test('the emit carries the lint suppressions the app file needs', () {
+      expect(
+          emitTheme(twoPages()).split('\n'),
+          contains('// ignore_for_file: prefer_const_constructors, '
+              'avoid_redundant_argument_values'));
+    });
+
+    test('a fresh emit verifies its own checksum', () {
+      expect(themeChecksumMatches(emitTheme(twoPages())), isTrue);
+    });
+
+    test('a one-character edit to the body breaks the checksum', () {
+      final src = emitTheme(twoPages());
+      expect(themeChecksumMatches(src.replaceFirst('0xFF00F1A0', '0xFF00F1A1')),
+          isFalse);
+    });
+
+    test('the checksum ignores the header comments themselves', () {
+      final src = emitTheme(twoPages());
+      final retitled = src.replaceFirst(
+          RegExp(r'^// Generated[^\n]*'), '// Generated, reworded header');
+      expect(retitled, isNot(src));
+      expect(themeChecksumMatches(retitled), isTrue);
+    });
+
+    test('the checksum line is 16 lowercase hex digits', () {
+      final line = emitTheme(twoPages())
+          .split('\n')
+          .firstWhere((l) => l.startsWith('// checksum:'));
+      expect(line, matches(RegExp(r'^// checksum: fnv1a64:[0-9a-f]{16}$')));
+    });
+
+    test('a source with no checksum line does not verify', () {
+      expect(themeChecksumMatches("import 'x.dart';\n"), isFalse);
+    });
+
+    test('drift check passes on an identical file and names the first change',
+        () {
+      final src = emitTheme(twoPages());
+      expect(themeSourceDrift(expected: src, actual: src), isNull);
+      final edited = src.replaceFirst('0xFF00F1A0', '0xFF00F1A1');
+      final drift = themeSourceDrift(expected: src, actual: edited);
+      expect(drift, isNotNull);
+      expect(drift, contains('0xFF00F1A1'));
+    });
+  });
+
+  test('the coverage report names each role\'s source and flags unsourced ones',
+      () {
+    final r = (RoleLedger()
+          ..observe(const Observation(
+              roleKey: 'accent',
+              value: '0xFF00F1A0',
+              page: 'home',
+              provenance: Provenance.measured,
+              kind: ValueKind.color,
+              source: 'neo-mcp-guide@55caf81:css/styles.css:16'))
+          ..observe(_color('surface', '0xFF202423', 'home')))
+        .reconcile();
+    final report = coverageReport(r);
+    expect(report, contains('accent <- neo-mcp-guide@55caf81:css/styles.css:16'));
+    expect(report, contains('Unsourced: surface'));
+  });
+
   test('a todo-provenance role is flagged on a standalone TODO(theme) line', () {
     final r = (RoleLedger()
           ..observe(const Observation(
@@ -327,5 +411,119 @@ void main() {
     expect(todoLines, isNotEmpty);
     expect(todoLines.every((l) => l.trimLeft().startsWith('// TODO(theme):')),
         isTrue);
+  });
+
+  test('a glyphs.<name> observation emits inside a glyphs map', () {
+    final r = (RoleLedger()
+          ..observe(const Observation(
+              roleKey: 'glyphs.help',
+              value: '(s, c) => const SizedBox()',
+              page: 'home',
+              provenance: Provenance.measured,
+              kind: ValueKind.other)))
+        .reconcile();
+    final src = emitTheme(r);
+    expect(src, contains('glyphs: {'));
+    expect(src, contains("'help': (s, c) => const SizedBox(),"));
+    expect(src, isNot(contains('TODO(theme): unsupported role glyphs')));
+  });
+
+  group('component style groups', () {
+    Observation obs(String role, String value, ValueKind kind,
+            [String page = 'home']) =>
+        Observation(
+            roleKey: role,
+            value: value,
+            page: page,
+            provenance: Provenance.measured,
+            kind: kind);
+
+    test('dotted keys group into one style constructor call', () {
+      final r = (RoleLedger()
+            ..observe(obs('tabs.trackColor', '0xE6101211', ValueKind.color))
+            ..observe(obs('tabs.gap', '4', ValueKind.number)))
+          .reconcile();
+      final src = emitTheme(r);
+
+      expect('NeoTabsStyle('.allMatches(src), hasLength(1));
+      final start = src.indexOf('tabs: NeoTabsStyle(');
+      final call = src.substring(start, src.indexOf('\n  ),', start));
+      expect(call, contains('trackColor: Color(0xE6101211)'));
+      expect(call, contains('gap: 4'));
+      expect(src, isNot(contains('unsupported')));
+    });
+
+    test('a kind-mismatched dotted value is skipped and flagged', () {
+      final r = (RoleLedger()
+            ..observe(obs('tabs.gap', '0xFF000000', ValueKind.color)))
+          .reconcile();
+      final src = emitTheme(r);
+
+      expect(src, isNot(contains('NeoTabsStyle(')));
+      expect(src, contains('unresolved tabs.gap'));
+    });
+
+    test('a dotted key in a page override emits an unsupported TODO', () {
+      final r = (RoleLedger()
+            ..observe(obs('accent', '0xFF00F1A0', ValueKind.color, 'a'))
+            ..observe(obs('accent', '0xFF00F1A0', ValueKind.color, 'b'))
+            ..observe(obs('tabs.gap', '4', ValueKind.number, 'a'))
+            ..observe(obs('tabs.gap', '4', ValueKind.number, 'b'))
+            ..observe(obs('tabs.gap', '8', ValueKind.number, 'odd')))
+          .reconcile();
+      final src = emitTheme(r);
+
+      final override = src.substring(src.indexOf('final odd = base.copyWith('));
+      expect(override, isNot(contains('NeoTabsStyle(')));
+      expect(override, contains('TODO(theme): unsupported'));
+      expect(override, contains('tabs.gap'));
+    });
+  });
+
+  group('review fixes', () {
+    Observation obs(String role, String value, ValueKind kind,
+            [String page = 'home']) =>
+        Observation(
+            roleKey: role,
+            value: value,
+            page: page,
+            provenance: Provenance.measured,
+            kind: kind);
+
+    test('an int-typed slot takes only an int value', () {
+      final bad = emitTheme((RoleLedger()
+            ..observe(obs('tabs.labelMaxLines', '2.0', ValueKind.number)))
+          .reconcile());
+      expect(bad, isNot(contains('labelMaxLines:')));
+      expect(bad, contains('unresolved tabs.labelMaxLines'));
+
+      final ok = emitTheme((RoleLedger()
+            ..observe(obs('tabs.labelMaxLines', '2', ValueKind.number)))
+          .reconcile());
+      expect(ok, contains('labelMaxLines: 2,'));
+    });
+
+    test('a glyph value that is not a builder literal is skipped and flagged',
+        () {
+      final src = emitTheme((RoleLedger()
+            ..observe(obs('glyphs.help', '0xFF000000', ValueKind.color)))
+          .reconcile());
+      expect(src, isNot(contains("'help':")));
+      expect(src, contains('unresolved glyphs.help'));
+    });
+
+    test('an unregistered dotted key in an override is an unsupported role', () {
+      final r = (RoleLedger()
+            ..observe(obs('accent', '0xFF00F1A0', ValueKind.color, 'a'))
+            ..observe(obs('accent', '0xFF00F1A0', ValueKind.color, 'b'))
+            ..observe(obs('tabs.gapp', '4', ValueKind.number, 'a'))
+            ..observe(obs('tabs.gapp', '4', ValueKind.number, 'b'))
+            ..observe(obs('tabs.gapp', '8', ValueKind.number, 'odd')))
+          .reconcile();
+      final src = emitTheme(r);
+      final override = src.substring(src.indexOf('final odd = base.copyWith('));
+      expect(override, contains('unsupported role(s) tabs.gapp'));
+      expect(override, isNot(contains('no copyWith')));
+    });
   });
 }
