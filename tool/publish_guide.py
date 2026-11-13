@@ -59,7 +59,8 @@ def main():
     with open(TEMPLATE, encoding='utf-8') as f:
         tpl = json.load(f)
 
-    params = tpl.get('parameters') or {}
+    # Bind to the template's own dict (create it if absent) so --create lands in what deploys.
+    params = tpl['parameters'] = tpl.get('parameters') or {}
     created = False
     if args.param not in params and args.create:
         # Clone guide_mcp's type and description so the new key looks like its sibling.
@@ -69,7 +70,8 @@ def main():
         created = True
     if args.param not in params:
         sys.exit(f'{args.param!r} is not in the live {args.alias} template — refusing to '
-                 f'create it (a typo here would publish a dead parameter).\n'
+                 f'create it (a typo here would publish a dead parameter; '
+                 f'pass --create to add it on purpose).\n'
                  f'present: {", ".join(sorted(params))}')
 
     before_count = len(params) - created
