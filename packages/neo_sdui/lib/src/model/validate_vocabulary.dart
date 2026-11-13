@@ -124,10 +124,23 @@ void _checkBlock(Object? block, String path, List<WireVocabIssue> out) {
         if (it is! Map) continue;
         _checkChildList(it['blocks'], '$path.items[$i].blocks', out);
         final link = it['link'];
-        if (link != null && !(link is Map && _str(link, 'url'))) {
+        if (link != null && !(link is Map && _webUrl(link['url']))) {
           out.add(WireVocabIssue('$path.items[$i].link',
-              '`link` needs a `url`; the step renders without a link row',
+              '`link` needs an http(s) `url`; the step renders without a link row',
               WireIssueSeverity.warn));
+        }
+        // An inline caption run's `link` (the PWA's `<a>`) must be http(s) too,
+        // or it renders as plain, untappable text.
+        final cap = it['caption'];
+        if (cap is List) {
+          for (var j = 0; j < cap.length; j++) {
+            final r = cap[j];
+            if (r is Map && r.containsKey('link') && !_webUrl(r['link'])) {
+              out.add(WireVocabIssue('$path.items[$i].caption[$j].link',
+                  'run `link` needs an http(s) url; the run renders untappable',
+                  WireIssueSeverity.warn));
+            }
+          }
         }
       }
     }
@@ -219,3 +232,11 @@ bool _text(Map m, String k) =>
     (m[k] is List && (m[k] as List).isNotEmpty);
 
 bool _nonEmptyList(Map m, String k) => m[k] is List && (m[k] as List).isNotEmpty;
+
+/// An http/https URL with a host — the only links the renderer makes tappable.
+bool _webUrl(Object? v) {
+  final uri = v is String ? Uri.tryParse(v) : null;
+  return uri != null &&
+      (uri.scheme == 'http' || uri.scheme == 'https') &&
+      uri.host.isNotEmpty;
+}

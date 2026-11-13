@@ -1,5 +1,8 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 
+import '../action/neo_action.dart';
+import '../theme/neo_sdui_scope.dart';
 import '../theme/neo_sdui_theme.dart';
 
 /// Renders a wire text value as themed text, painting accent-tagged text with
@@ -25,6 +28,10 @@ import '../theme/neo_sdui_theme.dart';
 /// samples only the left of the gradient and ends brighter, matching figma's
 /// full-width `flex-1` gradient element (the use-case row titles). Inline
 /// (mixed-run) gradients ignore it; they stay atomic per run.
+///
+/// A run may carry `"link": "https://…"` (the PWA's inline `<a>`): it renders
+/// underlined in its own color and opens the URL through the scope's dispatch.
+/// Only http/https links with a host are tappable; anything else stays plain.
 Widget neoText(
   NeoSduiTheme theme,
   Object? value,
@@ -33,6 +40,9 @@ Widget neoText(
   bool stretch = false,
 }) {
   final runs = _parseRuns(value);
+  if (runs.any((r) => r.link != null)) {
+    return _LinkedRuns(runs: runs, style: style, tone: tone);
+  }
   // A mono run rides the theme's `mono` slot, never accent/gradient text, so it's
   // excluded from accent resolution.
   NeoAccent? accentOf(_Run r) => r.mono ? null : theme.accentFor(r.tone ?? tone);
@@ -143,9 +153,86 @@ TextStyle _monoStyle(NeoSduiTheme theme, String? tone) {
 TextStyle _flat(NeoSduiTheme theme, TextStyle style, String? tone, NeoAccent accent) =>
     (tone == 'strong' ? theme.emphasize(style) : style).copyWith(color: accent.color);
 
+/// A run line with at least one inline link. Stateful only to own (and dispose)
+/// one [TapGestureRecognizer] per link. Non-link runs keep their mono / flat
+/// accent styling; a gradient run here renders flat (its role color), since a
+/// shaded WidgetSpan can't share the line's tap targets.
+class _LinkedRuns extends StatefulWidget {
+  const _LinkedRuns({required this.runs, required this.style, this.tone});
+  final List<_Run> runs;
+  final TextStyle style;
+  final String? tone;
+
+  @override
+  State<_LinkedRuns> createState() => _LinkedRunsState();
+}
+
+class _LinkedRunsState extends State<_LinkedRuns> {
+  final List<TapGestureRecognizer> _recognizers = [];
+
+  void _clear() {
+    for (final r in _recognizers) {
+      r.dispose();
+    }
+    _recognizers.clear();
+  }
+
+  @override
+  void dispose() {
+    _clear();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    _clear();
+    final scope = NeoSduiScope.of(context);
+    final theme = scope.theme;
+    final style = widget.style;
+    TextStyle runStyle(_Run r) {
+      if (r.mono) return _monoStyle(theme, r.tone ?? widget.tone);
+      final a = theme.accentFor(r.tone ?? widget.tone);
+      return a == null ? style : _flat(theme, style, r.tone ?? widget.tone, a);
+    }
+
+    final spans = <InlineSpan>[];
+    for (final r in widget.runs) {
+      final rs = runStyle(r);
+      if (r.link == null) {
+        spans.add(TextSpan(text: r.text, style: rs));
+        continue;
+      }
+      final rec = TapGestureRecognizer()
+        ..onTap = () => scope.dispatch(context, ExternalUrl(r.link!));
+      _recognizers.add(rec);
+      spans.add(TextSpan(
+        text: r.text,
+        style: rs.copyWith(
+            decoration: TextDecoration.underline, decorationColor: rs.color),
+        recognizer: rec,
+      ));
+    }
+    return Text.rich(TextSpan(style: style, children: spans));
+  }
+}
+
+/// [raw] as a tappable web link: http/https with a host, else null.
+Uri? _webLink(Object? raw) {
+  if (raw is! String) return null;
+  final uri = Uri.tryParse(raw);
+  return uri != null &&
+          (uri.scheme == 'http' || uri.scheme == 'https') &&
+          uri.host.isNotEmpty
+      ? uri
+      : null;
+}
+
 class _Run {
-  const _Run(this.text, this.tone, {this.mono = false});
+  const _Run(this.text, this.tone, {this.mono = false, this.link});
   final String text;
+
+  /// Inline link target (http/https only; validated at parse).
+  final Uri? link;
 
   /// The run's own tone name (e.g. `"accent"`, `"brand"`), or null to inherit
   /// the block-level tone. The theme resolves the name to a [NeoAccent].
@@ -172,7 +259,8 @@ List<_Run> _parseRuns(Object? value) {
         else if (e is Map)
           _Run(e['text'] is String ? e['text'] as String : '',
               e['tone'] is String ? e['tone'] as String : null,
-              mono: e['mono'] == true),
+              mono: e['mono'] == true,
+              link: _webLink(e['link'])),
     ];
   }
   return const [];
