@@ -199,6 +199,25 @@ void main() {
       expect(ledger.malformedObservations, 2);
     });
 
+    test('an explicit null source loads like an absent one', () {
+      final ledger = RoleLedger.fromJson({
+        'version': 1,
+        'observations': [
+          {
+            'roleKey': 'accent',
+            'value': '0xFF00F1A0',
+            'page': 'home',
+            'provenance': 'variable',
+            'kind': 'color',
+            'source': null,
+          },
+        ],
+        'roleUsage': <String, Object?>{},
+      });
+      expect(ledger.malformedObservations, 0);
+      expect(ledger.observations.single.source, isNull);
+    });
+
     test('a clean load reports zero malformed observations', () {
       final restored = RoleLedger.fromJson(jsonDecode(jsonEncode(
           (RoleLedger()..observe(_c('accent', '0xFF00F1A0', 'home')))

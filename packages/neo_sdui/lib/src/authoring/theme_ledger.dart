@@ -335,7 +335,7 @@ class RoleLedger {
             m['page'] is! String ||
             !Provenance.values.asNameMap().containsKey(m['provenance']) ||
             !ValueKind.values.asNameMap().containsKey(m['kind']) ||
-            (m.containsKey('source') && m['source'] is! String)) {
+            (m['source'] != null && m['source'] is! String)) {
           dropped++;
           continue;
         }

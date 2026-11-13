@@ -12,7 +12,7 @@ line has moved, grep the expression.
 
 - [The wire does not decide the look](#the-wire-does-not-decide-the-look) — read first
 - [Document shape](#document-shape)
-- [The 15 core block types](#the-14-core-block-types-allowlist)
+- [The 15 core block types](#the-15-core-block-types-allowlist)
 - [Fields, per block](#fields-per-block)
 - [The trigger index](#the-trigger-index) — every look that is **not** a plain wire field
 - [Silently dead inputs](#silently-dead-inputs)

@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:neo_sdui/neo_sdui.dart';
 
 Future<void> _pump(WidgetTester tester, NeoSduiTheme theme,
-        {String tone = 'accent'}) =>
+        {String tone = 'accent', List<String> bullets = const ['first', 'second']}) =>
     tester.pumpWidget(
       Directionality(
         textDirection: TextDirection.ltr,
@@ -21,7 +21,7 @@ Future<void> _pump(WidgetTester tester, NeoSduiTheme theme,
                       'type': 'callout',
                       'tone': tone,
                       'title': 'Title',
-                      'bullets': ['first', 'second'],
+                      'bullets': bullets,
                     },
                   ],
                 }),
@@ -159,5 +159,44 @@ void main() {
       _bulletColor(tester, 'first'),
       base.textPrimary.withValues(alpha: 0.7),
     );
+  });
+
+  group('list spacing', () {
+    const pwaList = NeoCalloutStyle(
+      bulletGap: 0,
+      listInset: 13,
+      bulletIndent: 40,
+      bulletDotGap: 14.5,
+    );
+    final base = NeoSduiTheme.fallback();
+    final pwa = base.copyWith(callout: pwaList);
+
+    Future<Offset> topLeftOf(WidgetTester tester, NeoSduiTheme theme,
+        String text, {List<String> bullets = const ['first', 'second']}) async {
+      await _pump(tester, theme, bullets: bullets);
+      return tester.getTopLeft(find.text(text)) -
+          tester.getTopLeft(find.text('Title'));
+    }
+
+    testWidgets('a dotted list is inset, indented and packed tight', (
+      tester,
+    ) async {
+      final first0 = await topLeftOf(tester, base, 'first');
+      final second0 = await topLeftOf(tester, base, 'second');
+      final first = await topLeftOf(tester, pwa, 'first');
+      final second = await topLeftOf(tester, pwa, 'second');
+      // listInset opens the gap under the title; bulletIndent moves the text.
+      expect(first.dy - first0.dy, closeTo(13, 0.01));
+      expect(first.dx - first0.dx, closeTo(40 - 11, 0.01));
+      // bulletGap 0 (default 4) packs the second line 4 closer.
+      expect((second.dy - first.dy) - (second0.dy - first0.dy),
+          closeTo(-4, 0.01));
+    });
+
+    testWidgets('a lone dotless line takes no list inset', (tester) async {
+      final lone0 = await topLeftOf(tester, base, 'only', bullets: ['only']);
+      final lone = await topLeftOf(tester, pwa, 'only', bullets: ['only']);
+      expect(lone, lone0);
+    });
   });
 }
