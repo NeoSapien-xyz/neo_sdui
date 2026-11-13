@@ -7,7 +7,7 @@ live counterpart. This script never keeps one: it re-pulls the live template on
 every run and edits exactly one parameter, so the blast radius is that parameter
 and nothing else. `remoteconfig.template.json` is regenerated scratch, gitignored.
 
-    tool/publish_guide.py dev                    # publish mcp_alpha.json -> guide_mcp
+    tool/publish_guide.py dev                    # publish mcp_alpha.json -> guide_mcp_v2 (old builds keep guide_mcp)
     tool/publish_guide.py dev --dry-run          # pull + diff, publish nothing
     tool/publish_guide.py prod --yes             # prod requires the explicit flag
 """
@@ -36,7 +36,7 @@ def main():
     ap.add_argument('alias', choices=['dev', 'prod'], help='the .firebaserc project alias')
     ap.add_argument('--wire', default='deliverables/mcp/mcp_alpha.json',
                     help='wire JSON to publish (default: %(default)s)')
-    ap.add_argument('--param', default='guide_mcp',
+    ap.add_argument('--param', default='guide_mcp_v2',
                     help='Remote Config parameter to overwrite (default: %(default)s)')
     ap.add_argument('--dry-run', action='store_true', help='pull and diff, but do not publish')
     ap.add_argument('--yes', action='store_true', help='required to publish to prod')
