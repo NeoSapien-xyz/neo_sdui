@@ -714,7 +714,7 @@
                   "type": "steps",
                   "items": [
                     {
-                      "caption": "Open the ChatGPT Desktop App on your laptop chatgpt.com/download",
+                      "caption": ["Open the ChatGPT Desktop App on your laptop ", {"text": "chatgpt.com/download", "link": "https://chatgpt.com/download"}],
                       "image": "https://cdn.neosapien.xyz/neo/mcp/assets/chatgpt/desktop-0.png",
                       "ratio": 2.797
                     },
@@ -769,7 +769,7 @@
                       "type": "steps",
                       "items": [
                         {
-                          "caption": "Open the ChatGPT Desktop App on your laptop chatgpt.com/download"
+                          "caption": ["Open the ChatGPT Desktop App on your laptop ", {"text": "chatgpt.com/download", "link": "https://chatgpt.com/download"}]
                         },
                         {
                           "caption": "Click your profile picture",
@@ -979,7 +979,7 @@
                         "type": "steps",
                         "items": [
                           {
-                            "caption": "Open the ChatGPT Desktop App on your laptop chatgpt.com/download"
+                            "caption": ["Open the ChatGPT Desktop App on your laptop ", {"text": "chatgpt.com/download", "link": "https://chatgpt.com/download"}]
                           },
                           {
                             "caption": "Click your profile picture",
@@ -1220,7 +1220,7 @@
                   "type": "steps",
                   "items": [
                     {
-                      "caption": "Download and open Claude Desktop App from claude.ai/download",
+                      "caption": ["Download and open Claude Desktop App from ", {"text": "claude.ai/download", "link": "https://claude.ai/download"}],
                       "image": "https://cdn.neosapien.xyz/neo/mcp/assets/claude/web-0-v2.png",
                       "ratio": 2.797
                     },
@@ -1811,7 +1811,7 @@
                       "type": "steps",
                       "items": [
                         {
-                          "caption": "Download and open Claude Desktop App from claude.ai/download"
+                          "caption": ["Download and open Claude Desktop App from ", {"text": "claude.ai/download", "link": "https://claude.ai/download"}]
                         },
                         {
                           "caption": "Click Customize in the left sidebar",
@@ -2017,7 +2017,7 @@
                         "type": "steps",
                         "items": [
                           {
-                            "caption": "Download and open Claude Desktop App from claude.ai/download"
+                            "caption": ["Download and open Claude Desktop App from ", {"text": "claude.ai/download", "link": "https://claude.ai/download"}]
                           },
                           {
                             "caption": "Click Customize in the left sidebar",
