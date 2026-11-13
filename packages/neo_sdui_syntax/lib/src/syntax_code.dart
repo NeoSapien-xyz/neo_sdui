@@ -35,16 +35,20 @@ class _SyntaxCode extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = NeoSduiScope.of(context).theme;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (language != null) ...[
-          _LanguageBadge(language: language!),
-          SizedBox(height: theme.spaceSm),
-        ],
-        neoCodeSurface(content,
-            (base) => _highlight(theme, content, language, base)),
-      ],
+    // The badge rides inside the code box (top-left), as before the shared
+    // surface: the body holds badge + highlighted content.
+    return neoCodeSurface(
+      content,
+      (base) => language == null
+          ? _highlight(theme, content, null, base)
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _LanguageBadge(language: language!),
+                SizedBox(height: theme.spaceSm),
+                _highlight(theme, content, language, base),
+              ],
+            ),
     );
   }
 }

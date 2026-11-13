@@ -38,7 +38,7 @@ void main() {
   final addonCode = NeoSdui.compose([neoSduiSyntaxAddon]).registry.builderFor('code')!;
   final coreCode = NeoSdui.compose(const []).registry.builderFor('code')!;
 
-  testWidgets('honours theme.code: fill, single line, copy glyph (no Copy text)',
+  testWidgets('honours theme.code: fill, copy glyph (no Copy text), wraps under it',
       (tester) async {
     const fill = Color(0xFF0B0C0C);
     final theme = NeoSduiTheme.fallback().copyWith(
@@ -83,7 +83,10 @@ void main() {
     final h = tester
         .getSize(find.textContaining('https://api', findRichText: true))
         .height;
-    expect(h, lessThan(25));
+    // An overlaid copy glyph forces wrap even with `wrap: false` (core
+    // code.dart: no part of the command hides behind the button), so the long
+    // URL takes more than one line.
+    expect(h, greaterThan(25));
   });
 
   group('add-on present', () {
@@ -99,6 +102,20 @@ void main() {
       expect(find.byKey(const Key('syntax-language')), findsOneWidget);
       expect(find.text('json'), findsOneWidget);
       expect(find.byKey(const Key('code-copy')), findsOneWidget);
+    });
+
+    testWidgets('language badge sits inside the code box', (tester) async {
+      await _pump(tester, addonCode, _code('ls', language: 'bash'));
+      // The code box is the outermost DecoratedBox around the highlighted text.
+      final box = tester.getRect(find
+          .ancestor(
+              of: find.text('ls', findRichText: true),
+              matching: find.byType(DecoratedBox))
+          .last);
+      final badge = tester.getRect(find.byKey(const Key('syntax-language')));
+      expect(box.contains(badge.topLeft) && box.contains(badge.bottomRight),
+          isTrue,
+          reason: 'badge $badge outside code box $box');
     });
 
     testWidgets('no language -> no badge, still copyable', (tester) async {
